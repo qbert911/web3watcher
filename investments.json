@@ -1,0 +1,14 @@
+[
+  {
+    "person": "ben", "invested": 36300, "date_in":"2020/09/01"
+  },
+  {
+    "person": "maureen", "invested": 3200, "date_in":"2020/09/01"
+  },
+  {
+    "person": "maureen", "invested": 600, "date_in":"2021/01/01"
+  },
+  {
+    "person": "steve", "invested": 2000, "date_in":"2021/01/07"
+  }
+]
