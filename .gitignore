@@ -1,0 +1,17 @@
+__pycache__
+*.py[cod]
+*$py.class
+*.pyc
+*.jpg
+*.json
+!config.json
+!abi_bfcf.json
+!abi_d172.json
+!abi_5f3b.json
+!abi_c7fd.json
+!abi_d061.json
+!abi_7c54.json
+!abi_a540.json
+!abi_a909.json
+!abi_c684.json
+!curvepools.json
