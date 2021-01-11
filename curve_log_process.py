@@ -39,8 +39,8 @@ def show_me(inputs, inpute, update, isprice, invested, newline, myarrayh):
 
     print("\rAt $" + Fore.YELLOW + str(format(USD, '.3f')) + Style.RESET_ALL + " per CRV = ", end='')
     print(Fore.GREEN + Style.BRIGHT + str(format(c, '.2f')) + Style.RESET_ALL + "/" + Fore.CYAN + str(format(c/USD, '.2f')) + Style.RESET_ALL + "% APR", end=' - ')
-    print(usym + str(format(round(365*24*a/b, 4), '.2f')).rjust(7)  + Style.RESET_ALL + "/" + csym + str(format(365*24*a/b/USD, '.2f')).rjust(5) + Style.RESET_ALL + " per year", end=' - ')
-    print(usym + str(format(round(24*a/b, 4), '.2f')).rjust(5) + Style.RESET_ALL + "/" + csym + str(format(24*a/b/USD, '.2f')).rjust(5) + Style.RESET_ALL + " per day", end=' - ')
+    print(usym + str(format(round(365*24*a/b, 4), '.2f')).rjust(7)  + Style.RESET_ALL + "/" + csym + str(format(365*24*a/b/USD, '.2f')).rjust(7) + Style.RESET_ALL + " per year", end=' - ')
+    print(usym + str(format(round(24*a/b, 4), '.2f')).rjust(4) + Style.RESET_ALL + "/" + csym + str(format(24*a/b/USD, '.2f')).rjust(4) + Style.RESET_ALL + " per day", end=' - ')
     print(usym + str(format(round(a/b, 4), '.4f')) + Style.RESET_ALL + "/" + csym + str(format(a/b/USD, '.4f')) + Style.RESET_ALL + " per hour", end=' - ')
     if not update:  #print subtotals
         #print(usym + str(format(round(a, 2), '.2f')).rjust(5) + Style.RESET_ALL + "/" + csym + str(format(a/USD, '.2f')).rjust(5) + Style.RESET_ALL, "profit in", str(round(b)).rjust(3), "hours", end=' - ')
@@ -91,6 +91,6 @@ if __name__ == "__main__":
     print("")
     show_me(-1, 0, 0, update_price(), 1, 1, 0)
     #show_me(-1, -(8*24), 0, update_price(), 1, 1, 0)
-    show_me(-1, -(z*2), 0, update_price(), 1, 1, 0)
-    show_me(-1, -(z*2), 0, update_price(), 2000, 1, 0)
+    show_me(-1, (z*24), 0, update_price(), 1, 1, 0)
+    show_me(-1, (z*24), 0, update_price(), 3200, 1, 0)
     print("    ")

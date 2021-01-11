@@ -230,11 +230,6 @@ def main():
         for i in range(0, len(carray["name"])):
             mydict[carray["name"][i]+"invested"] = carray["invested"][i]
             if carray["currentboost"][i] > 0:
-                #if carray["name"][i] == "S":
-                    #carray["raw"][i] = call_me(w3.eth.contract(carray["address"][i], abi=abisplus).functions.claimable_reward(MY_WALLET_ADDRESS))
-                    #print(carray["raw"][i])
-                #    carray["raw"][i] = 0
-                #else:
                 carray["raw"][i] = call_me(w3.eth.contract(carray["address"][i], abi=abiguage).functions.claimable_tokens(MY_WALLET_ADDRESS))
                 if abs(round(round((carray["raw"][i]+carray["minted"][i])/10**18, 6), 5) - myarray[-1][carray["name"][i]+"pool"]) > 10:
                     print("MINTING HAPPENED: Before", carray["minted"][i], end='   ')

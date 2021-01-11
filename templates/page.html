@@ -5,8 +5,21 @@
 <body>
 <h1>Details for {{ name }}:</h1>
 <h2>
-Since you invested {{ amount }} on {{ humantime }} it has been {{ timestamp }} days.<br>
-You have earned {{ profit }} total.
+Since you invested {{ dic["amount"] }} on {{ dic["humantime"] }} it has been {{ dic["timestamp"] }} days.<br>
+{{ name }} has earned {{ profitdict[name] }} total.<br><br>
+Percent: {{ (dic["profit"][1] / dic["amount"] *100) |round(2, 'common') }}%<br>
+<br>
+{% for a in invarray["invested"] %}
+    <dt> {{invarray["humantime"][loop.index-1] }} {{ invarray["invested"][loop.index-1] }}</dt>
+{% endfor %}
+<br>
+<br>
+{% for invested,humantime,days,claim, rate,mypercent in epochsdict %}
+    <dt>{{ invested|e }}</dt>
+       <dd>{{ humantime|e }} -- {{ days|e }} days -- {{ claim |e }} generated -- at a rate of {{ (rate / invested * 1000) | round(4) }} -- my percentage is {{ mypercent }} -- {{ mypercent * claim }}</dd>
+{% endfor %}
+
+</dl>
 </h2>
 </body>
 </html>
