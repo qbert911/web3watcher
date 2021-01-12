@@ -45,9 +45,13 @@ def show_me(inputs, inpute, update, isprice, invested, newline, myarrayh):
     if not update:  #print subtotals
         #print(usym + str(format(round(a, 2), '.2f')).rjust(5) + Style.RESET_ALL + "/" + csym + str(format(a/USD, '.2f')).rjust(5) + Style.RESET_ALL, "profit in", str(round(b)).rjust(3), "hours", end=' - ')
         print(str(round(b/24, 1)), "days", end=' - ')
-    print("between", myarrayh[inpute]["human_time"], "and", myarrayh[inputs]["human_time"], end='')
+    print("between", myarrayh[inpute]["human_time"], "and", myarrayh[inputs]["human_time"], end=' ')
+    if not invested == totalinvested:
+        print(invested,"/", totalinvested)
     if newline:
-        print(" ", invested,"/", totalinvested)
+        print(" ")
+    mytuple = a, b, c, USD, myarrayh[inpute]["human_time"], myarrayh[inputs]["human_time"]
+    return mytuple
 
 def update_price():
     USD = 1
@@ -68,8 +72,8 @@ def curve_hats_update(myfloat, mystring, bootstatusarray):
     microdotphat.write_string(mystring, offset_x=0, kerning=False)
     microdotphat.show()
 
-def daily_log(isprice, myportion):
-    z = 0
+def daily_log(isprice, myportion, printit):
+    b = 0
     with open(file_nameh, 'r') as openfile:
         myarrayh = json.load(openfile)
     offset = len(myarrayh)-1-(int((len(myarrayh)-1)/24)*24)
@@ -77,20 +81,20 @@ def daily_log(isprice, myportion):
         thisprice = isprice
         try:
             thisprice =  myarrayh[(x*24)+24+offset]["USD"]
-            if z == 0 and myarrayh[(x*24)+24+offset]["invested"] == myarrayh[-1]["invested"]:
-                print (x,myarrayh[(x*24)+24+offset]["invested"])
-                z = x
+            if b == 0 and myarrayh[(x*24)+24+offset]["invested"] == myarrayh[-1]["invested"]:
+                if printit:
+                    print (x,myarrayh[(x*24)+24+offset]["invested"])
+                b = x+1
         except:
             pass
-
-        show_me((x*24)+24+offset, (x*24)+offset, 0, thisprice, myportion, 1, myarrayh)
-    return z
+        if printit:
+            show_me((x*24)+24+offset, (x*24)+offset, 0, thisprice, myportion, 1, myarrayh)
+    return b
 if __name__ == "__main__":
-    z=daily_log(update_price(),2000)
+    z=daily_log(update_price(),1,1)
 
-    print("")
+    print(z,"")
     show_me(-1, 0, 0, update_price(), 1, 1, 0)
-    #show_me(-1, -(8*24), 0, update_price(), 1, 1, 0)
     show_me(-1, (z*24), 0, update_price(), 1, 1, 0)
-    show_me(-1, (z*24), 0, update_price(), 3200, 1, 0)
+    show_me(-1, (z*24), 0, update_price(), 1000, 1, 0)
     print("    ")

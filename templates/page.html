@@ -3,20 +3,21 @@
 <link rel="stylesheet" href='static/style.css' />
 </head>
 <body>
-<h1>Details for {{ name }}:</h1>
+<h1>
+{{ name }} has earned {{ profitdict[name] }} CRV total (out of {{ profitdict["all"] |round(2) }}).
+</h1>
 <h2>
-Since you invested {{ dic["amount"] }} on {{ dic["humantime"] }} it has been {{ dic["timestamp"] }} days.<br>
-{{ name }} has earned {{ profitdict[name] }} total.<br><br>
-Percent: {{ (dic["profit"][1] / dic["amount"] *100) |round(2, 'common') }}%<br>
-<br>
+Investments:
 {% for a in invarray["invested"] %}
     <dt> {{invarray["humantime"][loop.index-1] }} {{ invarray["invested"][loop.index-1] }}</dt>
 {% endfor %}
 <br>
-<br>
-{% for invested,humantime,days,claim, rate,mypercent in epochsdict %}
-    <dt>{{ invested|e }}</dt>
-       <dd>{{ humantime|e }} -- {{ days|e }} days -- {{ claim |e }} generated -- at a rate of {{ (rate / invested * 1000) | round(4) }} -- my percentage is {{ mypercent }} -- {{ mypercent * claim }}</dd>
+<dl>
+{% for invested,humantime,days,claim, mypercent in epochsdict %}
+{% if mypercent > 0 %}
+    <dt>Epoch at ${{ invested|e }} invested ended at {{ humantime|e }}</dt>
+       <dd>In {{ days|e }} days at a rate of {{ (claim/days/invested*1000) | round(4) }} per thousand we generated {{ claim |e }} * my percentage {{ mypercent }} = {{ (mypercent * claim) |round(2)}} CRV</dd>
+{% endif %}
 {% endfor %}
 
 </dl>
