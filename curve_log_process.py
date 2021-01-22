@@ -39,12 +39,12 @@ def show_me(inputs, inpute, update, isprice, invested, newline, myarrayh):
 
     print("\rAt $" + Fore.YELLOW + str(format(USD, '.3f')) + Style.RESET_ALL + " per CRV = ", end='')
     print(Fore.GREEN + Style.BRIGHT + str(format(c, '.2f')) + Style.RESET_ALL + "/" + Fore.CYAN + str(format(c/USD, '.2f')) + Style.RESET_ALL + "% APR", end=' - ')
-    print(usym + str(format(round(365*24*a/b, 4), '.2f')).rjust(7)  + Style.RESET_ALL + "/" + csym + str(format(365*24*a/b/USD, '.2f')).rjust(7) + Style.RESET_ALL + " per year", end=' - ')
-    print(usym + str(format(round(24*a/b, 4), '.2f')).rjust(4) + Style.RESET_ALL + "/" + csym + str(format(24*a/b/USD, '.2f')).rjust(4) + Style.RESET_ALL + " per day", end=' - ')
-    print(usym + str(format(round(a/b, 4), '.4f')) + Style.RESET_ALL + "/" + csym + str(format(a/b/USD, '.4f')) + Style.RESET_ALL + " per hour", end=' - ')
+    print(usym + str(format(round(365*24*a/b, 4), '.0f')).rjust(5)  + Style.RESET_ALL + "/" + csym + str(format(365*24*a/b/USD, '.0f')).rjust(5) + Style.RESET_ALL + " per year", end=' - ')
+    print(usym + str(format(round(24*a/b, 4), '.2f')).rjust(5) + Style.RESET_ALL + "/" + csym + str(format(24*a/b/USD, '.2f')).rjust(5) + Style.RESET_ALL + " per day", end=' - ')
+    print(usym + str(format(round(a/b, 4), '.4f')) + Style.RESET_ALL + " / " + csym + str(format(a/b/USD, '.4f')) + Style.RESET_ALL + " per hour", end=' - ')
     if not update:  #print subtotals
         #print(usym + str(format(round(a, 2), '.2f')).rjust(5) + Style.RESET_ALL + "/" + csym + str(format(a/USD, '.2f')).rjust(5) + Style.RESET_ALL, "profit in", str(round(b)).rjust(3), "hours", end=' - ')
-        print(str(round(b/24, 1)), "days", end=' - ')
+        print(str(round(b/24, 1)).rjust(4), "days", end=' - ')
     print("between", myarrayh[inpute]["human_time"], "and", myarrayh[inputs]["human_time"], end=' ')
     if not invested == totalinvested:
         print(invested,"/", totalinvested)
@@ -55,12 +55,13 @@ def show_me(inputs, inpute, update, isprice, invested, newline, myarrayh):
 
 def update_price():
     USD = 1
+    time.sleep(2)
     while USD == 1:
         try:
             USD = cg.get_price(ids='curve-dao-token', vs_currencies='usd')["curve-dao-token"]["usd"]
         except:
             time.sleep(2)
-
+            print(" - price sleepy")
     return USD
 
 def curve_hats_update(myfloat, mystring, bootstatusarray):

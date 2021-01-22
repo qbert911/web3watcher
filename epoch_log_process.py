@@ -30,7 +30,7 @@ def load_investor_epochs(targetperson):
 
 def find_epochs(targetperson,printit):
     invarray = load_investor_epochs(targetperson)
-    print(invarray, invarray["invested"])
+    #print(invarray, invarray["invested"])
     profitdict = {}
     epochsdict = []
     wasinvested = 0
@@ -48,7 +48,7 @@ def find_epochs(targetperson,printit):
             da = round((myarrayh[newinvestment]["raw_time"]-myarrayh[wasinvested]["raw_time"]) / (60*60*24),1)
             if printit:
                 print(myarrayh[newinvestment-1]["invested"], end=' - ')
-                #print(myarrayh[newinvestment]["raw_time"], end=' - ')
+                print(myarrayh[newinvestment-0]["invested"]-myarrayh[newinvestment-1]["invested"], end=' - ')
                 print(myarrayh[newinvestment]["human_time"], end=' - ')
                 print(da,"days" ,end=' - ')
                 print(round(myarrayh[newinvestment]["claim"]), end=' - ')
@@ -77,7 +77,7 @@ def find_epochs(targetperson,printit):
 
 if __name__ == "__main__":
     aa=show_me(-1, 0, 0, update_price(), 1, 1, 0)
-    print(aa)
+    #print(aa)
     epochsdic, profitdic = find_epochs("all",1)
-    print (profitdic)
-    print (epochsdic)
+    #print (profitdic)
+    #print (epochsdic)

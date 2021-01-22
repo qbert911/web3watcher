@@ -4,11 +4,11 @@
 </head>
 <body>
 <h1>Stable Coin Index Fund</h1>
-<h1>Current CRV price: ${{ news[3] }}</h1>
+<h1>Current CRV price: $<span style="color:Goldenrod;">{{ news[3] |round(4) }}</span></h1>
 <h1><dt>Recently, each $1000 investment has earned:</h1>
-<h2><dd>{{ (24*news[0]/news[1]/news[3]) |round(2) }} CRV per day ( {{ (24*news[0]/news[1]) |round(2) }} USD )</dd>
+<h2><dd><span style="color:DodgerBlue;">{{ (24*news[0]/news[1]/news[3]) |round(2) }}</span> CRV per day ( <span style="color:MediumSeaGreen;">{{ (24*news[0]/news[1]) |round(2) }}</span> USD )</dd>
 <!--<dd>{{ (365*24*news[0]/news[1]/news[3]) | round(2) }} CRV per year ( {{ (365*24*news[0]/news[1]) | round(2) }} USD per year) </dd>-->
-<dd>{{ (news[2]/news[3])|round(2) }} % APR CRV  ( {{ news[2]|round(2) }} % USD ) </dd>
+<dd><span style="color:DodgerBlue;">{{ (news[2]/news[3])|round(2) }}</span> % APR CRV  ( <span style="color:MediumSeaGreen;">{{ news[2]|round(2) }}</span> % USD ) </dd>
 <dd>Current accounting period is {{ (news[1] / 24) | round(1) }} days (between {{ news[4] }} and {{ news[5] }})</dd>
 </h2>
 </dt>
