@@ -1,12 +1,12 @@
 [
   {
     "longname": "usdN",  "address":"0xF98450B5602fa59CC66e1379DFfB6FDDc724CfC4",
-    "invested": 19500,    "currentboost": 1.1723, "name": "N",
+    "invested": 22700,    "currentboost": 1.23935, "name": "N",
     "tokenaddress":"0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1"
   },
   {
     "longname": "Gusd",  "address":"0xC5cfaDA84E902aD92DD40194f0883ad49639b023",
-    "invested": 12700,    "currentboost": 1.2576, "name": "G",
+    "invested": 12700,    "currentboost": 1.3083, "name": "G",
     "tokenaddress":"0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956"
   },
   {
@@ -20,14 +20,14 @@
     "tokenaddress":"0x45F783CCE6B7FF23B2ab2D70e416cdb7D6055f51"
   },
   {
+    "longname": "Susd",  "address":"0xA90996896660DEcC6E997655E065b23788857849",
+    "invested": 1700,    "currentboost": 2.4469, "name": "S",
+    "tokenaddress":"0xA5407eAE9Ba41422680e2e00537571bcC53efBfD"
+  },
+  {
     "longname": "Compound",   "address":"0x7ca5b0a2910B33e9759DC7dDB0413949071D7575",
     "invested": 1200,    "currentboost": 2.5,    "name": "C",
     "tokenaddress":"0xA2B47E3D5c44877cca798226B7B8118F9BFb7A56"
-  },
-  {
-    "longname": "Susd",  "address":"0xA90996896660DEcC6E997655E065b23788857849",
-    "invested": 1000,    "currentboost": 2.5, "name": "S",
-    "tokenaddress":"0xA5407eAE9Ba41422680e2e00537571bcC53efBfD"
   },
   {
     "longname": "Busd",  "address":"0x69Fb7c45726cfE2baDeE8317005d3F94bE838840",

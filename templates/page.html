@@ -16,7 +16,13 @@ Investments:
 {% for invested,humantime,days,claim, mypercent in epochsdict %}
 {% if mypercent > 0 %}
     <dt>Epoch at ${{ invested|e }} invested ended at {{ humantime|e }}</dt>
-       <dd>In {{ days|e }} days at a rate of <span style="color:DodgerBlue;">{{ (claim/days/invested*1000) | round(4) }}</span> per thousand per day (<span style="color:DodgerBlue;">{{ (claim/days/invested*365*100) | round(2) }}</span> % APR) we generated {{ claim |e }} * my percentage {{ mypercent }} = <span style="color:DodgerBlue;">{{ (mypercent * claim) |round(2)}}</span> CRV</dd>
+       <dd>In {{ days|e }} days at a rate of <span style="color:DodgerBlue;">
+         {{ (claim/(days+1)/invested*1000) | round(4) }}</span> per thousand per day
+         (<span style="color:DodgerBlue;">
+           {{ (claim/(days+1)/invested*365*100) | round(2) }}</span> % APR) we generated
+           {{ claim |e }} * my percentage {{ mypercent }} = <span style="color:DodgerBlue;">
+             {{ (mypercent * claim) |round(2)}}</span> CRV</dd>
+
 {% endif %}
 {% endfor %}
 

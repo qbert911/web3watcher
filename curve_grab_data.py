@@ -4,9 +4,14 @@
 import json
 import time
 import logging
-import sys
 import cursor
-from curve_log_process import show_me, update_price, curve_hats_update
+import threading
+import argparse
+from curve_log_process import show_me, update_price
+try:
+    from curve_rainbowhat_functions import curve_hats_update
+except:
+    pass
 from colorama import Back, Fore, Style, init
 logging.getLogger().disabled = True
 from web3 import Web3
@@ -14,6 +19,22 @@ logging.getLogger().disabled = False
 
 cursor.hide()
 init()
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-l", "--Local", help = "Local Node Used", action="store_true")
+parser.add_argument("-r", "--Readonly", help = "Don't write output to file", action="store_true")
+args = parser.parse_args()
+if args.Local:
+    w3 = Web3(Web3.HTTPProvider('http://172.33.0.2:8545'))
+    print("LOCAL NODE MODE")
+else:
+    print("INFURA MODE")
+    w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/6aa1a043a9854eaa9fa68d17f619f326'))
+
+if not args.Readonly:
+    print("Write mode ON",flush=True)
+else:
+    print("Write mode OFF",flush=True)
 
 abiguage = json.load(open("abi_bfcf.json", 'r'))
 abiminter = json.load(open("abi_d061.json", 'r'))
@@ -30,14 +51,18 @@ myarray = json.load(open(file_name, 'r'))
 myarrayh = json.load(open(file_nameh, 'r'))
 
 csym = Fore.MAGENTA + Style.BRIGHT + "Ç" + Style.RESET_ALL + Fore.CYAN
-INFURA_ID = "6aa1a043a9854eaa9fa68d17f619f326"
-w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
 MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
 MINTER_ADDRESS = "0xd061D61a4d941c39E5453435B6345Dc261C2fcE0"
 veCRV_ADDRESS = "0x5f3b5DfEb7B28CDbD7FAba78963EE202a494e2A2"
 CRV_ADDRESS = "0xD533a949740bb3306d119CC777fa900bA034cd52"
 carray = {"longname": [], "name": [], "invested": [], "currentboost": [], "address" : [], "tokenaddress" : []}
 TARGET_AMOUNT = 10
+enter_hit = False
+
+def key_capture_thread():
+    global enter_hit
+    input()
+    enter_hit = True
 
 def call_me(function):
     """input filtering"""
@@ -91,7 +116,7 @@ def load_curvepool_array(barray):
 
 def header_display():
     """display detailed pool information"""
-    cw = [5, 8, 9, 6, 6, 7, 5, 9, 6, 7, 5]
+    cw = [5, 8, 9, 6, 7, 7, 5, 9, 6, 7, 5]
     eoa = 0 - len(myarray)
     veCRV_start = round(call_me(w3.eth.contract(veCRV_ADDRESS, abi=abivoting).functions.locked(MY_WALLET_ADDRESS))/10**18, 2)
     veCRV_mine = round(call_me(w3.eth.contract(veCRV_ADDRESS, abi=abivoting).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
@@ -104,9 +129,10 @@ def header_display():
         if carray["currentboost"][i] > 0:
             carray["balanceof"][i] = round(call_me(w3.eth.contract(carray["address"][i], abi=abiguage).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
         maxinvestforfullboost = carray["totalsupply"][i]*veCRV_mine/veCRV_total
-        print(carray["longname"][i].ljust(len(max(carray["longname"], key=len))), carray["name"][i], str(carray["invested"][i]).rjust(cw[0]),
-              str(format(carray["virtprice"][i]*carray["balanceof"][i], '.2f')).rjust(cw[1]), str(format(carray["totalsupply"][i], '.0f')).rjust(cw[2]), end=' ')
-        #print(carray["virtprice"][i], str(format(carray["virtprice"][i]*carray["balanceof"][i], '.2f')).rjust(cw[1]),end=' ')
+        print(carray["longname"][i].ljust(len(max(carray["longname"], key=len))), carray["name"][i],
+              str(carray["invested"][i]).rjust(cw[0]),
+              str(format(carray["virtprice"][i]*carray["balanceof"][i], '.2f')).rjust(cw[1]),
+              str(format(carray["totalsupply"][i], '.0f')).rjust(cw[2]), end=' ')
         if carray["currentboost"][i] > 0:
             needed_veCRV = round((carray["balanceof"][i]/carray["totalsupply"][i]*veCRV_total)-veCRV_mine)
             carray["futureboost"][i] = 2.5*min((carray["balanceof"][i]/2.5) + (maxinvestforfullboost*(1-(1/2.5))), carray["balanceof"][i])/carray["balanceof"][i]
@@ -145,18 +171,21 @@ def header_display():
             else:
                 print(str(needed_veCRV).rjust(cw[10]), "additional veCRV needed for full boost.")
 
-    print(sum(carray["invested"]), "invested, as well as", veCRV_mine, "veCRV voting"+Style.DIM+" (from", veCRV_start, "locked)"+Style.RESET_ALL, end='        ')
-    print(csym+Style.RESET_ALL+str(round(myarray[-1]["claim"]-(sum(carray["minted"])/10**18), 2)), "in pools ",end=' ')
-    print(csym+Style.RESET_ALL+str(round(sum(carray["minted"])/10**18, 2)), "minted ", end=' ')
-    print(csym+Style.RESET_ALL+str(CRV_inwallet),"on sidelines"+Style.RESET_ALL, end='  ')
+    print(sum(carray["invested"]), "invested, as well as", veCRV_mine, "veCRV voting"+Style.DIM+" (from", veCRV_start, "locked)"+Style.RESET_ALL, end='  ')
+    print(csym+str(round(myarray[-1]["claim"]-(sum(carray["minted"])/10**18), 2))+Style.RESET_ALL, "in pools ",end=' ')
+    print(csym+str(round(sum(carray["minted"])/10**18, 2))+Style.RESET_ALL, "minted ", end=' ')
+    print(csym+str(CRV_inwallet)+Style.RESET_ALL,"on sidelines", end='  ')
 
     if round((round(time.time())-myarray[eoa]["raw_time"])/60, 2)+eoa >= 0.5:
         print(Fore.RED+str(round(((round(time.time())-myarray[eoa]["raw_time"])/60)+eoa, 2))+Style.RESET_ALL+" minutes out of sync.", end=' ')
     if eoa > -61:
         print(Fore.RED+str(61+eoa)+Style.RESET_ALL+" minutes under 60.", end=' ')
     if sum(carray["invested"]) != myarray[eoa]["invested"]:
-        print(Fore.RED+str(sum(carray["invested"]) - myarray[eoa]["invested"])+Style.RESET_ALL+" of New $ obs. data for up to an hour.", end='')
+        print(Fore.RED+str(sum(carray["invested"]) - myarray[eoa]["invested"])+Style.RESET_ALL+" of New $ obs. data", end='')
     print("")
+    global enter_hit
+    enter_hit=False
+    threading.Thread(target=key_capture_thread, args=(), name='key_capture_thread', daemon=True).start()
 
 def boost_check(endchar):
     """update variables to check boost status"""
@@ -177,18 +206,18 @@ def boost_check(endchar):
                 carray["booststatus"][i] = 1            #Gray, boost status was higher before, nothing to do
             else:
                 outputflag = 1
-                print(carray["name"][i], end=' ')
+                print(carray["name"][i], end='')
                 if carray["futureboost"][i]-carray["currentboost"][i] >= .05:
                     carray["booststatus"][i] = 2        #Red, big enough change in boost status to care
                     print( #str(format(carray["futureboost"][i], '.4f')).rjust(6),
-                          Style.BRIGHT+Fore.RED+str(format(carray["futureboost"][i]-carray["currentboost"][i], '.4f')).rjust(6)+Style.RESET_ALL, end=' - ')
+                          Style.BRIGHT+Fore.RED+str(format(carray["futureboost"][i]-carray["currentboost"][i], '.4f')).rjust(5).lstrip("0")+Style.RESET_ALL, end=' ')
                 else:
                     carray["booststatus"][i] = 3        #Purple, small change in boost status
                     print( #str(format(carray["futureboost"][i], '.4f')).rjust(6),
-                          Style.DIM+Fore.RED+str(format(carray["futureboost"][i]-carray["currentboost"][i], '.4f')).rjust(6)+Style.RESET_ALL, end=' - ')
+                          Style.DIM+Fore.RED+str(format(carray["futureboost"][i]-carray["currentboost"][i], '.4f')).rjust(5).lstrip("0")+Style.RESET_ALL, end=' ')
 
     if outputflag:
-        print('\b\b\b', end=endchar)
+        print('\b', end=endchar)
     else:
         print(Fore.GREEN+'Boosted'+Style.RESET_ALL, end=endchar)
 
@@ -205,7 +234,7 @@ def print_status_line(USD, eoa):
             print(Fore.RED+Style.BRIGHT+carray["name"][i]+Style.RESET_ALL+
                   str(format(round((myarray[-1][carray["name"][i]+"pool"]-myarray[eoa][carray["name"][i]+"pool"])/(60+extramins)*60*USD*24*365/carray["invested"][i]*100, 2), '.2f')), end=' ')
 
-    print("- S"+csym+format(myarray[-1]["claim"], '.1f')+Style.RESET_ALL,
+    print(csym+format(myarray[-1]["claim"], '.4f')+Style.RESET_ALL,
           "H"+csym+format((round(difference, 5)), '.5f')+Style.RESET_ALL,
           "D"+csym+format((round((difference)*24, 2)), '.2f')+Style.RESET_ALL,
           "Y"+csym+format((round((difference)*24*365, 0)), '.0f')+Style.RESET_ALL, end=' - ')
@@ -223,14 +252,19 @@ def print_status_line(USD, eoa):
 
 def main():
     """monitor various curve contracts"""
+    global enter_hit
+    threading.Thread(target=key_capture_thread, args=(), name='key_capture_thread', daemon=True).start()
     load_curvepool_array(carray)
-    if not sys.argv[1:]:
-        header_display()                                                            #Print header unless passed any command line argument
+    header_display()
     while True:                                                                     #Initiate main program loop
         month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
         while month+"/"+day+" "+hour+":"+minut == myarray[-1]["human_time"]:        #Wait for each minute to pass to run again
+            if enter_hit:
+                header_display()
+                while enter_hit:
+                    time.sleep(0.1)
             print(" gas is:", Fore.BLUE+Style.BRIGHT+str(round(w3.eth.gasPrice/10**9)).ljust(3)+Style.RESET_ALL, "  ", "\b"*16, end="", flush=True)
-            time.sleep(12)
+            time.sleep(6)
             month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
         mydict = {"raw_time" : round(time.time()), "human_time": month+"/"+day+" "+hour+":"+minut,
                   "USD" : update_price(), "invested" : sum(carray["invested"])}     #Update dictionary values and price information
@@ -258,7 +292,8 @@ def main():
         mydict["claim"] = round((sum(carray["raw"])+sum(carray["minted"]))/10**18, 6) + offset
         if minut == "00" and mydict["claim"] > 1:
             myarrayh.append(mydict)                                     #Output dictionary to hour file
-            json.dump(myarrayh, open(file_nameh, "w"), indent=4)
+            if not args.Readonly:
+                json.dump(myarrayh, open(file_nameh, "w"), indent=4)
             time.sleep(3)
             show_me(-1, -2, 1, mydict["USD"], 1, 1, 0) #compare last record with 2nd to last, update price, do NOT end line
             #print(" - ", end='')
@@ -268,12 +303,15 @@ def main():
         if len(myarray) > 61:
             del myarray[0]
         eoa = 0 - len(myarray)
-        json.dump(myarray, open(file_name, "w"), indent=4)              #Output dictionary to minute file
+        if not args.Readonly:
+            json.dump(myarray, open(file_name, "w"), indent=4)          #Output dictionary to minute file
         print_status_line(myarray[-1]["USD"], eoa)                      #update information on hats and screen
         extramins = round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa
-        curve_hats_update(round((myarray[-1]["claim"]-myarray[eoa]["claim"])/(60+extramins)*60*myarray[-1]["USD"]*24*365/sum(carray["invested"])*100, 2),
-                          format((round((myarray[-1]["claim"]-myarray[eoa]["claim"])/(60+extramins)*60, 4)), '.4f'),
-                          carray["booststatus"])
-
+        try:
+            curve_hats_update(round((myarray[-1]["claim"]-myarray[eoa]["claim"])/(60+extramins)*60*myarray[-1]["USD"]*24*365/sum(carray["invested"])*100, 2),
+                              format((round((myarray[-1]["claim"]-myarray[eoa]["claim"])/(60+extramins)*60, 4)), '.4f'),
+                              carray["booststatus"])
+        except:
+            pass
 if __name__ == "__main__":
     main()

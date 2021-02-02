@@ -6,6 +6,7 @@ write to the seven leds on the top of the rainbow HAT
 import sys
 import smbus
 import rainbowhat
+import microdotphat
 rainbowhat.rainbow.set_clear_on_exit(False)
 
 bus = smbus.SMBus(1) # 1 indicates /dev/i2c-1
@@ -44,8 +45,20 @@ def rainbow_show_float(vala):
     """write to four character display"""
     try:
         bus.read_byte(112)         #check to see if rainbow hat is connected
+        rainbowhat.lights.red.off()    #hack for starting led
+        rainbowhat.lights.green.off()    #hack for starting led
+        rainbowhat.lights.blue.off()    #hack for starting led
         rainbowhat.display.clear()
         rainbowhat.display.print_float(vala)
         rainbowhat.display.show()
     except:
         pass
+
+def curve_hats_update(myfloat, mystring, bootstatusarray):
+    """output to rainbow and microdot hats"""
+    rainbow_show_float(myfloat)
+    rainbow_show_boost_status(bootstatusarray)
+    microdotphat.set_clear_on_exit(False)
+    microdotphat.set_rotate180(1)
+    microdotphat.write_string(mystring, offset_x=0, kerning=False)
+    microdotphat.show()

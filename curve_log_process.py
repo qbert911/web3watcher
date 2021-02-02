@@ -3,8 +3,6 @@
 # pylint: disable=C0103,C0116,C0301,W0105,E0401,R0914
 import time
 import json
-import microdotphat
-from curve_rainbowhat_functions import rainbow_show_float, rainbow_show_boost_status
 from colorama import Fore, Style, init
 init()
 from pycoingecko import CoinGeckoAPI
@@ -63,15 +61,6 @@ def update_price():
             time.sleep(2)
             print(" - price sleepy")
     return USD
-
-def curve_hats_update(myfloat, mystring, bootstatusarray):
-    """output to rainbow and microdot hats"""
-    rainbow_show_float(myfloat)
-    rainbow_show_boost_status(bootstatusarray)
-    microdotphat.set_clear_on_exit(False)
-    microdotphat.set_rotate180(1)
-    microdotphat.write_string(mystring, offset_x=0, kerning=False)
-    microdotphat.show()
 
 def daily_log(isprice, myportion, printit):
     b = 0

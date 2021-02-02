@@ -77,7 +77,7 @@ def find_epochs(targetperson,printit):
 
 if __name__ == "__main__":
     aa=show_me(-1, 0, 0, update_price(), 1, 1, 0)
-    #print(aa)
+    print(aa)
     epochsdic, profitdic = find_epochs("all",1)
-    #print (profitdic)
-    #print (epochsdic)
+    print (profitdic)
+    print (epochsdic)
