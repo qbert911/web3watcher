@@ -7,57 +7,57 @@ import logging
 import cursor
 import threading
 import argparse
-from curve_log_process import show_me, update_price
-try:
-    from curve_rainbowhat_functions import curve_hats_update
-except:
-    pass
 from colorama import Back, Fore, Style, init
+from curve_log_process import show_me, update_price
 logging.getLogger().disabled = True
 from web3 import Web3
 logging.getLogger().disabled = False
+try:
+    from curve_rainbowhat_functions import curve_hats_update
+except:
+    print("No Raspberry Pi Hats Found.")
+    pass
 
 cursor.hide()
 init()
+
+MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
+INFURA_ID = "6aa1a043a9854eaa9fa68d17f619f326"
+
+abiguage = json.load(open("abi_bfcf.json", 'r'))
+abiminter = json.load(open("abi_d061.json", 'r'))
+abivoting = json.load(open("abi_5f3b.json", 'r'))
+abivirtprice = json.load(open("abi_a540.json", 'r'))
+MINTER_ADDRESS = "0xd061D61a4d941c39E5453435B6345Dc261C2fcE0"
+veCRV_ADDRESS = "0x5f3b5DfEb7B28CDbD7FAba78963EE202a494e2A2"
+CRV_ADDRESS = "0xD533a949740bb3306d119CC777fa900bA034cd52"
+
+abifulcrum = json.load(open("abi_d172.json", 'r'))
+abicream = json.load(open("abi_c7fd.json", 'r'))
+abiaave2 = json.load(open("abi_c684.json", 'r'))
+abisplus = json.load(open("abi_a909.json", 'r')) #as yet unused - SNX?
+
+file_name = "ghistory.json"
+file_nameh = "ghistoryh.json"
+myarray = json.load(open(file_name, 'r'))
+myarrayh = json.load(open(file_nameh, 'r'))
+carray = {"longname": [], "name": [], "invested": [], "currentboost": [], "address" : [], "tokenaddress" : []}
+
+csym = Fore.MAGENTA + Style.BRIGHT + "Ç" + Style.RESET_ALL + Fore.CYAN
+TARGET_AMOUNT = 10
+enter_hit = False
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-l", "--Local", help = "Local Node Used", action="store_true")
 parser.add_argument("-r", "--Readonly", help = "Don't write output to file", action="store_true")
 args = parser.parse_args()
+print("Read Only Mode:",args.Readonly)
 if args.Local:
     w3 = Web3(Web3.HTTPProvider('http://172.33.0.2:8545'))
-    print("LOCAL NODE MODE")
+    print("Data Source: LOCAL")
 else:
-    print("INFURA MODE")
-    w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/6aa1a043a9854eaa9fa68d17f619f326'))
-
-if not args.Readonly:
-    print("Write mode ON",flush=True)
-else:
-    print("Write mode OFF",flush=True)
-
-abiguage = json.load(open("abi_bfcf.json", 'r'))
-abiminter = json.load(open("abi_d061.json", 'r'))
-abivoting = json.load(open("abi_5f3b.json", 'r'))
-abifulcrum = json.load(open("abi_d172.json", 'r'))
-abicream = json.load(open("abi_c7fd.json", 'r'))
-abinplus = json.load(open("abi_7c54.json", 'r'))
-abisplus = json.load(open("abi_a909.json", 'r'))
-abiaave2 = json.load(open("abi_c684.json", 'r'))
-abivirtprice = json.load(open("abi_a540.json", 'r'))
-file_name = "ghistory.json"
-file_nameh = "ghistoryh.json"
-myarray = json.load(open(file_name, 'r'))
-myarrayh = json.load(open(file_nameh, 'r'))
-
-csym = Fore.MAGENTA + Style.BRIGHT + "Ç" + Style.RESET_ALL + Fore.CYAN
-MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
-MINTER_ADDRESS = "0xd061D61a4d941c39E5453435B6345Dc261C2fcE0"
-veCRV_ADDRESS = "0x5f3b5DfEb7B28CDbD7FAba78963EE202a494e2A2"
-CRV_ADDRESS = "0xD533a949740bb3306d119CC777fa900bA034cd52"
-carray = {"longname": [], "name": [], "invested": [], "currentboost": [], "address" : [], "tokenaddress" : []}
-TARGET_AMOUNT = 10
-enter_hit = False
+    print("Data Source: Infura")
+    w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
 
 def key_capture_thread():
     global enter_hit
@@ -73,13 +73,9 @@ def call_me(function):
         print("\n odd output when calling "+str(function),x)
     return x
 
-def show_additional_npool_coins():
-    NPLUS_ADDRESS = "0x7c54A4aE0A12aAbbC0b9c2776b4E70aA78510120" #new npool claimable tokens contract
-    waves_ADDRESS = Web3.toChecksumAddress("0x1cf4592ebffd730c7dc92c1bdffdfc3b9efcf29a") #waves token
-    nsbt_ADDRESS = "0x9D79d5B61De59D882ce90125b18F74af650acB93" #nsbt token
-    a=round(call_me(w3.eth.contract(NPLUS_ADDRESS, abi=abinplus).functions.claimable_tokens(waves_ADDRESS, MY_WALLET_ADDRESS))/10**18, 4)
-    b=round(call_me(w3.eth.contract(NPLUS_ADDRESS, abi=abinplus).functions.claimable_tokens(nsbt_ADDRESS, MY_WALLET_ADDRESS))/10**6, 4)
-    print(Back.CYAN+Fore.BLUE+Style.DIM+"W "+str(format(a, '.3f'))+" N "+str(format(b, '.3f')).lstrip("0")+Style.RESET_ALL, end=' - ')
+def show_additional_pool_coins():
+    a=round(call_me(w3.eth.contract("0xA90996896660DEcC6E997655E065b23788857849", abi=abisplus).functions.claimable_reward(MY_WALLET_ADDRESS))/10**18, 4)
+    print(Back.CYAN+Fore.BLUE+Style.DIM+"S "+str(format(a, '.3f')).lstrip("0")+Style.RESET_ALL, end=' - ')
 
 def show_other_exchanges():
     #iusdc_interest = round(w3.eth.contract("0x32E4c68B3A4a813b710595AebA7f6B7604Ab9c15", abi=abifulcrum).functions.nextSupplyInterestRate(1).call()/10**18, 2)
@@ -111,17 +107,15 @@ def load_curvepool_array(barray):
         barray["name"].append(thisarray[i]["name"])
         barray["address"].append(thisarray[i]["address"])
         barray["tokenaddress"].append(thisarray[i]["tokenaddress"])
-        if carray["currentboost"][i] > 0:
-            carray["minted"][i] = call_me(w3.eth.contract(MINTER_ADDRESS, abi=abiminter).functions.minted(MY_WALLET_ADDRESS, carray["address"][i]))
+        if barray["currentboost"][i] > 0:
+            barray["minted"][i] = call_me(w3.eth.contract(MINTER_ADDRESS, abi=abiminter).functions.minted(MY_WALLET_ADDRESS, carray["address"][i]))
 
 def header_display():
     """display detailed pool information"""
     cw = [5, 8, 9, 6, 7, 7, 5, 9, 6, 7, 5]
-    eoa = 0 - len(myarray)
-    veCRV_start = round(call_me(w3.eth.contract(veCRV_ADDRESS, abi=abivoting).functions.locked(MY_WALLET_ADDRESS))/10**18, 2)
-    veCRV_mine = round(call_me(w3.eth.contract(veCRV_ADDRESS, abi=abivoting).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
     CRV_inwallet = round(call_me(w3.eth.contract(CRV_ADDRESS, abi=abivoting).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
-
+    veCRV_locked = round(call_me(w3.eth.contract(veCRV_ADDRESS, abi=abivoting).functions.locked(MY_WALLET_ADDRESS))/10**18, 2)
+    veCRV_mine = round(call_me(w3.eth.contract(veCRV_ADDRESS, abi=abivoting).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
     veCRV_total = round(call_me(w3.eth.contract(veCRV_ADDRESS, abi=abivoting).functions.totalSupply())/10**18, 2)
     for i in range(0, len(carray["name"])):
         carray["totalsupply"][i] = round(call_me(w3.eth.contract(carray["address"][i], abi=abiguage).functions.totalSupply())/10**18, 2)
@@ -171,11 +165,12 @@ def header_display():
             else:
                 print(str(needed_veCRV).rjust(cw[10]), "additional veCRV needed for full boost.")
 
-    print(sum(carray["invested"]), "invested, as well as", veCRV_mine, "veCRV voting"+Style.DIM+" (from", veCRV_start, "locked)"+Style.RESET_ALL, end='  ')
+    print(sum(carray["invested"]), "invested, as well as", veCRV_mine, "veCRV voting"+Style.DIM+" (from", veCRV_locked, "locked)"+Style.RESET_ALL, end='  ')
     print(csym+str(round(myarray[-1]["claim"]-(sum(carray["minted"])/10**18), 2))+Style.RESET_ALL, "in pools ",end=' ')
     print(csym+str(round(sum(carray["minted"])/10**18, 2))+Style.RESET_ALL, "minted ", end=' ')
     print(csym+str(CRV_inwallet)+Style.RESET_ALL,"on sidelines", end='  ')
 
+    eoa = 0 - len(myarray)
     if round((round(time.time())-myarray[eoa]["raw_time"])/60, 2)+eoa >= 0.5:
         print(Fore.RED+str(round(((round(time.time())-myarray[eoa]["raw_time"])/60)+eoa, 2))+Style.RESET_ALL+" minutes out of sync.", end=' ')
     if eoa > -61:
@@ -237,10 +232,10 @@ def print_status_line(USD, eoa):
     print(csym+format(myarray[-1]["claim"], '.4f')+Style.RESET_ALL,
           "H"+csym+format((round(difference, 5)), '.5f')+Style.RESET_ALL,
           "D"+csym+format((round((difference)*24, 2)), '.2f')+Style.RESET_ALL,
-          "Y"+csym+format((round((difference)*24*365, 0)), '.0f')+Style.RESET_ALL, end=' - ')
-    #show_other_exchanges()
-    #show_additional_npool_coins()
+          "Y"+csym+format((round((difference)*24*365, 0)), '.0f').rjust(5)+Style.RESET_ALL, end=' - ')
     print(myarray[-1]["human_time"], end=' - ')
+    #show_other_exchanges()
+    show_additional_pool_coins()
     boost_check(" - ")
     if extramins >= 0: #air bubble extra minutes
         print(Fore.RED+str(round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa+1)+Style.RESET_ALL, end=' - ')
@@ -253,22 +248,22 @@ def print_status_line(USD, eoa):
 def main():
     """monitor various curve contracts"""
     global enter_hit
-    threading.Thread(target=key_capture_thread, args=(), name='key_capture_thread', daemon=True).start()
     load_curvepool_array(carray)
     header_display()
     while True:                                                                     #Initiate main program loop
         month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
+        firstpass = True                                                            #Prevent header display from outputting in conflict with regular update
         while month+"/"+day+" "+hour+":"+minut == myarray[-1]["human_time"]:        #Wait for each minute to pass to run again
-            if enter_hit:
-                header_display()
-                while enter_hit:
-                    time.sleep(0.1)
             print(" gas is:", Fore.BLUE+Style.BRIGHT+str(round(w3.eth.gasPrice/10**9)).ljust(3)+Style.RESET_ALL, "  ", "\b"*16, end="", flush=True)
+            if enter_hit:
+                if firstpass:
+                    print("")
+                header_display()
+            firstpass = False
             time.sleep(6)
             month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
         mydict = {"raw_time" : round(time.time()), "human_time": month+"/"+day+" "+hour+":"+minut,
                   "USD" : update_price(), "invested" : sum(carray["invested"])}     #Update dictionary values and price information
-        offset = 0
         for i in range(0, len(carray["name"])):
             mydict[carray["name"][i]+"invested"] = carray["invested"][i]
             if carray["currentboost"][i] > 0: #sometimes synthetix minter goes into maintenace so we pull last hours values
@@ -281,23 +276,17 @@ def main():
                     mydict[carray["name"][i]+"pool"] = round(round((carray["raw"][i]+carray["minted"][i])/10**18, 6), 5)
                     if myarray[-1][carray["name"][i]+"pool"] - mydict[carray["name"][i]+"pool"] > 0.01: #debug lines ... should not happen
                         print(myarray[-1][carray["name"][i]+"pool"] - mydict[carray["name"][i]+"pool"], "\nerror with lower raw value"+carray["name"][i], myarray[-1][carray["name"][i]+"pool"], mydict[carray["name"][i]+"pool"], end='')
-                except:
-                    print("\nGOT HERE so we can not have to hack set currentboost to zero for snx maintenance anymore\n")
+                except: #usually happens when snx is down for maintenance
                     mydict[carray["name"][i]+"pool"] = myarrayh[-1][carray["name"][i]+"pool"]
-                    offset += myarrayh[-1][carray["name"][i]+"pool"]
-            #else:
-            #    mydict[carray["name"][i]+"pool"] = myarrayh[-1][carray["name"][i]+"pool"]
-            #    offset += myarrayh[-1][carray["name"][i]+"pool"]
+                    carray["raw"][i] = (myarrayh[-1][carray["name"][i]+"pool"]*10**18) - carray["minted"][i]
 
-        mydict["claim"] = round((sum(carray["raw"])+sum(carray["minted"]))/10**18, 6) + offset
+        mydict["claim"] = round((sum(carray["raw"])+sum(carray["minted"]))/10**18, 6)
         if minut == "00" and mydict["claim"] > 1:
             myarrayh.append(mydict)                                     #Output dictionary to hour file
             if not args.Readonly:
                 json.dump(myarrayh, open(file_nameh, "w"), indent=4)
             time.sleep(3)
-            show_me(-1, -2, 1, mydict["USD"], 1, 1, 0) #compare last record with 2nd to last, update price, do NOT end line
-            #print(" - ", end='')
-            #boost_check("                "+('\b'*12)+"\n")
+            show_me(-1, -2, 1, mydict["USD"], 1, 1, myarrayh) #compare last record with 2nd to last, update price, do NOT end line
 
         myarray.append(mydict)
         if len(myarray) > 61:

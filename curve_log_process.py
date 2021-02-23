@@ -15,7 +15,12 @@ csym = Fore.MAGENTA + Style.BRIGHT + "Ç" + Style.RESET_ALL + Fore.CYAN
 def show_me(inputs, inpute, update, isprice, invested, newline, myarrayh):
     USD = float(isprice)
     if myarrayh == 0:
-        myarrayh = json.load(open(file_nameh, 'r'))
+        try:
+            with open(file_nameh, 'r') as openfile:
+                myarrayh = json.load(openfile)
+        except:
+            print("Error reading from",file_nameh)
+            return
     try:
         totalinvested = myarrayh[inputs]["invested"]
     except:
@@ -59,7 +64,7 @@ def update_price():
             USD = cg.get_price(ids='curve-dao-token', vs_currencies='usd')["curve-dao-token"]["usd"]
         except:
             time.sleep(2)
-            print(" - price sleepy")
+            print("Z", end='')
     return USD
 
 def daily_log(isprice, myportion, printit):
