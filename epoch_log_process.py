@@ -4,7 +4,7 @@
 import datetime
 import time
 import json
-from curve_log_process import show_me, update_price, show_me
+from curve_log_process import show_me, update_price
 from colorama import Fore, Style, init
 init()
 

@@ -40,7 +40,7 @@ file_name = "ghistory.json"
 file_nameh = "ghistoryh.json"
 myarray = json.load(open(file_name, 'r'))
 myarrayh = json.load(open(file_nameh, 'r'))
-carray = {"longname": [], "name": [], "invested": [], "currentboost": [], "address" : [], "tokenaddress" : []}
+carray = {"longname": [], "name": [], "invested": [], "currentboost": [], "guageaddress" : [], "swapaddress" : [], "tokenaddress" : []}
 
 csym = Fore.MAGENTA + Style.BRIGHT + "Ç" + Style.RESET_ALL + Fore.CYAN
 TARGET_AMOUNT = 10
@@ -60,6 +60,7 @@ else:
 
 def key_capture_thread():
     global enter_hit
+    enter_hit = False
     input()
     enter_hit = True
 
@@ -104,9 +105,13 @@ def load_curvepool_array(barray):
         barray["invested"].append(thisarray[i]["invested"])
         barray["currentboost"].append(thisarray[i]["currentboost"])
         barray["name"].append(thisarray[i]["name"])
-        barray["address"].append(thisarray[i]["address"])
-        barray["tokenaddress"].append(thisarray[i]["tokenaddress"])
-        barray["minted"][i] = call_me(w3.eth.contract(MINTER_ADDRESS, abi=abiminter).functions.minted(MY_WALLET_ADDRESS, carray["address"][i]))
+        barray["guageaddress"].append(thisarray[i]["guageaddress"])
+        barray["swapaddress"].append(thisarray[i]["swapaddress"])
+        barray["minted"][i] = call_me(w3.eth.contract(MINTER_ADDRESS, abi=abiminter).functions.minted(MY_WALLET_ADDRESS, carray["guageaddress"][i]))
+        try:
+            barray["tokenaddress"].append(thisarray[i]["tokenaddress"])
+        except:
+            barray["tokenaddress"].append("")
         try:
             a = myarray[-1][carray["name"][i]+"pool"]
         except:
@@ -116,29 +121,31 @@ def load_curvepool_array(barray):
 
 def header_display():
     """display detailed pool information"""
-    cw = [5, 8, 9, 6, 7, 7, 5, 9, 6, 7, 5]
+    cw = [5, 5, 11, 6, 7, 7, 0, 9, 6, 7, 5]
     CRV_inwallet = round(call_me(w3.eth.contract(CRV_ADDRESS, abi=abivoting).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
     veCRV_locked = round(call_me(w3.eth.contract(veCRV_ADDRESS, abi=abivoting).functions.locked(MY_WALLET_ADDRESS))/10**18, 2)
     veCRV_mine = round(call_me(w3.eth.contract(veCRV_ADDRESS, abi=abivoting).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
     veCRV_total = round(call_me(w3.eth.contract(veCRV_ADDRESS, abi=abivoting).functions.totalSupply())/10**18, 2)
     for i in range(0, len(carray["name"])):
-        carray["totalsupply"][i] = round(call_me(w3.eth.contract(carray["address"][i], abi=abiguage).functions.totalSupply())/10**18, 2)
-        carray["virtprice"][i] = round(call_me(w3.eth.contract(carray["tokenaddress"][i], abi=abivirtprice).functions.get_virtual_price())/10**18, 6)
-        carray["balanceof"][i] = round(call_me(w3.eth.contract(carray["address"][i], abi=abiguage).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
+        carray["totalsupply"][i] = round(call_me(w3.eth.contract(carray["guageaddress"][i], abi=abiguage).functions.totalSupply())/10**18, 2)
+        carray["virtprice"][i] = round(call_me(w3.eth.contract(carray["swapaddress"][i], abi=abivirtprice).functions.get_virtual_price())/10**18, 6)
+        carray["balanceof"][i] = round(call_me(w3.eth.contract(carray["guageaddress"][i], abi=abiguage).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
+        if len(carray["tokenaddress"][i]) > 1:
+            carray["balanceof"][i] += round(call_me(w3.eth.contract(carray["tokenaddress"][i], abi=abiguage).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
         maxinvestforfullboost = carray["totalsupply"][i]*veCRV_mine/veCRV_total
         print(carray["longname"][i].ljust(len(max(carray["longname"], key=len))), carray["name"][i],
               str(carray["invested"][i]).rjust(cw[0]),
-              str(format(carray["virtprice"][i]*carray["balanceof"][i], '.2f')).rjust(cw[1]),
-              str(format(carray["totalsupply"][i], '.0f')).rjust(cw[2]), end=' ')
+              str(format(carray["virtprice"][i]*carray["balanceof"][i], '.0f')).rjust(cw[1]),
+              str(format(carray["totalsupply"][i], ',.0f')).rjust(cw[2]), end=' ')
         needed_veCRV = round((carray["balanceof"][i]/carray["totalsupply"][i]*veCRV_total)-veCRV_mine)
         carray["futureboost"][i] = 2.5*min((carray["balanceof"][i]/2.5) + (maxinvestforfullboost*(1-(1/2.5))), carray["balanceof"][i])/max(1,carray["balanceof"][i])
         print(Style.DIM+str(format(round(myarray[-1][carray["name"][i]+"pool"]-(carray["minted"][i]/10**18), 2), '.2f')).rjust(cw[3])+Style.RESET_ALL,
               Style.DIM+str(format(round(carray["minted"][i]/10**18, 2), '.2f')).rjust(cw[4])+Style.RESET_ALL,
               str(format(round(myarray[-1][carray["name"][i]+"pool"], 2), '.2f')).rjust(cw[5]), end=' ')
-        if myarray[-1][carray["name"][i]+"invested"] > 0:
-            print(str(format(round(myarray[-1][carray["name"][i]+"pool"]/myarray[-1][carray["name"][i]+"invested"]*100, 2), '.2f')).rjust(cw[6])+"%", end=' ')
-        else:
-            print(' '*(cw[6]+1), end=' ')
+        #if myarray[-1][carray["name"][i]+"invested"] > 0:
+        #    print(str(format(round(myarray[-1][carray["name"][i]+"pool"]/myarray[-1][carray["name"][i]+"invested"]*100, 2), '.2f')).rjust(cw[6])+"%", end=' ')
+        #else:
+        #    print(' '*(cw[6]+1), end=' ')
 
         if carray["currentboost"][i] >= 2.5:
             if carray["futureboost"][i]-carray["currentboost"][i] < 0:
@@ -177,8 +184,6 @@ def header_display():
     if sum(carray["invested"]) != myarray[eoa]["invested"]:
         print(Fore.RED+str(sum(carray["invested"]) - myarray[eoa]["invested"])+Style.RESET_ALL+" of New $ obs. data", end='')
     print("")
-    global enter_hit
-    enter_hit=False
     threading.Thread(target=key_capture_thread, args=(), name='key_capture_thread', daemon=True).start()
 
 def boost_check(endchar):
@@ -192,8 +197,8 @@ def boost_check(endchar):
         elif carray["currentboost"][i] == 0:
             carray["booststatus"][i] = 4                #Blue, pool is empty
         else:
-            carray["balanceof"][i] = round(call_me(w3.eth.contract(carray["address"][i], abi=abiguage).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
-            carray["totalsupply"][i] = round(call_me(w3.eth.contract(carray["address"][i], abi=abiguage).functions.totalSupply())/10**18, 2)
+            carray["balanceof"][i] = round(call_me(w3.eth.contract(carray["guageaddress"][i], abi=abiguage).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
+            carray["totalsupply"][i] = round(call_me(w3.eth.contract(carray["guageaddress"][i], abi=abiguage).functions.totalSupply())/10**18, 2)
             if carray["currentboost"][i] > 0:
                 carray["futureboost"][i] = 2.5 * min((carray["balanceof"][i]/2.5) + (carray["totalsupply"][i]*veCRV_mine/veCRV_total*(1-(1/2.5))), carray["balanceof"][i])/carray["balanceof"][i]
             if carray["currentboost"][i] >= carray["futureboost"][i]:
@@ -247,7 +252,6 @@ def print_status_line(USD, eoa):
 
 def main():
     """monitor various curve contracts"""
-    global enter_hit
     load_curvepool_array(carray)
     header_display()
     while True:                                                                     #Initiate main program loop
@@ -268,10 +272,10 @@ def main():
             mydict[carray["name"][i]+"invested"] = carray["invested"][i]
             try:
                 if carray["raw"][i] > 0: #skip updating empty pools after the initial check
-                    carray["raw"][i] = call_me(w3.eth.contract(carray["address"][i], abi=abiguage).functions.claimable_tokens(MY_WALLET_ADDRESS))
+                    carray["raw"][i] = call_me(w3.eth.contract(carray["guageaddress"][i], abi=abiguage).functions.claimable_tokens(MY_WALLET_ADDRESS))
                 if abs(round(round((carray["raw"][i]+carray["minted"][i])/10**18, 6), 5) - myarray[-1][carray["name"][i]+"pool"]) > 10:
                     print("MINTING HAPPENED: Before", carray["minted"][i], end='   ')
-                    carray["minted"][i] = call_me(w3.eth.contract(MINTER_ADDRESS, abi=abiminter).functions.minted(MY_WALLET_ADDRESS, carray["address"][i]))
+                    carray["minted"][i] = call_me(w3.eth.contract(MINTER_ADDRESS, abi=abiminter).functions.minted(MY_WALLET_ADDRESS, carray["guageaddress"][i]))
                     print("After", carray["minted"][i])
                 mydict[carray["name"][i]+"pool"] = round(round((carray["raw"][i]+carray["minted"][i])/10**18, 6), 5)
                 if myarray[-1][carray["name"][i]+"pool"] - mydict[carray["name"][i]+"pool"] > 0.01: #debug lines ... should not happen
