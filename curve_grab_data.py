@@ -16,7 +16,6 @@ try:
     from curve_rainbowhat_functions import curve_hats_update
 except:
     print("No Raspberry Pi Hats Found.")
-    pass
 
 cursor.hide()
 init()
@@ -69,13 +68,13 @@ def call_me(function):
     x = function.call()
     if isinstance(x, list):
         x = x[0]
-    if x < 10000:
+    if 0 < x < 10000:
         print("\n odd output when calling "+str(function),x)
     return x
 
 def show_additional_pool_coins():
     a=round(call_me(w3.eth.contract("0xA90996896660DEcC6E997655E065b23788857849", abi=abisplus).functions.claimable_reward(MY_WALLET_ADDRESS))/10**18, 4)
-    print(Back.CYAN+Fore.BLUE+Style.DIM+"S "+str(format(a, '.3f')).lstrip("0")+Style.RESET_ALL, end=' - ')
+    print(Back.CYAN+Fore.BLUE+Style.DIM+"S "+str(format(a, '.2f')).lstrip("0")+Style.RESET_ALL, end=' - ')
 
 def show_other_exchanges():
     #iusdc_interest = round(w3.eth.contract("0x32E4c68B3A4a813b710595AebA7f6B7604Ab9c15", abi=abifulcrum).functions.nextSupplyInterestRate(1).call()/10**18, 2)
@@ -83,8 +82,8 @@ def show_other_exchanges():
     #crusdc_interest = round(((((w3.eth.contract("0x44fbeBd2F576670a6C33f6Fc0B00aA8c5753b322", abi=abicream).functions.supplyRatePerBlock().call()*4*60*24/10**18)+1)**364)-1)*100, 2)
     aacrv_interest = round(w3.eth.contract("0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9", abi=abiaave2).functions.getReserveData("0xD533a949740bb3306d119CC777fa900bA034cd52").call()[3]/10**25,2)
     print(Back.CYAN+Fore.BLUE+Style.DIM+
-          "A"+str(format(aacrv_interest, '05.1f'))+"%",
-          "C"+str(format(crcrv_interest, '05.2f'))+"%"+Style.RESET_ALL, end=' - ')  #+"C"+str(crusdc_interest)+"% "+Fore.MAGENTA+Style.BRIGHT+"Ç"+str(format(crcrv_interest, '.2f'))+"%"
+          "A"+str(format(aacrv_interest, '05.3f'))+"%",
+          "C"+str(format(crcrv_interest, '05.3f'))+"%"+Style.RESET_ALL, end=' - ')  #+"C"+str(crusdc_interest)+"% "+Fore.MAGENTA+Style.BRIGHT+"Ç"+str(format(crcrv_interest, '.2f'))+"%"
 
 def load_curvepool_array(barray):
     """prepare iteratable array from json file"""
@@ -93,7 +92,7 @@ def load_curvepool_array(barray):
 
     barray["minted"] = [0]*len(thisarray)
     barray["balanceof"] = [0]*len(thisarray)
-    barray["raw"] = [0]*len(thisarray)
+    barray["raw"] = [1]*len(thisarray)
     barray["totalsupply"] = [0]*len(thisarray)
     barray["futureboost"] = [0]*len(thisarray)
     barray["booststatus"] = [0]*len(thisarray)
@@ -107,8 +106,13 @@ def load_curvepool_array(barray):
         barray["name"].append(thisarray[i]["name"])
         barray["address"].append(thisarray[i]["address"])
         barray["tokenaddress"].append(thisarray[i]["tokenaddress"])
-        if barray["currentboost"][i] > 0:
-            barray["minted"][i] = call_me(w3.eth.contract(MINTER_ADDRESS, abi=abiminter).functions.minted(MY_WALLET_ADDRESS, carray["address"][i]))
+        barray["minted"][i] = call_me(w3.eth.contract(MINTER_ADDRESS, abi=abiminter).functions.minted(MY_WALLET_ADDRESS, carray["address"][i]))
+        try:
+            a = myarray[-1][carray["name"][i]+"pool"]
+        except:
+            print(thisarray[i]["longname"], "not found in current history file, adding now.")
+            myarray[-1][carray["name"][i]+"pool"] = 0
+            myarray[-1][carray["name"][i]+"invested"] = 0
 
 def header_display():
     """display detailed pool information"""
@@ -120,26 +124,21 @@ def header_display():
     for i in range(0, len(carray["name"])):
         carray["totalsupply"][i] = round(call_me(w3.eth.contract(carray["address"][i], abi=abiguage).functions.totalSupply())/10**18, 2)
         carray["virtprice"][i] = round(call_me(w3.eth.contract(carray["tokenaddress"][i], abi=abivirtprice).functions.get_virtual_price())/10**18, 6)
-        if carray["currentboost"][i] > 0:
-            carray["balanceof"][i] = round(call_me(w3.eth.contract(carray["address"][i], abi=abiguage).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
+        carray["balanceof"][i] = round(call_me(w3.eth.contract(carray["address"][i], abi=abiguage).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
         maxinvestforfullboost = carray["totalsupply"][i]*veCRV_mine/veCRV_total
         print(carray["longname"][i].ljust(len(max(carray["longname"], key=len))), carray["name"][i],
               str(carray["invested"][i]).rjust(cw[0]),
               str(format(carray["virtprice"][i]*carray["balanceof"][i], '.2f')).rjust(cw[1]),
               str(format(carray["totalsupply"][i], '.0f')).rjust(cw[2]), end=' ')
-        if carray["currentboost"][i] > 0:
-            needed_veCRV = round((carray["balanceof"][i]/carray["totalsupply"][i]*veCRV_total)-veCRV_mine)
-            carray["futureboost"][i] = 2.5*min((carray["balanceof"][i]/2.5) + (maxinvestforfullboost*(1-(1/2.5))), carray["balanceof"][i])/carray["balanceof"][i]
-            print(Style.DIM+str(format(round(myarray[-1][carray["name"][i]+"pool"]-(carray["minted"][i]/10**18), 2), '.2f')).rjust(cw[3])+Style.RESET_ALL,
-                  Style.DIM+str(format(round(carray["minted"][i]/10**18, 2), '.2f')).rjust(cw[4])+Style.RESET_ALL,
-                  str(format(round(myarray[-1][carray["name"][i]+"pool"], 2), '.2f')).rjust(cw[5]),
-                  str(format(round(myarray[-1][carray["name"][i]+"pool"]/myarray[-1][carray["name"][i]+"invested"]*100, 2), '.2f')).rjust(cw[6])+"%", end=' ')
+        needed_veCRV = round((carray["balanceof"][i]/carray["totalsupply"][i]*veCRV_total)-veCRV_mine)
+        carray["futureboost"][i] = 2.5*min((carray["balanceof"][i]/2.5) + (maxinvestforfullboost*(1-(1/2.5))), carray["balanceof"][i])/max(1,carray["balanceof"][i])
+        print(Style.DIM+str(format(round(myarray[-1][carray["name"][i]+"pool"]-(carray["minted"][i]/10**18), 2), '.2f')).rjust(cw[3])+Style.RESET_ALL,
+              Style.DIM+str(format(round(carray["minted"][i]/10**18, 2), '.2f')).rjust(cw[4])+Style.RESET_ALL,
+              str(format(round(myarray[-1][carray["name"][i]+"pool"], 2), '.2f')).rjust(cw[5]), end=' ')
+        if myarray[-1][carray["name"][i]+"invested"] > 0:
+            print(str(format(round(myarray[-1][carray["name"][i]+"pool"]/myarray[-1][carray["name"][i]+"invested"]*100, 2), '.2f')).rjust(cw[6])+"%", end=' ')
         else:
-            needed_veCRV = round((TARGET_AMOUNT/carray["totalsupply"][i]*veCRV_total)-veCRV_mine)
-            print(Style.DIM+str(format(round(0, 2), '.2f')).rjust(cw[3])+Style.RESET_ALL,
-                  Style.DIM+str(format(round(carray["minted"][i]/10**18, 2), '.2f')).rjust(cw[4])+Style.RESET_ALL,
-                  str(format(round(0, 2), '.2f')).rjust(cw[5]),
-                  str(format(round(0, 2), '.2f')).rjust(cw[6])+"%", end=' ')
+            print(' '*(cw[6]+1), end=' ')
 
         if carray["currentboost"][i] >= 2.5:
             if carray["futureboost"][i]-carray["currentboost"][i] < 0:
@@ -220,7 +219,8 @@ def print_status_line(USD, eoa):
     """print main status line"""
     extramins = round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa
     difference = (myarray[-1]["claim"]-myarray[eoa]["claim"])/(60+extramins)*60
-    print("\rAt $"+Fore.YELLOW+str(format(USD, '.3f'))+Fore.WHITE+" per CRV = "+
+    print("\r",end='',flush=True)
+    print("At $"+Fore.YELLOW+str(format(USD, '.3f'))+Fore.WHITE+" per CRV = "+
           Fore.GREEN+Style.BRIGHT+str(format(round((difference)*USD*24*365/sum(carray["invested"])*100, 2), '.2f'))+Style.NORMAL+Fore.WHITE+"/"+
           Fore.CYAN+str(format(round((difference)*24*365/sum(carray["invested"])*100, 2), '.2f'))+Fore.WHITE+"% APR", end=' ')
 
@@ -229,13 +229,13 @@ def print_status_line(USD, eoa):
             print(Fore.RED+Style.BRIGHT+carray["name"][i]+Style.RESET_ALL+
                   str(format(round((myarray[-1][carray["name"][i]+"pool"]-myarray[eoa][carray["name"][i]+"pool"])/(60+extramins)*60*USD*24*365/carray["invested"][i]*100, 2), '.2f')), end=' ')
 
-    print(csym+format(myarray[-1]["claim"], '.4f')+Style.RESET_ALL,
-          "H"+csym+format((round(difference, 5)), '.5f')+Style.RESET_ALL,
+    print(csym+format(myarray[-1]["claim"], '.3f')+Style.RESET_ALL,
           "D"+csym+format((round((difference)*24, 2)), '.2f')+Style.RESET_ALL,
+          "H"+csym+format((round(difference, 5)), '.4f')+Style.RESET_ALL,
           "Y"+csym+format((round((difference)*24*365, 0)), '.0f').rjust(5)+Style.RESET_ALL, end=' - ')
-    print(myarray[-1]["human_time"], end=' - ')
     #show_other_exchanges()
     show_additional_pool_coins()
+    print(myarray[-1]["human_time"], end=' - ')
     boost_check(" - ")
     if extramins >= 0: #air bubble extra minutes
         print(Fore.RED+str(round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa+1)+Style.RESET_ALL, end=' - ')
@@ -266,19 +266,19 @@ def main():
                   "USD" : update_price(), "invested" : sum(carray["invested"])}     #Update dictionary values and price information
         for i in range(0, len(carray["name"])):
             mydict[carray["name"][i]+"invested"] = carray["invested"][i]
-            if carray["currentboost"][i] > 0: #sometimes synthetix minter goes into maintenace so we pull last hours values
-                try:
+            try:
+                if carray["raw"][i] > 0: #skip updating empty pools after the initial check
                     carray["raw"][i] = call_me(w3.eth.contract(carray["address"][i], abi=abiguage).functions.claimable_tokens(MY_WALLET_ADDRESS))
-                    if abs(round(round((carray["raw"][i]+carray["minted"][i])/10**18, 6), 5) - myarray[-1][carray["name"][i]+"pool"]) > 10:
-                        print("MINTING HAPPENED: Before", carray["minted"][i], end='   ')
-                        carray["minted"][i] = call_me(w3.eth.contract(MINTER_ADDRESS, abi=abiminter).functions.minted(MY_WALLET_ADDRESS, carray["address"][i]))
-                        print("After", carray["minted"][i])
-                    mydict[carray["name"][i]+"pool"] = round(round((carray["raw"][i]+carray["minted"][i])/10**18, 6), 5)
-                    if myarray[-1][carray["name"][i]+"pool"] - mydict[carray["name"][i]+"pool"] > 0.01: #debug lines ... should not happen
-                        print(myarray[-1][carray["name"][i]+"pool"] - mydict[carray["name"][i]+"pool"], "\nerror with lower raw value"+carray["name"][i], myarray[-1][carray["name"][i]+"pool"], mydict[carray["name"][i]+"pool"], end='')
-                except: #usually happens when snx is down for maintenance
-                    mydict[carray["name"][i]+"pool"] = myarrayh[-1][carray["name"][i]+"pool"]
-                    carray["raw"][i] = (myarrayh[-1][carray["name"][i]+"pool"]*10**18) - carray["minted"][i]
+                if abs(round(round((carray["raw"][i]+carray["minted"][i])/10**18, 6), 5) - myarray[-1][carray["name"][i]+"pool"]) > 10:
+                    print("MINTING HAPPENED: Before", carray["minted"][i], end='   ')
+                    carray["minted"][i] = call_me(w3.eth.contract(MINTER_ADDRESS, abi=abiminter).functions.minted(MY_WALLET_ADDRESS, carray["address"][i]))
+                    print("After", carray["minted"][i])
+                mydict[carray["name"][i]+"pool"] = round(round((carray["raw"][i]+carray["minted"][i])/10**18, 6), 5)
+                if myarray[-1][carray["name"][i]+"pool"] - mydict[carray["name"][i]+"pool"] > 0.01: #debug lines ... should not happen
+                    print(myarray[-1][carray["name"][i]+"pool"] - mydict[carray["name"][i]+"pool"], "\nerror with lower raw value"+carray["name"][i], myarray[-1][carray["name"][i]+"pool"], mydict[carray["name"][i]+"pool"], end='')
+            except: #usually happens when snx is down for maintenance
+                mydict[carray["name"][i]+"pool"] = myarrayh[-1][carray["name"][i]+"pool"]
+                carray["raw"][i] = (myarrayh[-1][carray["name"][i]+"pool"]*10**18) - carray["minted"][i]
 
         mydict["claim"] = round((sum(carray["raw"])+sum(carray["minted"]))/10**18, 6)
         if minut == "00" and mydict["claim"] > 1:

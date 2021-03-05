@@ -1,7 +1,7 @@
 [
   {
     "longname": "usdN",  "address":"0xF98450B5602fa59CC66e1379DFfB6FDDc724CfC4",
-    "invested": 22700,    "currentboost": 1.23935, "name": "N",
+    "invested": 26800,    "currentboost": 1.2204, "name": "N",
     "tokenaddress":"0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1"
   },
   {
@@ -10,19 +10,14 @@
     "tokenaddress":"0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956"
   },
   {
-    "longname": "3pool", "address":"0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A",
-    "invested": 4100,    "currentboost": 2.4873,    "name": "T",
-    "tokenaddress":"0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7"
+    "longname": "Susd",  "address":"0xA90996896660DEcC6E997655E065b23788857849",
+    "invested": 2900,    "currentboost": 2.4945, "name": "S",
+    "tokenaddress":"0xA5407eAE9Ba41422680e2e00537571bcC53efBfD"
   },
   {
     "longname": "Yearn", "address":"0xFA712EE4788C042e2B7BB55E6cb8ec569C4530c1",
     "invested": 2100,    "currentboost": 2.5,    "name": "Y",
     "tokenaddress":"0x45F783CCE6B7FF23B2ab2D70e416cdb7D6055f51"
-  },
-  {
-    "longname": "Susd",  "address":"0xA90996896660DEcC6E997655E065b23788857849",
-    "invested": 1700,    "currentboost": 2.4469, "name": "S",
-    "tokenaddress":"0xA5407eAE9Ba41422680e2e00537571bcC53efBfD"
   },
   {
     "longname": "Compound",   "address":"0x7ca5b0a2910B33e9759DC7dDB0413949071D7575",
@@ -35,8 +30,13 @@
     "tokenaddress":"0x79a8C46DeA5aDa233ABaFFD40F3A0A2B1e5A4F27"
   },
   {
-    "longname": "Hbtc",  "address":"0x4c18E409Dc8619bFb6a1cB56D114C3f592E0aE79",
-    "invested": 0,    "currentboost": 0,    "name": "H",
-    "tokenaddress":"0x4CA9b3063Ec5866A4B82E437059D2C43d1be596F"
+    "longname": "3pool", "address":"0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A",
+    "invested": 0,    "currentboost": 0,    "name": "T",
+    "tokenaddress":"0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7"
+  },
+  {
+    "longname": "Pusd",  "address":"0x055be5DDB7A925BfEF3417FC157f53CA77cA7222",
+    "invested": 0,    "currentboost": 0,    "name": "P",
+    "tokenaddress":"0x42d7025938bEc20B69cBae5A77421082407f053A"
   }
 ]
