@@ -34,7 +34,8 @@ CRV_ADDRESS = "0xD533a949740bb3306d119CC777fa900bA034cd52"
 abifulcrum = json.load(open("abi_d172.json", 'r'))
 abicream = json.load(open("abi_c7fd.json", 'r'))
 abiaave2 = json.load(open("abi_c684.json", 'r'))
-abisplus = json.load(open("abi_a909.json", 'r')) #as yet unused - SNX?
+abisplus = json.load(open("abi_a909.json", 'r'))
+abieps = json.load(open("abi_4076.json", 'r'))
 
 file_name = "ghistory.json"
 file_nameh = "ghistoryh.json"
@@ -43,7 +44,6 @@ myarrayh = json.load(open(file_nameh, 'r'))
 carray = {"longname": [], "name": [], "invested": [], "currentboost": [], "guageaddress" : [], "swapaddress" : [], "tokenaddress" : []}
 
 csym = Fore.MAGENTA + Style.BRIGHT + "Ç" + Style.RESET_ALL + Fore.CYAN
-TARGET_AMOUNT = 10
 enter_hit = False
 
 parser = argparse.ArgumentParser()
@@ -51,12 +51,14 @@ parser.add_argument("-l", "--Local", help = "Local Node Used", action="store_tru
 parser.add_argument("-r", "--Readonly", help = "Don't write output to file", action="store_true")
 args = parser.parse_args()
 print("Read Only Mode:",args.Readonly)
+bsc_w3 = Web3(Web3.HTTPProvider('https://bsc-dataseed1.binance.org:443'))
+infura_w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
 if args.Local:
-    w3 = Web3(Web3.HTTPProvider('http://172.33.0.2:8545'))
-    print("Data Source: LOCAL")
+    print("Data Source: LOCAL (except for gas price)")
+    w3 = Web3(Web3.HTTPProvider('http://192.168.0.198:8545'))
 else:
     print("Data Source: Infura")
-    w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
+    w3 = infura_w3
 
 def key_capture_thread():
     global enter_hit
@@ -72,6 +74,14 @@ def call_me(function):
     if 0 < x < 10000:
         print("\n odd output when calling "+str(function),x)
     return x
+
+def show_ellipsis():
+    try:
+        bsc_call=bsc_w3.eth.contract("0x4076CC26EFeE47825917D0feC3A79d0bB9a6bB5c", abi=abieps).functions.claimableRewards(MY_WALLET_ADDRESS).call()
+        print(Fore.MAGENTA+Style.BRIGHT+"Ë"+Style.RESET_ALL+Fore.CYAN+str(format(round(bsc_call[0][1]/10**18,2),'.2f'))+Style.RESET_ALL,end=' - ')
+        #print(Fore.BLUE+str(format(round(bsc_call[1][1]/10**18,2),'.2f'))+Fore.WHITE+ "B"+Style.RESET_ALL,end=' - ')
+    except:
+        print("\nBSC networking error")
 
 def show_additional_pool_coins():
     a=round(call_me(w3.eth.contract("0xA90996896660DEcC6E997655E065b23788857849", abi=abisplus).functions.claimable_reward(MY_WALLET_ADDRESS))/10**18, 4)
@@ -121,6 +131,7 @@ def load_curvepool_array(barray):
 
 def header_display():
     """display detailed pool information"""
+    virutal_price_sum = 0
     cw = [5, 5, 11, 6, 7, 7, 0, 9, 6, 7, 5]
     CRV_inwallet = round(call_me(w3.eth.contract(CRV_ADDRESS, abi=abivoting).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
     veCRV_locked = round(call_me(w3.eth.contract(veCRV_ADDRESS, abi=abivoting).functions.locked(MY_WALLET_ADDRESS))/10**18, 2)
@@ -132,20 +143,23 @@ def header_display():
         carray["balanceof"][i] = round(call_me(w3.eth.contract(carray["guageaddress"][i], abi=abiguage).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
         if len(carray["tokenaddress"][i]) > 1:
             carray["balanceof"][i] += round(call_me(w3.eth.contract(carray["tokenaddress"][i], abi=abiguage).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
+        virutal_price_sum += carray["virtprice"][i]*carray["balanceof"][i]
         maxinvestforfullboost = carray["totalsupply"][i]*veCRV_mine/veCRV_total
         print(carray["longname"][i].ljust(len(max(carray["longname"], key=len))), carray["name"][i],
               str(carray["invested"][i]).rjust(cw[0]),
-              str(format(carray["virtprice"][i]*carray["balanceof"][i], '.0f')).rjust(cw[1]),
-              str(format(carray["totalsupply"][i], ',.0f')).rjust(cw[2]), end=' ')
+              str(format(carray["virtprice"][i]*carray["balanceof"][i], '.0f')).rjust(cw[1]), end=' ')
+        base_percent = ((carray["virtprice"][i]*carray["balanceof"][i])-carray["invested"][i])/(carray["invested"][i]+.00000001)*100
+        if base_percent > 0:
+            print("("+str(format(round(base_percent,3), '.3f')).rjust(5)+"%)", end=' ')
+        else:
+            print(" "*8, end=' ')
+
         needed_veCRV = round((carray["balanceof"][i]/carray["totalsupply"][i]*veCRV_total)-veCRV_mine)
         carray["futureboost"][i] = 2.5*min((carray["balanceof"][i]/2.5) + (maxinvestforfullboost*(1-(1/2.5))), carray["balanceof"][i])/max(1,carray["balanceof"][i])
-        print(Style.DIM+str(format(round(myarray[-1][carray["name"][i]+"pool"]-(carray["minted"][i]/10**18), 2), '.2f')).rjust(cw[3])+Style.RESET_ALL,
+        print(str(format(carray["totalsupply"][i], ',.0f')).rjust(cw[2]),
               Style.DIM+str(format(round(carray["minted"][i]/10**18, 2), '.2f')).rjust(cw[4])+Style.RESET_ALL,
+              Style.DIM+str(format(round(myarray[-1][carray["name"][i]+"pool"]-(carray["minted"][i]/10**18), 2), '.2f')).rjust(cw[3])+Style.RESET_ALL,
               str(format(round(myarray[-1][carray["name"][i]+"pool"], 2), '.2f')).rjust(cw[5]), end=' ')
-        #if myarray[-1][carray["name"][i]+"invested"] > 0:
-        #    print(str(format(round(myarray[-1][carray["name"][i]+"pool"]/myarray[-1][carray["name"][i]+"invested"]*100, 2), '.2f')).rjust(cw[6])+"%", end=' ')
-        #else:
-        #    print(' '*(cw[6]+1), end=' ')
 
         if carray["currentboost"][i] >= 2.5:
             if carray["futureboost"][i]-carray["currentboost"][i] < 0:
@@ -156,29 +170,30 @@ def header_display():
             else:
                 print(str(format(round(maxinvestforfullboost-carray["balanceof"][i], 2), '.2f')).rjust(cw[7])+Style.RESET_ALL, end=' ')
                 print(Style.BRIGHT+Fore.GREEN+str(format(carray["currentboost"][i], '.4f')).rjust(cw[8]).replace("0", " ")+Style.RESET_ALL)
-        else:
+        elif carray["currentboost"][i] > 0:
             print(Style.DIM+str(format(round(maxinvestforfullboost-carray["balanceof"][i], 2), '.2f')).rjust(cw[7])+Style.RESET_ALL, end=' ')
             print(str(format(carray["currentboost"][i], '.4f')).rjust(cw[8]), end=' ')
             if carray["futureboost"][i]-carray["currentboost"][i] <= 0:
                 print(Style.DIM+Fore.GREEN+str(format(carray["futureboost"][i]-carray["currentboost"][i], '.4f')).rjust(cw[9])+Style.RESET_ALL, end=' ')
+            elif carray["futureboost"][i]-carray["currentboost"][i] < 0.05:
+                print(Style.DIM+Fore.RED+str(format(carray["futureboost"][i]-carray["currentboost"][i], '.4f')).rjust(cw[9])+Style.RESET_ALL, end=' ')
             else:
-                if carray["futureboost"][i]-carray["currentboost"][i] >= 0.05:
-                    print(Style.BRIGHT+Fore.RED+str(format(carray["futureboost"][i]-carray["currentboost"][i], '.4f')).rjust(cw[9])+Style.RESET_ALL, end=' ')
-                else:
-                    print(Style.DIM+Fore.RED+str(format(carray["futureboost"][i]-carray["currentboost"][i], '.4f')).rjust(cw[9])+Style.RESET_ALL, end=' ')
-            if carray["currentboost"][i] == 0:
-                print(str(needed_veCRV).rjust(cw[10]), "additional veCRV needed for full boost at target of $"+str(TARGET_AMOUNT))
-            else:
-                print(str(needed_veCRV).rjust(cw[10]), "additional veCRV needed for full boost.")
+                print(Style.BRIGHT+Fore.RED+str(format(carray["futureboost"][i]-carray["currentboost"][i], '.4f')).rjust(cw[9])+Style.RESET_ALL, end=' ')
 
-    print(sum(carray["invested"]), "invested, as well as", veCRV_mine, "veCRV voting"+Style.DIM+" (from", veCRV_locked, "locked)"+Style.RESET_ALL, end='  ')
-    print(csym+str(round(myarray[-1]["claim"]-(sum(carray["minted"])/10**18), 2))+Style.RESET_ALL, "in pools ",end=' ')
+            print(str(needed_veCRV).rjust(cw[10]), "additional veCRV needed for full boost.")
+        else:
+            print("")
+
+    print(sum(carray["invested"]), "invested which has grown to",int(virutal_price_sum), end=' ')
+    print("("+str(format(round(( virutal_price_sum/sum(carray["invested"])*100)-100,5),'.3f'))+"%)", end=' ')
+    print("as well as", veCRV_mine, "veCRV voting"+Style.DIM+" (from", veCRV_locked, "locked)"+Style.RESET_ALL, end='  ')
     print(csym+str(round(sum(carray["minted"])/10**18, 2))+Style.RESET_ALL, "minted ", end=' ')
+    print(csym+str(round(myarray[-1]["claim"]-(sum(carray["minted"])/10**18), 2))+Style.RESET_ALL, "in pools ", end=' ')
     print(csym+str(CRV_inwallet)+Style.RESET_ALL,"on sidelines", end='  ')
 
     eoa = 0 - len(myarray)
     if round((round(time.time())-myarray[eoa]["raw_time"])/60, 2)+eoa >= 0.5:
-        print(Fore.RED+str(round(((round(time.time())-myarray[eoa]["raw_time"])/60)+eoa, 2))+Style.RESET_ALL+" minutes out of sync.", end=' ')
+        print(Fore.RED+str(round(((round(time.time())-myarray[eoa]["raw_time"])/60)+eoa, 2))+Style.RESET_ALL+" min oos.", end=' ')
     if eoa > -61:
         print(Fore.RED+str(61+eoa)+Style.RESET_ALL+" minutes under 60.", end=' ')
     if sum(carray["invested"]) != myarray[eoa]["invested"]:
@@ -192,7 +207,7 @@ def boost_check(endchar):
     veCRV_total = round(call_me(w3.eth.contract(veCRV_ADDRESS, abi=abivoting).functions.totalSupply())/10**18, 2)
     outputflag = 0
     for i in range(0, len(carray["name"])):
-        if carray["currentboost"][i] == 2.5:
+        if carray["currentboost"][i] >= 2.47:   #hack to avoid spool which is annoyingly close to 2.5 boost
             carray["booststatus"][i] = -1               #Green, all is well
         elif carray["currentboost"][i] == 0:
             carray["booststatus"][i] = 4                #Blue, pool is empty
@@ -208,12 +223,10 @@ def boost_check(endchar):
                 print(carray["name"][i], end='')
                 if carray["futureboost"][i]-carray["currentboost"][i] >= .05:
                     carray["booststatus"][i] = 2        #Red, big enough change in boost status to care
-                    print( #str(format(carray["futureboost"][i], '.4f')).rjust(6),
-                          Style.BRIGHT+Fore.RED+str(format(carray["futureboost"][i]-carray["currentboost"][i], '.4f')).rjust(5).lstrip("0")+Style.RESET_ALL, end=' ')
+                    print(Style.BRIGHT+Fore.RED+str(format(carray["futureboost"][i]-carray["currentboost"][i], '.4f')).rjust(5).lstrip("0")+Style.RESET_ALL, end=' ')
                 else:
                     carray["booststatus"][i] = 3        #Purple, small change in boost status
-                    print( #str(format(carray["futureboost"][i], '.4f')).rjust(6),
-                          Style.DIM+Fore.RED+str(format(carray["futureboost"][i]-carray["currentboost"][i], '.4f')).rjust(5).lstrip("0")+Style.RESET_ALL, end=' ')
+                    print(Style.DIM+Fore.RED+str(format(carray["futureboost"][i]-carray["currentboost"][i], '.4f')).rjust(5).lstrip("0")+Style.RESET_ALL, end=' ')
 
     if outputflag:
         print('\b', end=endchar)
@@ -234,13 +247,14 @@ def print_status_line(USD, eoa):
             print(Fore.RED+Style.BRIGHT+carray["name"][i]+Style.RESET_ALL+
                   str(format(round((myarray[-1][carray["name"][i]+"pool"]-myarray[eoa][carray["name"][i]+"pool"])/(60+extramins)*60*USD*24*365/carray["invested"][i]*100, 2), '.2f')), end=' ')
 
-    print(csym+format(myarray[-1]["claim"], '.3f')+Style.RESET_ALL,
-          "D"+csym+format((round((difference)*24, 2)), '.2f')+Style.RESET_ALL,
+    print(csym+format(myarray[-1]["claim"], '.4f')+Style.RESET_ALL,
           "H"+csym+format((round(difference, 5)), '.4f')+Style.RESET_ALL,
+          "D"+csym+format((round((difference)*24, 2)), '.3f')+Style.RESET_ALL,
           "Y"+csym+format((round((difference)*24*365, 0)), '.0f').rjust(5)+Style.RESET_ALL, end=' - ')
     #show_other_exchanges()
-    show_additional_pool_coins()
+    #show_additional_pool_coins()
     print(myarray[-1]["human_time"], end=' - ')
+    show_ellipsis()
     boost_check(" - ")
     if extramins >= 0: #air bubble extra minutes
         print(Fore.RED+str(round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa+1)+Style.RESET_ALL, end=' - ')
@@ -258,7 +272,9 @@ def main():
         month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
         firstpass = True                                                            #Prevent header display from outputting in conflict with regular update
         while month+"/"+day+" "+hour+":"+minut == myarray[-1]["human_time"]:        #Wait for each minute to pass to run again
-            print(" gas is:", Fore.BLUE+Style.BRIGHT+str(round(w3.eth.gasPrice/10**9)).ljust(3)+Style.RESET_ALL, "  ", "\b"*16, end="", flush=True)
+            print(" gas is:", Fore.BLUE+Style.BRIGHT+str(round(infura_w3.eth.gasPrice/10**9)).ljust(3)+Style.RESET_ALL, "  ", "\b"*16, end="", flush=True)
+            if firstpass and minut == "00":
+                print("")
             if enter_hit:
                 if firstpass:
                     print("")
@@ -273,7 +289,7 @@ def main():
             try:
                 if carray["raw"][i] > 0: #skip updating empty pools after the initial check
                     carray["raw"][i] = call_me(w3.eth.contract(carray["guageaddress"][i], abi=abiguage).functions.claimable_tokens(MY_WALLET_ADDRESS))
-                if abs(round(round((carray["raw"][i]+carray["minted"][i])/10**18, 6), 5) - myarray[-1][carray["name"][i]+"pool"]) > 10:
+                if abs(round(round((carray["raw"][i]+carray["minted"][i])/10**18, 6), 5) - myarray[-1][carray["name"][i]+"pool"]) > 1:
                     print("MINTING HAPPENED: Before", carray["minted"][i], end='   ')
                     carray["minted"][i] = call_me(w3.eth.contract(MINTER_ADDRESS, abi=abiminter).functions.minted(MY_WALLET_ADDRESS, carray["guageaddress"][i]))
                     print("After", carray["minted"][i])
@@ -290,7 +306,7 @@ def main():
             if not args.Readonly:
                 json.dump(myarrayh, open(file_nameh, "w"), indent=4)
             time.sleep(3)
-            show_me(-1, -2, 1, mydict["USD"], 1, 1, myarrayh) #compare last record with 2nd to last, update price, do NOT end line
+            #show_me(-1, -2, 1, mydict["USD"], 1, 1, myarrayh) #compare last record with 2nd to last, update price, do NOT end line
 
         myarray.append(mydict)
         if len(myarray) > 61:

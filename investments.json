@@ -3,7 +3,9 @@
     "person": "maureen", "invested": 3200, "date_in":"2020/11/20"
   },
   {
-    "person": "maureen", "invested": 600, "date_in":"2021/01/01"
+    "person": "maureen", "invested": 600, "date_in":"2021/01/01",
+    "__comment": "1200 more at 3/16/21?",
+    "__comment": "divest 288 crv for 400usd which came out of system"
   },
   {
     "person": "steve", "invested": 2000, "date_in":"2021/01/21"

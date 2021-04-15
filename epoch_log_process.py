@@ -38,7 +38,7 @@ def find_epochs(targetperson,printit):
     with open(file_nameh, 'r') as openfile:
         myarrayh = json.load(openfile)
 
-    #print("Log starts at:",myarrayh[0]["human_time"],"with a balance of",round(myarrayh[0]["claim"]))
+    print("Log starts at:",myarrayh[0]["human_time"],"with a balance of",round(myarrayh[0]["claim"]))
 
     for x in range(0, int(len(myarrayh))):
         if not myarrayh[wasinvested]["invested"] == myarrayh[x]["invested"] or x==int(len(myarrayh))-1:

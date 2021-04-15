@@ -58,13 +58,13 @@ def show_me(inputs, inpute, update, isprice, invested, newline, myarrayh):
 
 def update_price():
     USD = 1
-    time.sleep(2)
+    #time.sleep(2)
     while USD == 1:
         try:
             USD = cg.get_price(ids='curve-dao-token', vs_currencies='usd')["curve-dao-token"]["usd"]
         except:
             time.sleep(2)
-            print("Z", end='')
+            print("Z", end='', flush=True)
     return USD
 
 def daily_log(isprice, myportion, printit):
