@@ -31,7 +31,7 @@ def show_me(inputs, inpute, update, isprice, invested, newline, myarrayh):
 
     while update and USD == 1:
         try:
-            USD = float(update_price())
+            USD = float(update_price("curve-dao-token"))
         except:
             print("PRICE BREAK")
             time.sleep(1)
@@ -51,17 +51,19 @@ def show_me(inputs, inpute, update, isprice, invested, newline, myarrayh):
     print("between", myarrayh[inpute]["human_time"], "and", myarrayh[inputs]["human_time"], end=' ')
     if not invested == totalinvested:
         print(invested,"/", totalinvested)
+    else:
+        print(totalinvested, end='')
     if newline:
         print(" ")
     mytuple = a, b, c, USD, myarrayh[inpute]["human_time"], myarrayh[inputs]["human_time"]
     return mytuple
 
-def update_price():
+def update_price(coin_type):
     USD = 1
     #time.sleep(2)
     while USD == 1:
         try:
-            USD = cg.get_price(ids='curve-dao-token', vs_currencies='usd')["curve-dao-token"]["usd"]
+            USD = cg.get_price(ids=coin_type, vs_currencies='usd')[coin_type]["usd"]
         except:
             time.sleep(2)
             print("Z", end='', flush=True)
@@ -77,19 +79,19 @@ def daily_log(isprice, myportion, printit):
         try:
             thisprice =  myarrayh[(x*24)+24+offset]["USD"]
             if b == 0 and myarrayh[(x*24)+24+offset]["invested"] == myarrayh[-1]["invested"]:
-                if printit:
-                    print (x,myarrayh[(x*24)+24+offset]["invested"])
-                b = x+1
+                #if printit:
+                    #print (x,myarrayh[(x*24)+24+offset]["invested"])
+                b = x + 1
         except:
             pass
         if printit:
             show_me((x*24)+24+offset, (x*24)+offset, 0, thisprice, myportion, 1, myarrayh)
     return b
 if __name__ == "__main__":
-    z=daily_log(update_price(),1,1)
+    z=daily_log(update_price("curve-dao-token"),1,1)
 
-    print(z,"")
-    show_me(-1, 0, 0, update_price(), 1, 1, 0)
-    show_me(-1, (z*24), 0, update_price(), 1, 1, 0)
-    show_me(-1, (z*24), 0, update_price(), 1000, 1, 0)
-    print("    ")
+    print("")
+    show_me(-1, 0, 0, update_price("curve-dao-token"), 1, 1, 0)
+    print("")
+    show_me(-1, (z*24), 0, update_price("curve-dao-token"), 1, 1, 0)
+    show_me(-1, (z*24), 0, update_price("curve-dao-token"), 1000, 1, 0)

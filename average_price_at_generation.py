@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """curve"""
 # pylint: disable=C0103,C0116,C0301,W0105,E0401,R0914
+import sys
 import json
 from colorama import Fore, Style, init
 init()
@@ -17,7 +18,7 @@ def byhundo(increment):
     amount = count = lastx = targetpos = 0
     print("History log starts at", myarrayh[0]["human_time"], "with a balance of", round(myarrayh[0]["claim"]))
     targetdict, valuesdict = load_sales()
-    print("Using an increment of", increment, "after", targetdict[-1])
+    print("Using an increment of"+Style.BRIGHT+Fore.YELLOW , increment, Style.RESET_ALL+"after", targetdict[-1])
     for x in range(0, len(myarrayh)):
         if myarrayh[x]["claim"] >= targetdict[targetpos] or x == len(myarrayh) - 1:
             print("With", myarrayh[x]["invested"], "invested", end=' ')
@@ -70,4 +71,7 @@ def colormodfunc(value):
 if __name__ == "__main__":
     byhundo(100)
     print("  -----  ")
-    byhundo(300)
+    try:
+        byhundo(int(sys.argv[1]))
+    except:
+        byhundo(1000)

@@ -1,9 +1,9 @@
 [
-  {"amount": 1020, "value": 1.11},
+  {"amount": 1010, "value": 1.11},
   {"amount": 500, "value": 1.37},
   {"amount": 200, "value": 1.59},
   {"amount": 200, "value": 1.58},
   {"amount": 200, "value": 2.06},
-  {"amount": 330, "value": 2.95},
+  {"amount": 340, "value": 2.95},
   {"amount": 1200, "value": 2.97}
 ]

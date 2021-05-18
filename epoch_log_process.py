@@ -2,9 +2,8 @@
 """curve"""
 # pylint: disable=C0103,C0116,C0301,W0105,E0401,R0914
 import datetime
-import time
 import json
-from curve_log_process import show_me, update_price
+from hour_log_process import show_me, update_price
 from colorama import Fore, Style, init
 init()
 
@@ -38,7 +37,7 @@ def find_epochs(targetperson,printit):
     with open(file_nameh, 'r') as openfile:
         myarrayh = json.load(openfile)
 
-    print("Log starts at:",myarrayh[0]["human_time"],"with a balance of",round(myarrayh[0]["claim"]))
+    print("Log starts at:",myarrayh[0]["human_time"],"with a balance of",round(myarrayh[0]["claim"],2))
 
     for x in range(0, int(len(myarrayh))):
         if not myarrayh[wasinvested]["invested"] == myarrayh[x]["invested"] or x==int(len(myarrayh))-1:
@@ -47,37 +46,45 @@ def find_epochs(targetperson,printit):
             totalprofit += amount_generated
             da = round((myarrayh[newinvestment]["raw_time"]-myarrayh[wasinvested]["raw_time"]) / (60*60*24),1)
             if printit:
-                print(myarrayh[newinvestment-1]["invested"], end=' - ')
-                print(myarrayh[newinvestment-0]["invested"]-myarrayh[newinvestment-1]["invested"], end=' - ')
+                print(usym+str(myarrayh[newinvestment-1]["invested"])+Style.RESET_ALL, end='(')
+                print(str(format((myarrayh[newinvestment-0]["invested"]-myarrayh[newinvestment-1]["invested"]),'+.0f')).rjust(5), end=') - ')
                 print(myarrayh[newinvestment]["human_time"], end=' - ')
-                print(da,"days" ,end=' - ')
-                print(round(myarrayh[newinvestment]["claim"]), end=' - ')
-                print(amount_generated, end=' - ')
-                print(round(amount_generated/max(da*24,.00001)/myarrayh[newinvestment]["invested"]*1000,4), end=' - ')
+                print(str(da).rjust(4),"days" ,end=' - ')
+                print(csym+str(round(amount_generated)).rjust(3)+Style.RESET_ALL, end=' - ')
+                #print(format(round(amount_generated/max(da*24,.00001)/myarrayh[newinvestment]["invested"]*1000,4), '.4f'), end=' - ')
 
             mypercent=0
             for i in range(0,len(invarray["invested"])):
                 if invarray["raw_time"][i] <= myarrayh[newinvestment]["raw_time"]:
                     mypercent += (invarray["invested"][i]/myarrayh[newinvestment-1]["invested"])
+                    mypercentme = (invarray["invested"][i]/myarrayh[newinvestment-1]["invested"])
                     if printit:
-                        print (invarray["person"][i], invarray["invested"][i], myarrayh[newinvestment-1]["invested"], amount_generated, end=' - ')
-                        print(round(mypercent,4),round(mypercent*amount_generated,2), end=' - ')
+                        print(invarray["person"][i][0], str(invarray["invested"][i]).rjust(4), end=' ')
+                        print("("+str(format(round(mypercentme*100,2), '5.2f'))+"%)",csym+str(format(round(mypercentme*amount_generated,2),'.2f')).rjust(6)+Style.RESET_ALL, end=' - ')
                     try:
                         profitdict[invarray["person"][i]] = round(profitdict[invarray["person"][i]]+(invarray["invested"][i]/myarrayh[newinvestment-1]["invested"]*amount_generated),2)
                     except:
                         profitdict[invarray["person"][i]] = round(invarray["invested"][i]/myarrayh[newinvestment-1]["invested"]*amount_generated,2)
+            if printit:
+                print(Fore.YELLOW+"B rest"+Style.RESET_ALL, end=' ')
+                print("("+str(format(round((1-mypercent)*100,2), '5.2f'))+"%)",csym+str(format(round((1-mypercent)*amount_generated,2),'.2f')).rjust(6)+Style.RESET_ALL, end=' - ')
 
             mytuple = myarrayh[newinvestment-1]["invested"], myarrayh[newinvestment]["human_time"], da, amount_generated,round(mypercent,4)
             epochsdict.append(mytuple)
             if printit:
                 print("\b\b ")
-            wasinvested=newinvestment
-    profitdict["all"]=totalprofit
+            wasinvested = newinvestment
+
+    profitdict["rest"] = totalprofit+myarrayh[0]["claim"]
+    for key in profitdict:
+        if key != "rest":
+            profitdict["rest"] = round(profitdict["rest"] - profitdict[key],2)
+    profitdict["all"] = totalprofit
     return epochsdict, profitdict
 
 if __name__ == "__main__":
-    aa=show_me(-1, 0, 0, update_price(), 1, 1, 0)
-    print(aa)
+    aa=show_me(-1, 0, 0, update_price("curve-dao-token"), 1, 1, 0)
+    #print(aa)
     epochsdic, profitdic = find_epochs("all",1)
     print (profitdic)
-    print (epochsdic)
+    #print (epochsdic)

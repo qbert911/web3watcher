@@ -30,8 +30,8 @@ def rainbow_show_boost_status(array):
             r,g,b = [1,0,0]  #red
         elif array[x] == 3:
             r,g,b = [1,0,1]  #purple
-        elif array[x] == 4:
-            r,g,b = [0,1,1]  #lightblue
+#        elif array[x] == 4:
+#            r,g,b = [0,1,1]  #lightblue
         else:
             r,g,b = blank
         rainbowhat.rainbow.set_pixel(6-x, r,g,b,brightness)

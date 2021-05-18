@@ -1,49 +1,56 @@
 [
   {
     "longname": "Pusd",  "guageaddress":"0x055be5DDB7A925BfEF3417FC157f53CA77cA7222",
-    "invested": 23300,    "currentboost": 1.2116,    "name": "P",
-    "swapaddress":"0x42d7025938bEc20B69cBae5A77421082407f053A"
+    "invested": 18700,    "currentboost": 1.3001,    "name": "P",
+    "swapaddress":"0x42d7025938bEc20B69cBae5A77421082407f053A",
+    "tokenaddress":"0x7Eb40E450b9655f4B3cC4259BCC731c63ff55ae6"
   },
   {
     "longname": "usdN",  "guageaddress":"0xF98450B5602fa59CC66e1379DFfB6FDDc724CfC4",
-    "invested": 13300,    "currentboost": 1.7078, "name": "N",
+    "invested": 16500,    "currentboost": 1.6733, "name": "N",
     "swapaddress":"0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1",
     "tokenaddress":"0x4f3E8F405CF5aFC05D68142F3783bDfE13811522"
   },
   {
     "longname": "Ironbank", "guageaddress":"0xF5194c3325202F456c95c1Cf0cA36f8475C1949F",
-    "invested": 3500,    "currentboost": 2.47575,    "name": "I",
-    "swapaddress":"0x2dded6Da1BF5DBdF597C45fcFaa3194e53EcfeAF"
+    "invested": 4900,    "currentboost": 2.5,    "name": "I",
+    "swapaddress":"0x2dded6Da1BF5DBdF597C45fcFaa3194e53EcfeAF",
+    "tokenaddress":"0x5282a4eF67D9C33135340fB3289cc1711c13638C"
   },
   {
-    "longname": "Gusd",  "guageaddress":"0xC5cfaDA84E902aD92DD40194f0883ad49639b023",
-    "invested": 2900,    "currentboost": 2.5, "name": "G",
-    "swapaddress":"0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956",
-    "tokenaddress":"0xD2967f45c4f384DEEa880F807Be904762a3DeA07"
-  },
-  {
-    "longname": "Susd",  "guageaddress":"0xA90996896660DEcC6E997655E065b23788857849",
-    "invested": 2900,    "currentboost": 2.4945, "name": "S",
-    "swapaddress":"0xA5407eAE9Ba41422680e2e00537571bcC53efBfD"
-  },
-  {
-    "longname": "Yearn", "guageaddress":"0xFA712EE4788C042e2B7BB55E6cb8ec569C4530c1",
-    "invested": 2100,    "currentboost": 2.5,    "name": "Y",
-    "swapaddress":"0x45F783CCE6B7FF23B2ab2D70e416cdb7D6055f51"
+      "longname": "Susd",  "guageaddress":"0xA90996896660DEcC6E997655E065b23788857849",
+      "invested": 3700,    "currentboost": 2.4794, "name": "S",
+      "swapaddress":"0xA5407eAE9Ba41422680e2e00537571bcC53efBfD",
+      "tokenaddress":"0xC25a3A3b969415c80451098fa907EC722572917F"
   },
   {
     "longname": "Compound",   "guageaddress":"0x7ca5b0a2910B33e9759DC7dDB0413949071D7575",
     "invested": 1200,    "currentboost": 2.5,    "name": "C",
-    "swapaddress":"0xA2B47E3D5c44877cca798226B7B8118F9BFb7A56"
+    "swapaddress":"0xA2B47E3D5c44877cca798226B7B8118F9BFb7A56",
+    "tokenaddress":"0x845838DF265Dcd2c412A1Dc9e959c7d08537f8a2"
+  },
+  {
+    "longname": "Gusd",  "guageaddress":"0xC5cfaDA84E902aD92DD40194f0883ad49639b023",
+    "invested": 0,    "currentboost": 0, "name": "G",
+    "swapaddress":"0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956",
+    "tokenaddress":"0xD2967f45c4f384DEEa880F807Be904762a3DeA07"
+  },
+  {
+    "longname": "Yearn", "guageaddress":"0xFA712EE4788C042e2B7BB55E6cb8ec569C4530c1",
+    "invested": 0,    "currentboost": 0,    "name": "Y",
+    "swapaddress":"0x45F783CCE6B7FF23B2ab2D70e416cdb7D6055f51",
+    "tokenaddress":"0xdF5e0e81Dff6FAF3A7e52BA697820c5e32D806A8"
   },
   {
     "longname": "Busd",  "guageaddress":"0x69Fb7c45726cfE2baDeE8317005d3F94bE838840",
-    "invested": 1000,    "currentboost": 2.5,    "name": "B",
-    "swapaddress":"0x79a8C46DeA5aDa233ABaFFD40F3A0A2B1e5A4F27"
+    "invested": 0,    "currentboost": 0,    "name": "B",
+    "swapaddress":"0x79a8C46DeA5aDa233ABaFFD40F3A0A2B1e5A4F27",
+    "tokenaddress":"0x3B3Ac5386837Dc563660FB6a0937DFAa5924333B"
   },
   {
     "longname": "3pool", "guageaddress":"0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A",
     "invested": 0,    "currentboost": 0,    "name": "T",
-    "swapaddress":"0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7"
+    "swapaddress":"0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+    "tokenaddress":"0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490"
   }
 ]
