@@ -7,6 +7,7 @@ import logging
 import cursor
 import threading
 import argparse
+import urllib.request
 from colorama import Back, Fore, Style, init
 from hour_log_process import show_me, update_price
 logging.getLogger().disabled = True
@@ -50,7 +51,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-l", "--Local", help = "Local Node Used", action="store_true")
 parser.add_argument("-r", "--Readonly", help = "Don't write output to file", action="store_true")
 parser.add_argument("-s", "--Small", help = "Small screen size", action="store_true")
+parser.add_argument("-b", "--Hourslookback", type=int, help="Use this many hours when calculating pool APR", default=24)
 args = parser.parse_args()
+print("Calc Pool APR over hours:",args.Hourslookback)
 print("Read Only Mode:",args.Readonly)
 bsc_w3 = Web3(Web3.HTTPProvider('https://bsc-dataseed1.binance.org:443'))
 infura_w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
@@ -89,23 +92,38 @@ def call_me(function):
 def show_ellipsis():
     try:
         bsc_call=bsc_w3.eth.contract("0x4076CC26EFeE47825917D0feC3A79d0bB9a6bB5c", abi=abieps).functions.claimableRewards(MY_WALLET_ADDRESS).call()
-        print(Fore.MAGENTA+Style.BRIGHT+"Ë"+Style.RESET_ALL+Fore.CYAN+str(format(round(bsc_call[0][1]/10**18,2),'.2f').rjust(5))+Style.RESET_ALL,end=' - ')
+        print(Fore.MAGENTA+Style.BRIGHT+"Ë"+Style.RESET_ALL+Fore.BLUE+str(format(round(bsc_call[0][1]/10**18,2),'.2f').rjust(5))+Style.RESET_ALL, flush=True, end=' ')
         #print(Fore.BLUE+str(format(round(bsc_call[1][1]/10**18,2),'.2f'))+Fore.WHITE+ "B"+Style.RESET_ALL,end=' - ')
     except:
         print("B", end='')
 
 def show_additional_pool_coins():
-    a=round(call_me(w3.eth.contract("0xA90996896660DEcC6E997655E065b23788857849", abi=abisplus).functions.claimable_reward(MY_WALLET_ADDRESS))/10**18, 4)
-    print(Back.CYAN+Fore.BLUE+Style.DIM+"S "+str(format(a, '.2f')).lstrip("0")+Style.RESET_ALL, end=' - ')
+    b=round(call_me(w3.eth.contract("0xA90996896660DEcC6E997655E065b23788857849", abi=abisplus).functions.claimable_reward(MY_WALLET_ADDRESS))/10**18, 4)
+    print(Back.CYAN+Fore.BLUE+Style.DIM+"S "+str(format(b, '.2f')).lstrip("0")+Style.RESET_ALL, end=' - ')
 
 def show_other_exchanges():
     #iusdc_interest = round(w3.eth.contract("0x32E4c68B3A4a813b710595AebA7f6B7604Ab9c15", abi=abifulcrum).functions.nextSupplyInterestRate(1).call()/10**18, 2)
     crcrv_interest = round(((((w3.eth.contract("0xc7Fd8Dcee4697ceef5a2fd4608a7BD6A94C77480", abi=abicream).functions.supplyRatePerBlock().call()*4*60*24/10**18)+1)**364)-1)*100, 2)
     #crusdc_interest = round(((((w3.eth.contract("0x44fbeBd2F576670a6C33f6Fc0B00aA8c5753b322", abi=abicream).functions.supplyRatePerBlock().call()*4*60*24/10**18)+1)**364)-1)*100, 2)
     aacrv_interest = round(w3.eth.contract("0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9", abi=abiaave2).functions.getReserveData("0xD533a949740bb3306d119CC777fa900bA034cd52").call()[3]/10**25,2)
-    print(Back.CYAN+Fore.BLUE+Style.DIM+
-          "A"+str(format(aacrv_interest, '05.3f'))+"%",
-          "C"+str(format(crcrv_interest, '05.3f'))+"%"+Style.RESET_ALL, end=' - ')  #+"C"+str(crusdc_interest)+"% "+Fore.MAGENTA+Style.BRIGHT+"Ç"+str(format(crcrv_interest, '.2f'))+"%"
+    print("A"+Fore.BLUE+str(format(aacrv_interest, '4.1f')).rjust(4)+Style.RESET_ALL+"%",
+          "C"+Fore.BLUE+str(format(crcrv_interest, '4.1f')).rjust(4)+Style.RESET_ALL+"%", end=' ', flush=True)  #+"C"+str(crusdc_interest)+"% "+Fore.MAGENTA+Style.BRIGHT+"Ç"+str(format(crcrv_interest, '.2f'))+"%"
+    if not args.Local:
+        try:
+            webpage1=urllib.request.urlopen("http://192.168.0.198:4333/https://www.hotbit.io/invest/detail/776")
+            time.sleep(6)
+            webpage = str(webpage1.read())
+            try:
+                mypos=webpage.index('%        ')    #webpage.index('T+1  ',200)
+                hbcrv_interest = str(format(float(webpage[mypos-5:mypos]), '4.1f')).rjust(4)  #float(webpage[mypos-31:mypos-26])
+            except:
+                hbcrv_interest = "xx.x"
+        except:
+            hbcrv_interest = "ww.w"
+    else:
+        time.sleep(6)
+        hbcrv_interest = "--.-"
+    print("H"+Fore.BLUE+hbcrv_interest+Style.RESET_ALL+"%", end=' ')
 
 def load_curvepool_array(barray):
     """prepare iteratable array from json file"""
@@ -170,12 +188,12 @@ def header_display():
             print(" "*cw[1], end=' ')
 
         base_percent = ((carray["virtprice"][i]*carray["balanceof"][i])-carray["invested"][i])/(carray["invested"][i]+.00000001)*100
-        if base_percent > 0:
+        if base_percent > 0 and carray["currentboost"][i] > 0:
             print("("+str(format(round(base_percent,3), '.3f')).rjust(5)+"%)", end=' ')
         else:
             print(" "*8, end=' ')
         print("|", end=' ')
-        needed_veCRV = round((carray["balanceof"][i]/carray["totalsupply"][i]*veCRV_total)-veCRV_mine)
+        #needed_veCRV = round((carray["balanceof"][i]/carray["totalsupply"][i]*veCRV_total)-veCRV_mine)
         carray["futureboost"][i] = 2.5*min((carray["balanceof"][i]/2.5) + (maxinvestforfullboost*(1-(1/2.5))), carray["balanceof"][i])/max(1,carray["balanceof"][i])
         print(str(format(round(myarray[-1][carray["name"][i]+"pool"], 2), '.0f')).rjust(cw[5]), end=' ')
         if abs(round(myarray[-1][carray["name"][i]+"pool"]-round(carray["minted"][i]/10**18,2), 2)) > 0.1:
@@ -226,7 +244,7 @@ def header_display():
     print("")
     threading.Thread(target=key_capture_thread, args=(), name='key_capture_thread', daemon=True).start()
 
-def boost_check(endchar):
+def boost_check():
     """update variables to check boost status"""
     veCRV_mine = round(call_me(w3.eth.contract(veCRV_ADDRESS, abi=abivoting).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
     veCRV_total = round(call_me(w3.eth.contract(veCRV_ADDRESS, abi=abivoting).functions.totalSupply())/10**18, 2)
@@ -248,61 +266,67 @@ def boost_check(endchar):
                 print(carray["name"][i], end='')
                 if carray["futureboost"][i]-carray["currentboost"][i] >= .05:
                     carray["booststatus"][i] = 2        #Red, big enough change in boost status to care
-                    print(Style.BRIGHT+Fore.RED+str(format(carray["futureboost"][i]-carray["currentboost"][i], '.4f')).rjust(5).lstrip("0")+Style.RESET_ALL, end=' ')
+                    print(Style.BRIGHT+Fore.RED+str(format(round((carray["futureboost"][i]-carray["currentboost"][i])*10000), '04')).rjust(4)+Style.RESET_ALL, end=' ')
                 else:
                     carray["booststatus"][i] = 3        #Purple, small change in boost status
-                    print(Style.DIM+Fore.RED+str(format(carray["futureboost"][i]-carray["currentboost"][i], '.4f')).rjust(5).lstrip("0")+Style.RESET_ALL, end=' ')
+                    print(Style.DIM+Fore.RED+str(format(round((carray["futureboost"][i]-carray["currentboost"][i])*10000), '04')).rjust(4)+Style.RESET_ALL, end=' ')
 
-    if outputflag:
-        print('\b', end=endchar)
-    else:
-        print(Fore.GREEN+'Boosted'+Style.RESET_ALL, end=endchar)
+    if not outputflag:
+        print(Fore.GREEN+'Bööst'+Style.RESET_ALL, end=' ')
 
 def print_status_line(USD, eoa):
     """print main status line"""
     extramins = round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa
     difference = (myarray[-1]["claim"]-myarray[eoa]["claim"])/(60+extramins)*60
     if args.Small:
-        print("\033[A"*4,end='')
+        print("\033[A"*3,end='')
     print("\r",end='',flush=True)
-    print("At $"+Fore.YELLOW+str(format(USD, '.3f'))+Fore.WHITE+" per CRV = "+
-          Fore.GREEN+Style.BRIGHT+str(format(round((difference)*USD*24*365/sum(carray["invested"])*100, 2), '.2f'))+Style.NORMAL+Fore.WHITE+"/"+
-          Fore.CYAN+str(format(round((difference)*24*365/sum(carray["invested"])*100, 2), '.2f'))+Fore.WHITE+"% APR", end='')
-    if args.Small:
-        print("")
-    else:
-        print(" - ", end='')
+    print(myarray[-1]["human_time"], end=' ')
+    print("$"+Fore.YELLOW+Style.BRIGHT+str(format(USD, '.2f'))+Style.RESET_ALL, end = ' - ') #csym+"1"+Style.RESET_ALL+" = "+
+    tprofit = 0
+    buffer = ""
+    month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
     for i in range(0, len(carray["name"])):
         if carray["currentboost"][i] > 0:
-            print(Fore.RED+Style.BRIGHT+carray["name"][i]+Style.RESET_ALL+
-                  str(format(round((myarray[-1][carray["name"][i]+"pool"]-myarray[eoa][carray["name"][i]+"pool"])/(60+extramins)*60*USD*24*365/carray["invested"][i]*100, 2), '.2f')).rjust(5), end=' ')
+            buffer+=Fore.RED+Style.BRIGHT+carray["name"][i]+Style.RESET_ALL
+            try:
+                buffer+=str(format(round((myarray[-1][carray["name"][i]+"pool"]-myarray[eoa][carray["name"][i]+"pool"])/(60+extramins)*60*USD*24*365/carray["invested"][i]*100, 2), '.2f')).rjust(5)
+            except:
+                buffer+="xx.xx"
+            try:
+                tprofit += (myarray[-1][carray["name"][i]+"profit"]-myarrayh[-args.Hourslookback-1][carray["name"][i]+"profit"])/(args.Hourslookback+float(int(minut)/60))
+                buffer += Style.DIM+Fore.GREEN+str(format(round((myarray[-1][carray["name"][i]+"profit"]-myarrayh[-args.Hourslookback-1][carray["name"][i]+"profit"])/(args.Hourslookback+float(int(minut)/60))/60*60*USD*24*365/carray["invested"][i]*100, 2), '.2f')).rjust(4)+Style.RESET_ALL+" "
+            except:
+                buffer += Style.DIM+Fore.GREEN+"xx.xx "+Style.RESET_ALL
+
+    print(Fore.GREEN+Style.BRIGHT+str(format(round((difference)*USD*24*365/sum(carray["invested"])*100, 2), '.2f'))+Style.RESET_ALL+"/", end='')
+    #print(Fore.CYAN+str(format(round((difference)*24*365/sum(carray["invested"])*100, 2), '.2f')).rjust(5)+Fore.WHITE+"% APR", end='')
+    print(Fore.YELLOW+str(format(round((tprofit/60*60)*24*365/sum(carray["invested"])*100, 2), '.2f'))+Style.RESET_ALL+"% APR", end='')
+    if args.Small:
+        print("\n"+buffer)
+    else:
+        print(' -',buffer+'- ', end='')
+    #print("H"+csym+format((round(difference, 5)), '.4f')+Style.RESET_ALL, end=' ')
+    print("D"+csym+format((round(difference*24, 2)), '.2f').rjust(5)+Style.RESET_ALL+
+          "/$"+Fore.YELLOW+str(format(round(24*tprofit,2), '.2f'))+Style.RESET_ALL,
+          "Y"+csym+format((round(difference*24*365, 0)), '.0f').rjust(4)+Style.RESET_ALL+
+          "/$"+Fore.YELLOW+str(format(round(24*365*tprofit,2), '.0f')).rjust(3)+Style.RESET_ALL, end=' ')
+    #show_additional_pool_coins()
+    boost_check()
     if args.Small:
         print("")
     else:
         print('- ', end='')
-    print(csym+format(myarray[-1]["claim"], '.0f')+Style.RESET_ALL,
-          "H"+csym+format((round(difference, 5)), '.4f')+Style.RESET_ALL,
-          "D"+csym+format((round((difference)*24, 2)), '.2f')+Style.RESET_ALL,
-          "Y"+csym+format((round((difference)*24*365, 0)), '.0f').rjust(5)+Style.RESET_ALL, end='')
-    #show_other_exchanges()
-    #show_additional_pool_coins()
-    if args.Small:
-        print("")
-    else:
-        print(' - ', end='')
-    print(myarray[-1]["human_time"], end=' - ')
+    show_other_exchanges()
     show_ellipsis()
-    boost_check(" - ")
-    if args.Small:
-        print('\b\b\b   ')
-    else:
-        if extramins >= 0: #air bubble extra minutes
-            print(Fore.RED+str(round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa+1)+Style.RESET_ALL, end=' - ')
-        if eoa > -61:  #fewer than 60 records in the ghistory.json file
-            print(Fore.RED+Style.BRIGHT+str(61+eoa).rjust(2)+Style.RESET_ALL, end=' - ')
-        if myarray[-1]["invested"] != myarray[eoa]["invested"]:
-            print(Fore.RED+str(myarray[-1]["invested"] - myarray[eoa]["invested"])+Style.RESET_ALL, end=' - ')
-        print('\b\b\b', end='')
+    if extramins >= 0: #air bubble extra minutes
+        print(Fore.RED+str(round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa+1)+Style.RESET_ALL, end=' ', flush=True)
+    if eoa > -61:  #fewer than 60 records in the ghistory.json file
+        print(Fore.RED+Style.BRIGHT+str(61+eoa).rjust(2)+Style.RESET_ALL, end=' ', flush=True)
+    if myarray[-1]["invested"] != myarray[eoa]["invested"]:
+        print(Fore.RED+str(myarray[-1]["invested"] - myarray[eoa]["invested"])+Style.RESET_ALL, end=' ', flush=True)
+
+    return round(((difference*myarray[-1]["USD"])+(tprofit/60*60))*24*365/sum(carray["invested"])*100, 2) #display_percent
 
 def main():
     """monitor various curve contracts"""
@@ -310,19 +334,19 @@ def main():
     if not args.Small:
         header_display()
     else:
-        print("\n"*4)
+        print("\n"*3)
     while True:                                                                     #Initiate main program loop
         month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
         firstpass = True                                                            #Prevent header display from outputting in conflict with regular update
         while month+"/"+day+" "+hour+":"+minut == myarray[-1]["human_time"]:        #Wait for each minute to pass to run again
             try:
-                print(" gas is:", Fore.BLUE+Style.BRIGHT+str(round(infura_w3.eth.gasPrice/10**9)).ljust(3)+Style.RESET_ALL, "  ", "\b"*16, end="", flush=True)
+                print(str("~"+str(round(infura_w3.eth.gasPrice/10**9))+"~").rjust(5), "\b"*6, end="", flush=True)
             except:
-                print(" gas is:", Fore.RED+Style.BRIGHT+str("xxx").ljust(3)+Style.RESET_ALL, "  ", "\b"*16, end="", flush=True)
+                print(str("~"+Fore.RED+Style.BRIGHT+"xxx"+Style.RESET_ALL+"~"), "\b"*6, end="", flush=True)
             if firstpass and minut == "00":
                 print("")
                 if args.Small:
-                    print("\n"*4)
+                    print("\n"*3)
             if enter_hit:
                 if firstpass:
                     print("")
@@ -337,11 +361,15 @@ def main():
             try:
                 if carray["raw"][i] > 0: #skip updating empty pools after the initial check
                     carray["raw"][i] = call_me(w3.eth.contract(carray["guageaddress"][i], abi=abiguage).functions.claimable_tokens(MY_WALLET_ADDRESS))
-                if abs(round(round((carray["raw"][i]+carray["minted"][i])/10**18, 6), 5) - myarray[-1][carray["name"][i]+"pool"]) > 1:
-                    print("MINTING HAPPENED: Before", carray["minted"][i], end='   ')
+                    carray["virtprice"][i] = call_me(w3.eth.contract(carray["swapaddress"][i], abi=abivirtprice).functions.get_virtual_price())/10**18
+                    carray["balanceof"][i] = call_me(w3.eth.contract(carray["guageaddress"][i], abi=abiguage).functions.balanceOf(MY_WALLET_ADDRESS))/10**18
+                    if (carray["virtprice"][i]*carray["balanceof"][i])-carray["invested"][i] > -10:
+                        mydict[carray["name"][i]+"profit"] = (carray["virtprice"][i]*carray["balanceof"][i])-carray["invested"][i]
+                if abs(round((carray["raw"][i]+carray["minted"][i])/10**18, 5) - myarray[-1][carray["name"][i]+"pool"]) > 3:
+                    print("\nMINTING HAPPENED:", carray["name"][i], "pool      Before", carray["minted"][i], end='   ')
                     carray["minted"][i] = call_me(w3.eth.contract(MINTER_ADDRESS, abi=abiminter).functions.minted(MY_WALLET_ADDRESS, carray["guageaddress"][i]))
                     print("After", carray["minted"][i])
-                mydict[carray["name"][i]+"pool"] = round(round((carray["raw"][i]+carray["minted"][i])/10**18, 6), 5)
+                mydict[carray["name"][i]+"pool"] = round((carray["raw"][i]+carray["minted"][i])/10**18, 5)
                 if myarray[-1][carray["name"][i]+"pool"] - mydict[carray["name"][i]+"pool"] > 0.01: #debug lines ... should not happen
                     print(myarray[-1][carray["name"][i]+"pool"] - mydict[carray["name"][i]+"pool"], "\nerror with lower raw value"+carray["name"][i], myarray[-1][carray["name"][i]+"pool"], mydict[carray["name"][i]+"pool"], end='')
             except: #usually happens when snx is down for maintenance
@@ -352,7 +380,9 @@ def main():
         if minut == "00" and mydict["claim"] > 1:
             myarrayh.append(mydict)                                     #Output dictionary to hour file
             if not args.Readonly:
+                print(Fore.RED+Style.BRIGHT+"Write", flush=True, end='')
                 json.dump(myarrayh, open(file_nameh, "w"), indent=4)
+                print("\b\b\b\b\b"+Style.RESET_ALL+"Done!", flush=True, end='')
             time.sleep(3)
             #show_me(-1, -2, 1, mydict["USD"], 1, 1, myarrayh) #compare last record with 2nd to last, update price, do NOT end line
 
@@ -362,11 +392,10 @@ def main():
         eoa = 0 - len(myarray)
         if not args.Readonly:
             json.dump(myarray, open(file_name, "w"), indent=4)          #Output dictionary to minute file
-        print_status_line(myarray[-1]["USD"], eoa)                      #update information on hats and screen
-        extramins = round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa
+        display_percent = print_status_line(myarray[-1]["USD"], eoa)    #update information on hats and screen
         try:
-            curve_hats_update(round((myarray[-1]["claim"]-myarray[eoa]["claim"])/(60+extramins)*60*myarray[-1]["USD"]*24*365/sum(carray["invested"])*100, 2),
-                              str(format(round(update_price("ethereum")),',')).rjust(6),   #format((round((myarray[-1]["claim"]-myarray[eoa]["claim"])/(60+extramins)*60, 4)), '.4f'),
+            curve_hats_update(display_percent,
+                              str(format(round(update_price("ethereum")),',')).rjust(6),
                               carray["booststatus"])
         except:
             pass
