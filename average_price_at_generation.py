@@ -25,7 +25,10 @@ def byhundo(increment):
             print("reached", csym+str(min(round(myarrayh[x]["claim"]), targetdict[targetpos]))+Style.RESET_ALL, end=' ')
             print("on", myarrayh[x]["human_time"], end='   ')
             print("[",str(round((myarrayh[x]["raw_time"] - myarrayh[lastx]["raw_time"]) / (60*60))).rjust(4), "hours ]", end='   ')
-            print("avg", usym+colormodfunc(amount/count)+str(format(round(amount/count, 2), '.2f'))+Style.RESET_ALL, end='')
+            try:
+                print("avg", usym+colormodfunc(amount/count)+str(format(round(amount/count, 2), '.2f'))+Style.RESET_ALL, end='')
+            except:
+                print("", end='')
             if len(targetdict) - 1 == targetpos:
                 targetdict.append(targetdict[targetpos] + increment)
             if len(valuesdict) > targetpos:

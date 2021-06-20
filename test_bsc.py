@@ -4,7 +4,7 @@ import json
 
 MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
 
-abieps = json.load(open("abi_4076.json", 'r'))
+abieps = json.load(open("abi/abi_4076.json", 'r'))
 bsc_w3 = Web3(Web3.HTTPProvider('https://bsc-dataseed1.binance.org:443'))
 
 try:

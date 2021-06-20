@@ -3,40 +3,40 @@
 # pylint: disable=C0103,C0301,W0105,E0401,R0914,C0411,W0702,C0200
 import json
 import time
-import logging
 import cursor
 import threading
 import argparse
 import urllib.request
 from colorama import Back, Fore, Style, init
 from hour_log_process import show_me, update_price
+import logging
 logging.getLogger().disabled = True
 from web3 import Web3
+import yla_watch
 logging.getLogger().disabled = False
 try:
     from curve_rainbowhat_functions import curve_hats_update
+    print("Raspberry Pi Hats Found!")
 except:
-    print("No Raspberry Pi Hats Found.")
-
+    1==1
 cursor.hide()
 init()
 
 MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
 INFURA_ID = "6aa1a043a9854eaa9fa68d17f619f326"
 
-abiguage = json.load(open("abi_bfcf.json", 'r'))
-abiminter = json.load(open("abi_d061.json", 'r'))
-abivoting = json.load(open("abi_5f3b.json", 'r'))
-abivirtprice = json.load(open("abi_a540.json", 'r'))
+abiguage = json.load(open("abi/abi_bfcf.json", 'r'))
+abiminter = json.load(open("abi/abi_d061.json", 'r'))
+abivoting = json.load(open("abi/abi_5f3b.json", 'r'))
+abivirtprice = json.load(open("abi/abi_a540.json", 'r'))
 MINTER_ADDRESS = "0xd061D61a4d941c39E5453435B6345Dc261C2fcE0"
 veCRV_ADDRESS = "0x5f3b5DfEb7B28CDbD7FAba78963EE202a494e2A2"
 CRV_ADDRESS = "0xD533a949740bb3306d119CC777fa900bA034cd52"
 
-abifulcrum = json.load(open("abi_d172.json", 'r'))
-abicream = json.load(open("abi_c7fd.json", 'r'))
-abiaave2 = json.load(open("abi_c684.json", 'r'))
-abisplus = json.load(open("abi_a909.json", 'r'))
-abieps = json.load(open("abi_4076.json", 'r'))
+#abifulcrum = json.load(open("abi/abi_d172.json", 'r'))
+abicream = json.load(open("abi/abi_c7fd.json", 'r'))
+abiaave2 = json.load(open("abi/abi_c684.json", 'r'))
+abieps = json.load(open("abi/abi_4076.json", 'r'))
 
 file_name = "ghistory.json"
 file_nameh = "ghistoryh.json"
@@ -53,8 +53,7 @@ parser.add_argument("-r", "--Readonly", help = "Don't write output to file", act
 parser.add_argument("-s", "--Small", help = "Small screen size", action="store_true")
 parser.add_argument("-b", "--Hourslookback", type=int, help="Use this many hours when calculating pool APR", default=24)
 args = parser.parse_args()
-print("Calc Pool APR over hours:",args.Hourslookback)
-print("Read Only Mode:",args.Readonly)
+
 bsc_w3 = Web3(Web3.HTTPProvider('https://bsc-dataseed1.binance.org:443'))
 infura_w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
 if args.Local:
@@ -97,10 +96,6 @@ def show_ellipsis():
     except:
         print("B", end='')
 
-def show_additional_pool_coins():
-    b=round(call_me(w3.eth.contract("0xA90996896660DEcC6E997655E065b23788857849", abi=abisplus).functions.claimable_reward(MY_WALLET_ADDRESS))/10**18, 4)
-    print(Back.CYAN+Fore.BLUE+Style.DIM+"S "+str(format(b, '.2f')).lstrip("0")+Style.RESET_ALL, end=' - ')
-
 def show_other_exchanges():
     #iusdc_interest = round(w3.eth.contract("0x32E4c68B3A4a813b710595AebA7f6B7604Ab9c15", abi=abifulcrum).functions.nextSupplyInterestRate(1).call()/10**18, 2)
     crcrv_interest = round(((((w3.eth.contract("0xc7Fd8Dcee4697ceef5a2fd4608a7BD6A94C77480", abi=abicream).functions.supplyRatePerBlock().call()*4*60*24/10**18)+1)**364)-1)*100, 2)
@@ -125,6 +120,20 @@ def show_other_exchanges():
         hbcrv_interest = "--.-"
     print("H"+Fore.BLUE+hbcrv_interest+Style.RESET_ALL+"%", end=' ')
 
+def show_yla(eoa,extramins,minut):
+    """yla display"""
+    buffer=""
+    buffer+=Fore.RED+Style.BRIGHT+"y"+Style.RESET_ALL
+    try:
+        buffer+=str(format(round((myarray[-1]["yla_value"]-myarray[eoa]["yla_value"])/(60+extramins)*60*24*365/myarray[eoa]["yla_invested"]*100, 2), '.2f')).rjust(5)
+    except:
+        buffer+="xx.xx"
+    try:
+        buffer += Style.DIM+Fore.GREEN+str(format(round((myarray[-1]["yla_value"]-myarrayh[-args.Hourslookback-1]["yla_value"])/(args.Hourslookback+float(int(minut)/60))/60*60*24*365/myarray[eoa]["yla_invested"]*100, 2), '.2f')).rjust(4)+Style.RESET_ALL+" "
+    except:
+        buffer += Style.DIM+Fore.GREEN+"xx.xx "+Style.RESET_ALL
+    print(buffer, end=' ')
+
 def load_curvepool_array(barray):
     """prepare iteratable array from json file"""
     with open("curvepools.json", 'r') as thisfile:
@@ -137,6 +146,7 @@ def load_curvepool_array(barray):
     barray["futureboost"] = [0]*len(thisarray)
     barray["booststatus"] = [0]*len(thisarray)
     barray["virtprice"] = [0]*len(thisarray)
+    barray["token_value_modifyer"] = [0]*len(thisarray)
     print(len(thisarray),"pools loaded from curvepools.json")
     #print(thisarray,flush=True)
     for i in range(0, len(thisarray)):
@@ -146,8 +156,8 @@ def load_curvepool_array(barray):
         barray["name"].append(thisarray[i]["name"])
         barray["guageaddress"].append(thisarray[i]["guageaddress"])
         barray["swapaddress"].append(thisarray[i]["swapaddress"])
-        barray["minted"][i] = call_me(w3.eth.contract(MINTER_ADDRESS, abi=abiminter).functions.minted(MY_WALLET_ADDRESS, carray["guageaddress"][i]))
         try:
+            barray["minted"][i] = call_me(w3.eth.contract(MINTER_ADDRESS, abi=abiminter).functions.minted(MY_WALLET_ADDRESS, carray["guageaddress"][i]))
             barray["tokenaddress"].append(thisarray[i]["tokenaddress"])
         except:
             barray["tokenaddress"].append("")
@@ -157,6 +167,10 @@ def load_curvepool_array(barray):
             print(thisarray[i]["longname"], "not found in current history file, adding now.")
             myarray[-1][carray["name"][i]+"pool"] = 0
             myarray[-1][carray["name"][i]+"invested"] = 0
+        try:
+            barray["token_value_modifyer"][i] = thisarray[i]["token_value_modifyer"]
+        except:
+            barray["token_value_modifyer"][i] = 1
 
 def header_display():
     """display detailed pool information"""
@@ -172,7 +186,7 @@ def header_display():
         carray["balanceof"][i] = round(call_me(w3.eth.contract(carray["guageaddress"][i], abi=abiguage).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
         if len(carray["tokenaddress"][i]) > 1:
             carray["balanceof"][i] += round(call_me(w3.eth.contract(carray["tokenaddress"][i], abi=abiguage).functions.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
-        virutal_price_sum += carray["virtprice"][i]*carray["balanceof"][i]
+        virutal_price_sum += carray["virtprice"][i]*carray["balanceof"][i]*carray["token_value_modifyer"][i]
         maxinvestforfullboost = carray["totalsupply"][i]*veCRV_mine/veCRV_total
         print(carray["longname"][i].ljust(len(max(carray["longname"], key=len))), carray["name"][i], end=' ')
         print(str(format(carray["totalsupply"][i], ',.0f')).rjust(cw[2]), end=' ')
@@ -182,12 +196,12 @@ def header_display():
         else:
             print(" "*cw[0], end=' ')
 
-        if carray["virtprice"][i]*carray["balanceof"][i] > 0:
-            print(Style.DIM+Fore.GREEN+str(format((carray["virtprice"][i]*carray["balanceof"][i])-carray["invested"][i], '.2f')).rjust(cw[1])+Style.RESET_ALL, end=' ')
+        if carray["virtprice"][i]*carray["balanceof"][i]*carray["token_value_modifyer"][i] > 0:
+            print(Style.DIM+Fore.GREEN+str(format((carray["virtprice"][i]*carray["balanceof"][i]*carray["token_value_modifyer"][i])-carray["invested"][i], '.2f')).rjust(cw[1])+Style.RESET_ALL, end=' ')
         else:
             print(" "*cw[1], end=' ')
 
-        base_percent = ((carray["virtprice"][i]*carray["balanceof"][i])-carray["invested"][i])/(carray["invested"][i]+.00000001)*100
+        base_percent = ((carray["virtprice"][i]*carray["balanceof"][i]*carray["token_value_modifyer"][i])-carray["invested"][i])/(carray["invested"][i]+.00000001)*100
         if base_percent > 0 and carray["currentboost"][i] > 0:
             print("("+str(format(round(base_percent,3), '.3f')).rjust(5)+"%)", end=' ')
         else:
@@ -318,7 +332,8 @@ def print_status_line(USD, eoa):
     else:
         print('- ', end='')
     show_other_exchanges()
-    show_ellipsis()
+    #show_ellipsis()
+    show_yla(eoa,extramins,minut)
     if extramins >= 0: #air bubble extra minutes
         print(Fore.RED+str(round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa+1)+Style.RESET_ALL, end=' ', flush=True)
     if eoa > -61:  #fewer than 60 records in the ghistory.json file
@@ -331,6 +346,8 @@ def print_status_line(USD, eoa):
 def main():
     """monitor various curve contracts"""
     load_curvepool_array(carray)
+    print("Calc Pool APR over hours:",args.Hourslookback)
+    print("Read Only Mode:",args.Readonly)
     if not args.Small:
         header_display()
     else:
@@ -363,8 +380,8 @@ def main():
                     carray["raw"][i] = call_me(w3.eth.contract(carray["guageaddress"][i], abi=abiguage).functions.claimable_tokens(MY_WALLET_ADDRESS))
                     carray["virtprice"][i] = call_me(w3.eth.contract(carray["swapaddress"][i], abi=abivirtprice).functions.get_virtual_price())/10**18
                     carray["balanceof"][i] = call_me(w3.eth.contract(carray["guageaddress"][i], abi=abiguage).functions.balanceOf(MY_WALLET_ADDRESS))/10**18
-                    if (carray["virtprice"][i]*carray["balanceof"][i])-carray["invested"][i] > -10:
-                        mydict[carray["name"][i]+"profit"] = (carray["virtprice"][i]*carray["balanceof"][i])-carray["invested"][i]
+                    if (carray["virtprice"][i]*carray["balanceof"][i]*carray["token_value_modifyer"][i])-carray["invested"][i] > -10:
+                        mydict[carray["name"][i]+"profit"] = (carray["virtprice"][i]*carray["balanceof"][i]*carray["token_value_modifyer"][i])-carray["invested"][i]
                 if abs(round((carray["raw"][i]+carray["minted"][i])/10**18, 5) - myarray[-1][carray["name"][i]+"pool"]) > 3:
                     print("\nMINTING HAPPENED:", carray["name"][i], "pool      Before", carray["minted"][i], end='   ')
                     carray["minted"][i] = call_me(w3.eth.contract(MINTER_ADDRESS, abi=abiminter).functions.minted(MY_WALLET_ADDRESS, carray["guageaddress"][i]))
@@ -375,7 +392,8 @@ def main():
             except: #usually happens when snx is down for maintenance
                 mydict[carray["name"][i]+"pool"] = myarrayh[-1][carray["name"][i]+"pool"]
                 carray["raw"][i] = (myarrayh[-1][carray["name"][i]+"pool"]*10**18) - carray["minted"][i]
-
+        mydict["yla_value"] = yla_watch.yla_getvalue(False)
+        mydict["yla_invested"] = 7150
         mydict["claim"] = round((sum(carray["raw"])+sum(carray["minted"]))/10**18, 6)
         if minut == "00" and mydict["claim"] > 1:
             myarrayh.append(mydict)                                     #Output dictionary to hour file
