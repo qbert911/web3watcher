@@ -8,7 +8,7 @@ init()
 from pycoingecko import CoinGeckoAPI
 cg = CoinGeckoAPI()
 
-file_nameh = "ghistoryh.json"
+file_nameh = "history/history_archive.json"
 usym = Fore.YELLOW + Style.BRIGHT + "$" + Fore.GREEN
 csym = Fore.MAGENTA + Style.BRIGHT + "Ç" + Style.RESET_ALL + Fore.CYAN
 
@@ -59,9 +59,8 @@ def show_me(inputs, inpute, update, isprice, invested, newline, myarrayh):
     return mytuple
 
 def update_price(coin_type):
-    USD = 1
-    #time.sleep(2)
-    while USD == 1:
+    USD = -1
+    while USD == -1:
         try:
             USD = cg.get_price(ids=coin_type, vs_currencies='usd')[coin_type]["usd"]
         except:

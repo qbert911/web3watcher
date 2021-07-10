@@ -3,12 +3,8 @@
 import time
 import sys, os
 from brownie import *
-#export WEB3_INFURA_PROJECT_ID=753484fba9304da39c9c724e8b8dfccf
-#export WEB3_INFURA_PROJECT_ID=6aa1a043a9854eaa9fa68d17f619f326
-#export ETHERSCAN_TOKEN=WXPQDYFIT982E3GPJR9JEHXHNYRADB34BN
 import tripool_calc
 from datetime import datetime
-
 
 def load_contract(c):
     if c == ZERO_ADDRESS:
@@ -34,10 +30,18 @@ def main():
                 _token = load_contract("0xdAC17F958D2ee523a2206206994597C13D831ec7")
                 gauge_bal = tri_gauge.balanceOf(whale)
                 print(f"Gauge balance {gauge_bal / 10 ** 18}")
-
-            tri_gauge.withdraw(gauge_bal, True, {'from': whale}) #noisy
-            tri.remove_liquidity_one_coin(gauge_bal, 0, 0, {'from': whale}) #noisy
-            _coins = _token.balanceOf(whale) / 10 ** 6
+            try:
+                tri_gauge.withdraw(gauge_bal, True, {'from': whale}) #noisy
+            except:
+                pass
+            try:
+                tri.remove_liquidity_one_coin(gauge_bal, 0, 0, {'from': whale}) #noisy
+            except:
+                pass
+            try:
+                _coins = _token.balanceOf(whale) / 10 ** 6
+            except:
+                pass
             try:
                 network.disconnect() #noisy
             except:

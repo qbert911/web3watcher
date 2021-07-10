@@ -7,7 +7,7 @@ from hour_log_process import show_me, update_price
 from colorama import Fore, Style, init
 init()
 
-file_nameh = "ghistoryh.json"
+file_nameh = "history/history_archive.json"
 usym = Fore.YELLOW + Style.BRIGHT + "$" + Fore.GREEN
 csym = Fore.MAGENTA + Style.BRIGHT + "Ç" + Style.RESET_ALL + Fore.CYAN
 
