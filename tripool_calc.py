@@ -27,7 +27,7 @@ def tri_calc(fulldisplay, guage_bal):
     _coins = []
     _price_oracle = [1,0,0]
     if guage_bal < 1:
-        guage_bal = tri_guage.balanceOf(MY_WALLET_ADDRESS).call()
+        guage_bal = tri_guage.balanceOf(MY_WALLET_ADDRESS).call() +(25*(10**18)) #HACK
     totalSupply = tri_guage.totalSupply().call()
     virt_price = tri_swap.get_virtual_price().call()/10**18
     if fulldisplay:
@@ -73,7 +73,7 @@ def tri_calc(fulldisplay, guage_bal):
         print(" "*6,"Total: $"+Fore.YELLOW+Style.BRIGHT+f"{_curr_val:,.0f}"+Style.RESET_ALL+" (Each "+Fore.MAGENTA+"©"+Style.RESET_ALL+"token now: $"+thiscolor+f"{_curr_val/(guage_bal/10**18):.0f}"+Style.RESET_ALL+") Change: ["+Fore.CYAN+f"{100*((_curr_val/_all_dollars_spent)-1):6.2f}"+Style.RESET_ALL+"%]\n")
         print(" "*2,"Simulated: $"+Fore.YELLOW+f"{sim_total:,.0f}"+Style.RESET_ALL+" (Each "+Fore.MAGENTA+"©"+Style.RESET_ALL+"token was: $"+thiscolor+f"{sim_total/(guage_bal/10**18):.0f}"+Style.RESET_ALL+") Simula: ["+Fore.CYAN+Style.BRIGHT+f"{100*((sim_total/_all_dollars_spent)-1):6.2f}"+Style.RESET_ALL+"%]")
     else:
-        print("["+Fore.CYAN+Style.BRIGHT+f"{100*((sim_total/_all_dollars_spent)-1):.2f}"+Style.RESET_ALL+"%]",end='')
+        print("["+Fore.CYAN+Style.BRIGHT+f"{100*((sim_total/_all_dollars_spent)-1):.2f}"+Style.RESET_ALL+"%]",end=' ')
 
     return sim_total
 

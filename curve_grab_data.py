@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """curve"""
-# pylint: disable=C0103,C0301,W0105,E0401,R0914,C0411,W0702,C0200
+# pylint: disable=C0103,C0301,W0105,E0401,R0914,C0411,W0702,C0200,C0116,w0106
 import json
 import time
 import cursor
@@ -15,6 +15,7 @@ logging.getLogger().disabled = True
 from web3 import Web3
 import yla_watch
 import tripool_calc
+import xconvex_examiner
 logging.getLogger().disabled = False
 try:
     from curve_rainbowhat_functions import curve_hats_update
@@ -113,19 +114,22 @@ def update_hbcrv_interest():
         hbcrv_interest = "--.-"
     return hbcrv_interest
 
-def show_yla(eoa,extramins,minut):
-    """yla display"""
+def show_cvx(eoa,extramins,minut,name,label,pf):
+    """cvx display"""
+    labels = [ "I", "V", "X", "3"]
+    pricefactor = [ carray["token_value_modifyer"][pf], myarray[-1]["USD"], myarray[-1]["USDcvx"], myarray[-1]["USD3pool"]]
     buffer=""
-    buffer+=Fore.RED+Style.BRIGHT+"y"+Style.RESET_ALL
-    try:
-        buffer+=str(format(round((myarray[-1]["yla_value"]-myarray[eoa]["yla_value"])/(60+extramins)*60*24*365/myarray[eoa]["yla_invested"]*100, 2), '.2f')).rjust(5)
-    except:
-        buffer+="xx.xx"
-    try:
-        buffer += Style.DIM+Fore.GREEN+str(format(round((myarray[-1]["yla_value"]-myarrayh[-args.Hourslookback-1]["yla_value"])/(args.Hourslookback+float(int(minut)/60))/60*60*24*365/myarray[eoa]["yla_invested"]*100, 2), '.2f')).rjust(5)+Style.RESET_ALL+" "
-    except:
-        buffer += Style.DIM+Fore.GREEN+"xx.xx "+Style.RESET_ALL
-    print(buffer, end=' ')
+    for i in range(1,3+pf):
+        buffer+=Fore.RED+Style.BRIGHT+labels[i]+Style.RESET_ALL
+        try:
+            buffer+=str(format(round((myarray[-1][name][i]-myarray[eoa][name][i])/(60+extramins)*pricefactor[i]*60*24*365/(myarray[eoa][name][0]*pricefactor[pf])*100, 2), '.2f')).rjust(5)+" "
+        except:
+            buffer+="xx.xx "
+        #try:
+        #    buffer+= Style.DIM+Fore.GREEN+ str(format(round((myarray[-1][name][i]-myarrayh[-args.Hourslookback-1][name][i])/(args.Hourslookback+float(int(minut)/60))/60*pricefactor[i]*60*24*365/(myarray[eoa][name][0]*pricefactor[pf])*100, 2), '.2f')).rjust(5)+" "+Style.RESET_ALL
+        #except:
+        #    buffer += Style.DIM+Fore.GREEN+"xx.xx "+Style.RESET_ALL
+    print(label+"{"+buffer+"\b}", end=' ')
 
 def load_curvepool_array(barray):
     """prepare iteratable array from json file"""
@@ -155,7 +159,7 @@ def load_curvepool_array(barray):
         except:
             barray["tokenaddress"].append("")
         try:
-            a = myarray[-1][carray["name"][i]+"pool"]
+            _ = myarray[-1][carray["name"][i]+"pool"]
         except:
             print(thisarray[i]["longname"], "not found in current history file, adding now.")
             myarray[-1][carray["name"][i]+"pool"] = 0
@@ -235,7 +239,7 @@ def header_display():
             else:
                 print("")
 
-    print("$"+str(sum(carray["invested"])), "invested, is now",int(virutal_price_sum), end=' ')
+    print("$"+str(sum(carray["invested"])+(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][0])), "invested,",sum(carray["invested"]),"is now",int(virutal_price_sum), end=' ')
     print("("+str(format(round(( virutal_price_sum/sum(carray["invested"])*100)-100,5),'.3f'))+"%)", end='   ')
     print("Ç"+str(round(veCRV_locked)), "veCRV locked" +Style.DIM+" ("+str(veCRV_mine), "voting)"+Style.RESET_ALL, end='  ')
     print(csym+str(round(sum(carray["minted"])/10**18, 2))+Style.RESET_ALL, "minted", end=' ')
@@ -285,7 +289,7 @@ def boost_check():
 def print_status_line(USD, eoa):
     """print main status line"""
     extramins = round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa
-    difference = (myarray[-1]["claim"]-myarray[eoa]["claim"])/(60+extramins)*60
+    difference = ((myarray[-1]["claim"]+myarray[-1]["trix_rewards"][1]+(myarray[-1]["USDcvx"]*myarray[-1]["trix_rewards"][2]/myarray[-1]["USD"]))-(myarray[eoa]["claim"]+myarray[eoa]["trix_rewards"][1]+(myarray[-1]["USDcvx"]*myarray[eoa]["trix_rewards"][2]/myarray[-1]["USD"])))/(60+extramins)*60
     if args.Small:
         print("\033[A"*3,end='')
     print("\r",end='',flush=True)
@@ -293,7 +297,7 @@ def print_status_line(USD, eoa):
     print("$"+Fore.YELLOW+Style.BRIGHT+f"{USD:.2f}"+Style.RESET_ALL, end = ' - ') #csym+"1"+Style.RESET_ALL+" = "+
     tprofit = 0
     buffer = ""
-    month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
+    _, _, _, minut = map(str, time.strftime("%m %d %H %M").split())
     for i in range(0, len(carray["name"])):
         if carray["currentboost"][i] > 0:
             buffer+=Fore.RED+Style.BRIGHT+carray["name"][i]+Style.RESET_ALL
@@ -307,28 +311,22 @@ def print_status_line(USD, eoa):
             except:
                 buffer += Style.DIM+Fore.GREEN+"xx.xx "+Style.RESET_ALL
 
-    print(Fore.GREEN+Style.BRIGHT+str(format(round((difference)*USD*24*365/sum(carray["invested"])*100, 2), '.2f'))+Style.RESET_ALL+"/", end='')
+    print(Fore.GREEN+Style.BRIGHT+str(format(round((difference)*USD*24*365/(sum(carray["invested"])+(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][0]))*100, 2), '.2f'))+Style.RESET_ALL+"/", end='')
     #print(Fore.CYAN+str(format(round((difference)*24*365/sum(carray["invested"])*100, 2), '.2f')).rjust(5)+Fore.WHITE+"% APR", end='')
     print(Fore.YELLOW+str(format(round((tprofit/60*60)*24*365/sum(carray["invested"])*100, 2), '5.2f'))+Style.RESET_ALL+"% APR", end='')
-    if args.Small:
-        print("\n"+buffer)
-    else:
-        print(' -',buffer+'- ', end='')
+    print(' -',buffer, end='') if not args.Small else print("\n"+buffer)
     #print("H"+csym+format((round(difference, 5)), '.4f')+Style.RESET_ALL, end=' ')
-    print("D"+csym+format((round(difference*24, 2)), '.2f').rjust(5)+Style.RESET_ALL+
-          "/$"+Fore.YELLOW+f"{round(24*tprofit,2):5.2f}"+Style.RESET_ALL,
-          "Y"+csym+format((round(difference*24*365, 0)), '.0f').rjust(4)+Style.RESET_ALL+
-          "/$"+Fore.YELLOW+str(format(round(24*365*tprofit,2), '.0f')).rjust(4)+Style.RESET_ALL, end=' ')
-    #show_additional_pool_coins()
-    boost_check()
-    if args.Small:
-        print("")
-    else:
-        print('- ', end='')
+    #print("D"+csym+format((round(difference*24, 2)), '.2f').rjust(5)+Style.RESET_ALL+
+    #      "/$"+Fore.YELLOW+f"{round(24*tprofit,2):5.2f}"+Style.RESET_ALL,
+    #      "Y"+csym+format((round(difference*24*365, 0)), '.0f').rjust(4)+Style.RESET_ALL+
+    #      "/$"+Fore.YELLOW+str(format(round(24*365*tprofit,2), '.0f')).rjust(4)+Style.RESET_ALL, end=' ')
     #show_other_exchanges()
-    show_ellipsis()
+    #show_ellipsis()
+    show_cvx(eoa,extramins,minut,"trix_rewards","xTri", 0) #Indicates needing to use token_value_modifyer
+    print('- ', end='') if not args.Small else print("")
+    boost_check()
     tripool_calc.tri_calc(False,-1)
-    #show_yla(eoa,extramins,minut)
+    show_cvx(eoa,extramins,minut,"cvx_rewards","xCRV", 1) #Indicates not using
     if extramins >= 0: #air bubble extra minutes
         print(Fore.RED+str(round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa+1)+Style.RESET_ALL, end=' ', flush=True)
     if eoa > -61:  #fewer than 60 records in the ghistory.json file
@@ -336,9 +334,9 @@ def print_status_line(USD, eoa):
     if myarray[-1]["invested"] != myarray[eoa]["invested"]:
         print(Fore.RED+str(myarray[-1]["invested"] - myarray[eoa]["invested"])+Style.RESET_ALL, end=' ', flush=True)
 
-    return round(((difference*myarray[-1]["USD"])+(tprofit/60*60))*24*365/sum(carray["invested"])*100, 2) #display_percent
+    return round(((difference*myarray[-1]["USD"])+(tprofit/60*60))*24*365/(sum(carray["invested"])+(25*carray["token_value_modifyer"][0]))*100, 2) #display_percent
 
-def update_curve_pools(mydict):
+def update_curve_pools(mydict,carray):
     for i in range(0, len(carray["name"])):
         mydict[carray["name"][i]+"invested"] = carray["invested"][i]
         try:
@@ -385,21 +383,21 @@ def gas_and_sleep():
 def main():
     """monitor various curve contracts"""
 #    hbcrv_interest = update_hbcrv_interest()  #we have removed printing function completely - this vestigial function remains
-    load_curvepool_array(carray)
     print("Calc Pool APR over hours:",args.Hourslookback)
     print("Read Only Mode:",args.Readonly)
-    if not args.Small:
-        header_display()
-    else:
-        print("\n"*3)
+    load_curvepool_array(carray)
+    header_display() if not args.Small else print("\n"*3)
     while True:                                                                     #Initiate main program loop
+        gas_and_sleep()
         month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
         mydict = {"raw_time" : round(time.time()), "human_time": month+"/"+day+" "+hour+":"+minut,
-                  "USD" : update_price("curve-dao-token"), "invested" : sum(carray["invested"])}     #Update dictionary values and price information
-        gas_and_sleep()
-        update_curve_pools(mydict)
-        #mydict["yla_value"] = yla_watch.yla_getvalue(False)
-        #mydict["yla_invested"] = 1
+                  "USD" : update_price("curve-dao-token"),
+                  "USDcvx" : update_price("convex-finance"),
+                  "USD3pool" : update_price("lp-3pool-curve"),
+                  "invested" : sum(carray["invested"])}     #Update dictionary values and price information
+        update_curve_pools(mydict, carray)
+        mydict["cvx_rewards"] = xconvex_examiner.cvx_getvalue(False)
+        mydict["trix_rewards"] = xconvex_examiner.trix_getvalue(False)
 
         myarray.append(mydict)
         if len(myarray) > 61:

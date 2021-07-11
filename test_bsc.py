@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from web3 import Web3
-import json
 from load_contract import load_contract
 
 MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
