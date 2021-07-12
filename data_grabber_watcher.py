@@ -9,12 +9,12 @@ import argparse
 from colorama import Fore, Style, init
 from hour_log_process import update_price
 from load_contract import load_contract
-from curve_functions import curve_header_display, load_curvepool_array, update_curve_pools, curve_boost_check
+from curve_functions import curve_header_display, load_curvepool_array, update_curve_pools, curve_boost_check, combined_stats
 import logging
 logging.getLogger().disabled = True
 from web3 import Web3
 import tripool_calc
-import xconvex_examiner
+import convex_examiner
 logging.getLogger().disabled = False
 try:
     from curve_rainbowhat_functions import curve_hats_update
@@ -77,7 +77,7 @@ def show_other_exchanges():
     print("A"+Fore.BLUE+str(format(aacrv_interest, '4.1f')).rjust(4)+Style.RESET_ALL+"%",
           "C"+Fore.BLUE+str(format(crcrv_interest, '4.1f')).rjust(4)+Style.RESET_ALL+"%", end=' ', flush=True)  #+"C"+str(crusdc_interest)+"% "+Fore.MAGENTA+Style.BRIGHT+"Ç"+str(format(crcrv_interest, '.2f'))+"%"
 
-def show_cvx(eoa,extramins,minut,name,label,pf):
+def show_convex(eoa,extramins,minut,name,label,pf):
     """cvx display"""
     labels = [ "I", "V", "X", "3"]
     pricefactor = [ carray["token_value_modifyer"][pf], myarray[-1]["USD"], myarray[-1]["USDcvx"], myarray[-1]["USD3pool"]]
@@ -96,7 +96,7 @@ def show_cvx(eoa,extramins,minut,name,label,pf):
         #    buffer+= Style.DIM+Fore.GREEN+ str(format(round((myarray[-1][name][i]-myarrayh[-args.Hourslookback-1][name][i])/(args.Hourslookback+float(int(minut)/60))/60*pricefactor[i]*60*24*365/(myarray[eoa][name][0]*pricefactor[pf])*100, 2), '.2f')).rjust(5)+" "+Style.RESET_ALL
         #except:
         #    buffer += Style.DIM+Fore.GREEN+"xx.xx "+Style.RESET_ALL
-    print(Fore.RED+Style.BRIGHT+label+Style.RESET_ALL+subtotal+Style.DIM+"{"+buffer+"\b}"+Style.RESET_ALL, end=' ')
+    print(Fore.RED+Style.BRIGHT+label+Style.RESET_ALL+subtotal+Style.DIM+"{"+buffer+"}"+Style.RESET_ALL, end=' ')
 
 def print_status_line(USD, eoa):
     """print main status line"""
@@ -122,7 +122,6 @@ def print_status_line(USD, eoa):
                 buffer += Style.DIM+Fore.GREEN+str(format(round((myarray[-1][carray["name"][i]+"profit"]-myarrayh[-args.Hourslookback-1][carray["name"][i]+"profit"])/(args.Hourslookback+float(int(minut)/60))/60*60*USD*24*365/carray["invested"][i]*100, 2), '.2f')).rjust(5)+Style.RESET_ALL+" "
             except:
                 buffer += Style.DIM+Fore.GREEN+"xx.xx "+Style.RESET_ALL
-
     print(Fore.GREEN+Style.BRIGHT+str(format(round((difference)*USD*24*365/(sum(carray["invested"])+(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][0]))*100, 2), '.2f'))+Style.RESET_ALL+"/", end='')
     #print(Fore.CYAN+str(format(round((difference)*24*365/sum(carray["invested"])*100, 2), '.2f')).rjust(5)+Fore.WHITE+"% APR", end='')
     print(Fore.YELLOW+str(format(round((tprofit/60*60)*24*365/sum(carray["invested"])*100, 2), '5.2f'))+Style.RESET_ALL+"% APR", end='')
@@ -134,11 +133,11 @@ def print_status_line(USD, eoa):
     #      "/$"+Fore.YELLOW+str(format(round(24*365*tprofit,2), '.0f')).rjust(4)+Style.RESET_ALL, end=' ')
     #show_other_exchanges()
     #show_ellipsis()
-    show_cvx(eoa,extramins,minut,"trix_rewards","xTri", 0) #Indicates needing to use token_value_modifyer
+    show_convex(eoa,extramins,minut,"trix_rewards","xTri", 0) #Indicates needing to use token_value_modifyer
     print('- ', end='') if not args.Small else print("")
     curve_boost_check(carray,w3)
     tripool_calc.tri_calc(False,-1)
-    show_cvx(eoa,extramins,minut,"cvx_rewards","xCRV", 1) #Indicates not using
+    show_convex(eoa,extramins,minut,"cvx_rewards","xCRV", 1) #Indicates not using
     if extramins >= 0: #air bubble extra minutes
         print(Fore.RED+str(round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa+1)+Style.RESET_ALL, end=' ', flush=True)
     if eoa > -61:  #fewer than 60 records in the ghistory.json file
@@ -169,7 +168,9 @@ def gas_and_sleep():
         if enter_hit:
             if firstpass:
                 print("")
-            curve_header_display(myarray, carray, w3, args.Fullheader)
+            virutal_price_sum=curve_header_display(myarray, carray, w3, args.Fullheader) if not args.Small else print("\n"*3)
+            convex_examiner.convex_header_display(myarray, carray, w3, args.Fullheader) if not args.Small else print("\n"*3)
+            combined_stats(myarray, carray, w3, virutal_price_sum)
             threading.Thread(target=key_capture_thread, args=(), name='key_capture_thread', daemon=True).start()
 
         firstpass = False
@@ -181,7 +182,9 @@ def main():
     print("Calc Pool APR over hours:",args.Hourslookback)
     print("Read Only Mode:",args.Readonly)
     load_curvepool_array(myarray,carray,w3)
-    curve_header_display(myarray, carray, w3, args.Fullheader) if not args.Small else print("\n"*3)
+    virutal_price_sum=curve_header_display(myarray, carray, w3, args.Fullheader) if not args.Small else print("\n"*3)
+    convex_examiner.convex_header_display(myarray, carray, w3, args.Fullheader) if not args.Small else print("\n"*3)
+    combined_stats(myarray, carray, w3, virutal_price_sum)
     threading.Thread(target=key_capture_thread, args=(), name='key_capture_thread', daemon=True).start()
     while True:                                                                     #Initiate main program loop
         gas_and_sleep()
@@ -192,8 +195,8 @@ def main():
                   "USD3pool" : update_price("lp-3pool-curve"),
                   "invested" : sum(carray["invested"])}     #Update dictionary values and price information
         update_curve_pools(mydict, carray, myarray, myarrayh, w3)
-        mydict["cvx_rewards"] = xconvex_examiner.cvx_getvalue(False)
-        mydict["trix_rewards"] = xconvex_examiner.trix_getvalue(False)
+        mydict["cvx_rewards"] = convex_examiner.cvx_getvalue(False, myarray)
+        mydict["trix_rewards"] = convex_examiner.trix_getvalue(False, myarray)
 
         myarray.append(mydict)
         if len(myarray) > 61:

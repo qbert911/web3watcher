@@ -12,11 +12,8 @@ csym = Fore.MAGENTA + Style.BRIGHT + "Ç" + Style.RESET_ALL + Fore.CYAN
 def curve_header_display(myarray, carray, w3, fullheader):
     """display detailed pool information"""
     vecrv_func = load_contract("0x5f3b5DfEb7B28CDbD7FAba78963EE202a494e2A2",w3)
-    crv_func = load_contract("0xD533a949740bb3306d119CC777fa900bA034cd52",w3)
     virutal_price_sum = 0
     cw = [5, 6, 11, 6, 7, 4, 0, 9, 6, 7, 5]
-    CRV_inwallet = round(call_me(crv_func.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
-    veCRV_locked = round(call_me(vecrv_func.locked(MY_WALLET_ADDRESS))/10**18, 2)
     veCRV_mine = round(call_me(vecrv_func.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
     veCRV_total = round(call_me(vecrv_func.totalSupply())/10**18, 2)
     for i in range(0, len(carray["name"])):
@@ -80,17 +77,26 @@ def curve_header_display(myarray, carray, w3, fullheader):
                 #print(Style.DIM+str(needed_veCRV).rjust(cw[10]), "additional veCRV needed for full boost."+Style.RESET_ALL)
             else:
                 print("")
+    return virutal_price_sum
+
+def combined_stats(myarray, carray, w3, virutal_price_sum):
+    crv_func = load_contract("0xD533a949740bb3306d119CC777fa900bA034cd52",w3)
+    vecrv_func = load_contract("0x5f3b5DfEb7B28CDbD7FAba78963EE202a494e2A2",w3)
+    CRV_inwallet = round(call_me(crv_func.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
+    veCRV_locked = round(call_me(vecrv_func.locked(MY_WALLET_ADDRESS))/10**18, 2)
+    veCRV_mine = round(call_me(vecrv_func.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
+    x_claimable = round((myarray[-1]["cvx_rewards"][3]*(myarray[-1]["USD3pool"]/myarray[-1]["USD"]))+(myarray[-1]["cvx_rewards"][2]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))+myarray[-1]["cvx_rewards"][1],2) + round((myarray[-1]["trix_rewards"][2]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))+myarray[-1]["trix_rewards"][1],2)
 
     print("$"+str(sum(carray["invested"])+(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][0])), "invested,",sum(carray["invested"]),"is now",int(virutal_price_sum), end=' ')
     print("("+str(format(round(( virutal_price_sum/sum(carray["invested"])*100)-100,5),'.3f'))+"%)", end='   ')
-    print("Ç"+str(round(veCRV_locked)), "veCRV locked" +Style.DIM+" ("+str(veCRV_mine), "voting)"+Style.RESET_ALL, end='  ')
+    print("Ç"+str(round(veCRV_locked)), " veCRV locked" +Style.DIM+" ("+str(veCRV_mine), "voting)"+Style.RESET_ALL, end='  ')
     print(csym+str(round(sum(carray["minted"])/10**18, 2))+Style.RESET_ALL, "minted", end=' ')
-    print(csym+str(round(myarray[-1]["claim"]-(sum(carray["minted"])/10**18), 2))+Style.RESET_ALL, "in gauge", end=' ')
+    print(csym+str(round(myarray[-1]["claim"]-(sum(carray["minted"])/10**18)+x_claimable, 2))+Style.RESET_ALL, "to claim", end=' ')
     print("("+csym+str(CRV_inwallet)+Style.RESET_ALL,"wallet)", end='  ')
 
     eoa = 0 - len(myarray)
     if round((round(time.time())-myarray[eoa]["raw_time"])/60, 2)+eoa >= 0.5:
-        print(Fore.RED+str(round(((round(time.time())-myarray[eoa]["raw_time"])/60)+eoa, 2))+Style.RESET_ALL+" min oos.", end=' ')
+        print(Fore.RED+str(round(((round(time.time())-myarray[eoa]["raw_time"])/60)+eoa, 2))+Style.RESET_ALL+"oos", end=' ')
     if eoa > -61:
         print(Fore.RED+str(61+eoa)+Style.RESET_ALL+" minutes under 60.", end=' ')
     if sum(carray["invested"]) != myarray[eoa]["invested"]:
