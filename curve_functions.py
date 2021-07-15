@@ -103,7 +103,6 @@ def combined_stats(myarray, carray, w3, virutal_price_sum):
         print(Fore.RED+str(sum(carray["invested"]) - myarray[eoa]["invested"])+Style.RESET_ALL+" of New $ obs. data", end='')
     print("")
 
-
 def load_curvepool_array(myarray,barray,w3):
     """prepare iteratable array from json file"""
     with open("curvepools.json", 'r') as thisfile:
@@ -143,7 +142,6 @@ def load_curvepool_array(myarray,barray,w3):
         except:
             barray["token_value_modifyer"][i] = 1
 
-
 def update_curve_pools(mydict,carray,myarray,myarrayh,w3):
     minter_func = load_contract("0xd061D61a4d941c39E5453435B6345Dc261C2fcE0",w3)
     for i in range(0, len(carray["name"])):
@@ -171,31 +169,34 @@ def update_curve_pools(mydict,carray,myarray,myarrayh,w3):
 
 def curve_boost_check(carray,w3):
     """update variables to check boost status"""
-    vecrv_func = load_contract("0x5f3b5DfEb7B28CDbD7FAba78963EE202a494e2A2",w3)
-    veCRV_mine = round(call_me(vecrv_func.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
-    veCRV_total = round(call_me(vecrv_func.totalSupply())/10**18, 2)
-    outputflag = 0
-    for i in range(0, len(carray["name"])):
-        if carray["currentboost"][i] >= 2.47:   #hack to avoid spool which is annoyingly close to 2.5 boost
-            carray["booststatus"][i] = -1               #Green, all is well
-        elif carray["currentboost"][i] == 0:
-            carray["booststatus"][i] = 4                #Blue, pool is empty
-        else:
-            carray["balanceof"][i] = round(call_me(load_contract(carray["guageaddress"][i],w3).balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
-            carray["totalsupply"][i] = round(call_me(load_contract(carray["guageaddress"][i],w3).totalSupply())/10**18, 2)
-            if carray["currentboost"][i] > 0:
-                carray["futureboost"][i] = 2.5 * min((carray["balanceof"][i]/2.5) + (carray["totalsupply"][i]*veCRV_mine/veCRV_total*(1-(1/2.5))), carray["balanceof"][i])/carray["balanceof"][i]
-            if carray["currentboost"][i] >= carray["futureboost"][i]:
-                carray["booststatus"][i] = 1            #Gray, boost status was higher before, nothing to do
+    try:
+        vecrv_func = load_contract("0x5f3b5DfEb7B28CDbD7FAba78963EE202a494e2A2",w3)
+        veCRV_mine = round(call_me(vecrv_func.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
+        veCRV_total = round(call_me(vecrv_func.totalSupply())/10**18, 2)
+        outputflag = 0
+        for i in range(0, len(carray["name"])):
+            if carray["currentboost"][i] >= 2.47:   #hack to avoid spool which is annoyingly close to 2.5 boost
+                carray["booststatus"][i] = -1               #Green, all is well
+            elif carray["currentboost"][i] == 0:
+                carray["booststatus"][i] = 4                #Blue, pool is empty
             else:
-                outputflag = 1
-                print(carray["name"][i], end='')
-                if carray["futureboost"][i]-carray["currentboost"][i] >= .05:
-                    carray["booststatus"][i] = 2        #Red, big enough change in boost status to care
-                    print(Style.BRIGHT+Fore.RED+str(format(round((carray["futureboost"][i]-carray["currentboost"][i])*10000), '04')).rjust(4)+Style.RESET_ALL, end=' ')
+                carray["balanceof"][i] = round(call_me(load_contract(carray["guageaddress"][i],w3).balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
+                carray["totalsupply"][i] = round(call_me(load_contract(carray["guageaddress"][i],w3).totalSupply())/10**18, 2)
+                if carray["currentboost"][i] > 0:
+                    carray["futureboost"][i] = 2.5 * min((carray["balanceof"][i]/2.5) + (carray["totalsupply"][i]*veCRV_mine/veCRV_total*(1-(1/2.5))), carray["balanceof"][i])/carray["balanceof"][i]
+                if carray["currentboost"][i] >= carray["futureboost"][i]:
+                    carray["booststatus"][i] = 1            #Gray, boost status was higher before, nothing to do
                 else:
-                    carray["booststatus"][i] = 3        #Purple, small change in boost status
-                    print(Style.DIM+Fore.RED+str(format(round((carray["futureboost"][i]-carray["currentboost"][i])*10000), '04')).rjust(4)+Style.RESET_ALL, end=' ')
+                    outputflag = 1
+                    print(carray["name"][i], end='')
+                    if carray["futureboost"][i]-carray["currentboost"][i] >= .05:
+                        carray["booststatus"][i] = 2        #Red, big enough change in boost status to care
+                        print(Style.BRIGHT+Fore.RED+str(format(round((carray["futureboost"][i]-carray["currentboost"][i])*10000), '04')).rjust(4)+Style.RESET_ALL, end=' ')
+                    else:
+                        carray["booststatus"][i] = 3        #Purple, small change in boost status
+                        print(Style.DIM+Fore.RED+str(format(round((carray["futureboost"][i]-carray["currentboost"][i])*10000), '04')).rjust(4)+Style.RESET_ALL, end=' ')
 
-    if not outputflag:
-        print(Fore.GREEN+'Bööst'+Style.RESET_ALL, end=' ')
+        if not outputflag:
+            print(Fore.GREEN+'Bööst'+Style.RESET_ALL, end=' ')
+    except:
+        pass

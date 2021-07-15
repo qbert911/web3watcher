@@ -18,12 +18,12 @@ def show_me(inputs, inpute, update, isprice, invested, newline, myarrayh):
         try:
             with open(file_nameh, 'r') as openfile:
                 myarrayh = json.load(openfile)
-        except:
+        except Exception:
             print("Error reading from",file_nameh)
             return
     try:
         totalinvested = myarrayh[inputs]["invested"]
-    except:
+    except Exception:
         totalinvested = 6100
 
     if invested == 1:
@@ -32,7 +32,7 @@ def show_me(inputs, inpute, update, isprice, invested, newline, myarrayh):
     while update and USD == 1:
         try:
             USD = float(update_price("curve-dao-token"))
-        except:
+        except Exception:
             print("PRICE BREAK")
             time.sleep(1)
 
@@ -63,7 +63,7 @@ def update_price(coin_type):
     while USD == -1:
         try:
             USD = cg.get_price(ids=coin_type, vs_currencies='usd')[coin_type]["usd"]
-        except:
+        except Exception:
             time.sleep(2)
             print("Z", end='', flush=True)
     return USD
@@ -81,7 +81,7 @@ def daily_log(isprice, myportion, printit):
                 #if printit:
                     #print (x,myarrayh[(x*24)+24+offset]["invested"])
                 b = x + 1
-        except:
+        except Exception:
             pass
         if printit:
             show_me((x*24)+24+offset, (x*24)+offset, 0, thisprice, myportion, 1, myarrayh)

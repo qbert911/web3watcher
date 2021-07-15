@@ -63,7 +63,7 @@ def find_epochs(targetperson,printit):
                         print("("+str(format(round(mypercentme*100,2), '5.2f'))+"%)",csym+str(format(round(mypercentme*amount_generated,2),'.2f')).rjust(6)+Style.RESET_ALL, end=' - ')
                     try:
                         profitdict[invarray["person"][i]] = round(profitdict[invarray["person"][i]]+(invarray["invested"][i]/myarrayh[newinvestment-1]["invested"]*amount_generated),2)
-                    except:
+                    except Exception:
                         profitdict[invarray["person"][i]] = round(invarray["invested"][i]/myarrayh[newinvestment-1]["invested"]*amount_generated,2)
             if printit:
                 print(Fore.YELLOW+"B rest"+Style.RESET_ALL, end=' ')

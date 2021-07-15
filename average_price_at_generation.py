@@ -27,7 +27,7 @@ def byhundo(increment):
             print("[",str(round((myarrayh[x]["raw_time"] - myarrayh[lastx]["raw_time"]) / (60*60))).rjust(4), "hours ]", end='   ')
             try:
                 print("avg", usym+colormodfunc(amount/count)+str(format(round(amount/count, 2), '.2f'))+Style.RESET_ALL, end='')
-            except:
+            except Exception:
                 print("", end='')
             if len(targetdict) - 1 == targetpos:
                 targetdict.append(targetdict[targetpos] + increment)
@@ -76,5 +76,5 @@ if __name__ == "__main__":
     print("  -----  ")
     try:
         byhundo(int(sys.argv[1]))
-    except:
+    except Exception:
         byhundo(1000)

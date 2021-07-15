@@ -38,7 +38,7 @@ def rainbow_show_boost_status(array):
     try:
         bus.read_byte(112)         #check to see if rainbow hat is connected
         rainbowhat.rainbow.show()  #firing this code with unicornhathd connected breaks it
-    except:
+    except Exception:
         pass
 
 def rainbow_show_float(vala):
@@ -51,7 +51,7 @@ def rainbow_show_float(vala):
         rainbowhat.display.clear()
         rainbowhat.display.print_float(vala)
         rainbowhat.display.show()
-    except:
+    except Exception:
         pass
 
 def curve_hats_update(myfloat, mystring, bootstatusarray):

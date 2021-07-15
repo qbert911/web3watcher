@@ -12,5 +12,5 @@ try:
     print(round(bsc_call[0][1]/10**18,2), "EPS claimable")
     print(round(bsc_call[1][1]/10**18,2), "BUSD")
     print(round(bsc_call2[0]/10**18,2), "EPS locked")
-except:
+except Exception:
     print("\nBSC networking error")

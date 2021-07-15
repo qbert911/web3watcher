@@ -19,7 +19,7 @@ logging.getLogger().disabled = False
 try:
     from curve_rainbowhat_functions import curve_hats_update
     print("Raspberry Pi Hats Found!")
-except:
+except Exception:
     pass
 cursor.hide()
 init()
@@ -64,18 +64,21 @@ else:
     w3 = infura_w3
 
 def show_ellipsis():
-    bsc_call=load_contract("0x4076CC26EFeE47825917D0feC3A79d0bB9a6bB5c",bsc_w3).claimableRewards(MY_WALLET_ADDRESS).call() #manually downloaded abi due to BSC explorer limitations
     try:
+        bsc_call=load_contract("0x4076CC26EFeE47825917D0feC3A79d0bB9a6bB5c",bsc_w3).claimableRewards(MY_WALLET_ADDRESS).call() #manually downloaded abi due to BSC explorer limitations
         print(Fore.MAGENTA+Style.BRIGHT+"Ë"+Style.RESET_ALL+Fore.BLUE+str(format(round(bsc_call[0][1]/10**18,2),'.2f').rjust(5))+Style.RESET_ALL, flush=True, end=' ')
         #print(Fore.BLUE+str(format(round(bsc_call[1][1]/10**18,2),'.2f'))+Fore.WHITE+ "B"+Style.RESET_ALL,end=' - ')
-    except:
+    except Exception:
         print("B", end='')
 
 def show_other_exchanges():
-    crcrv_interest = round(((((load_contract("0xc7Fd8Dcee4697ceef5a2fd4608a7BD6A94C77480", w3).supplyRatePerBlock().call()*4*60*24/10**18)+1)**364)-1)*100, 2)
-    aacrv_interest = round(load_contract("0xc7Fd8Dcee4697ceef5a2fd4608a7BD6A94C77480", w3).getReserveData("0xD533a949740bb3306d119CC777fa900bA034cd52").call()[3]/10**25,2)
-    print("A"+Fore.BLUE+str(format(aacrv_interest, '4.1f')).rjust(4)+Style.RESET_ALL+"%",
-          "C"+Fore.BLUE+str(format(crcrv_interest, '4.1f')).rjust(4)+Style.RESET_ALL+"%", end=' ', flush=True)  #+"C"+str(crusdc_interest)+"% "+Fore.MAGENTA+Style.BRIGHT+"Ç"+str(format(crcrv_interest, '.2f'))+"%"
+    try:
+        crcrv_interest = round(((((load_contract("0xc7Fd8Dcee4697ceef5a2fd4608a7BD6A94C77480", w3).supplyRatePerBlock().call()*4*60*24/10**18)+1)**364)-1)*100, 2)
+        aacrv_interest = round(load_contract("0xc7Fd8Dcee4697ceef5a2fd4608a7BD6A94C77480", w3).getReserveData("0xD533a949740bb3306d119CC777fa900bA034cd52").call()[3]/10**25,2)
+        print("A"+Fore.BLUE+str(format(aacrv_interest, '4.1f')).rjust(4)+Style.RESET_ALL+"%",
+              "C"+Fore.BLUE+str(format(crcrv_interest, '4.1f')).rjust(4)+Style.RESET_ALL+"%", end=' ', flush=True)  #+"C"+str(crusdc_interest)+"% "+Fore.MAGENTA+Style.BRIGHT+"Ç"+str(format(crcrv_interest, '.2f'))+"%"
+    except Exception:
+        print("AC", end='')
 
 def show_convex(eoa,extramins,minut,name,label,pf):
     """cvx display"""
@@ -88,13 +91,13 @@ def show_convex(eoa,extramins,minut,name,label,pf):
         try:
             buffer+=str(format(round((myarray[-1][name][i]-myarray[eoa][name][i])/(60+extramins)*pricefactor[i]*60*24*365/(myarray[eoa][name][0]*pricefactor[pf])*100, 2), '.2f')).rjust(5)+""
             tprofit+=(myarray[-1][name][i]-myarray[eoa][name][i])/(60+extramins)*pricefactor[i]*60*24*365
-        except:
+        except Exception:
             buffer+="xx.xx"
         subtotal=str(format(round(tprofit/(myarray[eoa][name][0]*pricefactor[pf])*100, 2), '.2f')).rjust(5)
 
         #try:
         #    buffer+= Style.DIM+Fore.GREEN+ str(format(round((myarray[-1][name][i]-myarrayh[-args.Hourslookback-1][name][i])/(args.Hourslookback+float(int(minut)/60))/60*pricefactor[i]*60*24*365/(myarray[eoa][name][0]*pricefactor[pf])*100, 2), '.2f')).rjust(5)+" "+Style.RESET_ALL
-        #except:
+        #except Exception:
         #    buffer += Style.DIM+Fore.GREEN+"xx.xx "+Style.RESET_ALL
     print(Fore.RED+Style.BRIGHT+label+Style.RESET_ALL+subtotal+Style.DIM+"{"+buffer+"}"+Style.RESET_ALL, end=' ')
 
@@ -115,12 +118,12 @@ def print_status_line(USD, eoa):
             buffer+=Fore.RED+Style.BRIGHT+carray["name"][i]+Style.RESET_ALL
             try:
                 buffer+=str(format(round((myarray[-1][carray["name"][i]+"pool"]-myarray[eoa][carray["name"][i]+"pool"])/(60+extramins)*60*USD*24*365/carray["invested"][i]*100, 2), '.2f')).rjust(5)
-            except:
+            except Exception:
                 buffer+="xx.xx"
             try:
                 tprofit += (myarray[-1][carray["name"][i]+"profit"]-myarrayh[-args.Hourslookback-1][carray["name"][i]+"profit"])/(args.Hourslookback+float(int(minut)/60))
                 buffer += Style.DIM+Fore.GREEN+str(format(round((myarray[-1][carray["name"][i]+"profit"]-myarrayh[-args.Hourslookback-1][carray["name"][i]+"profit"])/(args.Hourslookback+float(int(minut)/60))/60*60*USD*24*365/carray["invested"][i]*100, 2), '.2f')).rjust(5)+Style.RESET_ALL+" "
-            except:
+            except Exception:
                 buffer += Style.DIM+Fore.GREEN+"xx.xx "+Style.RESET_ALL
     print(Fore.GREEN+Style.BRIGHT+str(format(round((difference)*USD*24*365/(sum(carray["invested"])+(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][0]))*100, 2), '.2f'))+Style.RESET_ALL+"/", end='')
     #print(Fore.CYAN+str(format(round((difference)*24*365/sum(carray["invested"])*100, 2), '.2f')).rjust(5)+Fore.WHITE+"% APR", end='')
@@ -138,6 +141,7 @@ def print_status_line(USD, eoa):
     curve_boost_check(carray,w3)
     tripool_calc.tri_calc(False,-1)
     show_convex(eoa,extramins,minut,"cvx_rewards","xCRV", 1) #Indicates not using
+    print("$"+Fore.YELLOW+Style.BRIGHT+f"{myarray[-1]['USDcvx']:.2f}"+Style.RESET_ALL,end=" ")
     if extramins >= 0: #air bubble extra minutes
         print(Fore.RED+str(round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa+1)+Style.RESET_ALL, end=' ', flush=True)
     if eoa > -61:  #fewer than 60 records in the ghistory.json file
@@ -159,7 +163,7 @@ def gas_and_sleep():
     while month+"/"+day+" "+hour+":"+minut == myarray[-1]["human_time"]:        #Wait for each minute to pass to run again
         try:
             print(str("~"+str(round(infura_w3.eth.gasPrice/10**9))+"~").rjust(5), "\b"*6, end="", flush=True)
-        except:
+        except Exception:
             print(str("~"+Fore.RED+Style.BRIGHT+"xxx"+Style.RESET_ALL+"~"), "\b"*6, end="", flush=True)
         if firstpass and minut == "00":
             print("")
@@ -210,7 +214,7 @@ def main():
             curve_hats_update(display_percent,
                               str(format(round(update_price("ethereum")),',')).rjust(6),
                               carray["booststatus"])
-        except:
+        except Exception:
             pass
 
         if minut == "00" and mydict["claim"] > 1:

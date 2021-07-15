@@ -26,10 +26,6 @@ def tri_calc(fulldisplay, guage_bal):
     buf = ""
     _coins = []
     _price_oracle = [1,0,0]
-    if guage_bal < 1:
-        guage_bal = tri_guage.balanceOf(MY_WALLET_ADDRESS).call() +(25*(10**18)) #HACK
-    totalSupply = tri_guage.totalSupply().call()
-    virt_price = tri_swap.get_virtual_price().call()/10**18
     if fulldisplay:
         parser2 = argparse.ArgumentParser()
         parser2.add_argument("-e", "--Ethvalue", type=int, help="Theoretical ETH value")
@@ -39,43 +35,51 @@ def tri_calc(fulldisplay, guage_bal):
             _price_oracle[2] = args2.Ethvalue
         if args2.Btcvalue:
             _price_oracle[1] = args2.Btcvalue
-    for i in range(3):
-        if i > 0 and _price_oracle[i] < 1:
-            _price_oracle[i] = tri_swap.price_oracle(i - 1).call()/ 10 ** 18
+    try:
+        if guage_bal < 1:
+            guage_bal = tri_guage.balanceOf(MY_WALLET_ADDRESS).call() +(25*(10**18)) #HACK
+        totalSupply = tri_guage.totalSupply().call()
+        virt_price = tri_swap.get_virtual_price().call()/10**18
+        for i in range(3):
+            if i > 0 and _price_oracle[i] < 1:
+                _price_oracle[i] = tri_swap.price_oracle(i - 1).call()/ 10 ** 18
+
+            if fulldisplay:
+                _allthiscoin = tri_swap.balances(i).call()/ 10 ** decimals[i]
+                _coins.append( guage_bal / totalSupply * _allthiscoin )
+                _val = _coins[i] * _price_oracle[i]
+                _curr_val += _val
+                buf+=(f"         {labels[i]}: ${_val:06,.0f} ={_coins[i]: 12.5f} @ "+Fore.CYAN+f"${_price_oracle[i]:,.2f}\n"+Style.RESET_ALL)
 
         if fulldisplay:
-            _allthiscoin = tri_swap.balances(i).call()/ 10 ** decimals[i]
-            _coins.append( guage_bal / totalSupply * _allthiscoin )
-            _val = _coins[i] * _price_oracle[i]
-            _curr_val += _val
-            buf+=(f"         {labels[i]}: ${_val:06,.0f} ={_coins[i]: 12.5f} @ "+Fore.CYAN+f"${_price_oracle[i]:,.2f}\n"+Style.RESET_ALL)
+            print(f"   virtprice: {virt_price}\n"+f"Total supply: {totalSupply / 10 ** 18:,.0f}\n"+f" Tokens held: {guage_bal / 10 ** 18:.4f}\n")
 
-    if fulldisplay:
-        print(f"   virtprice: {virt_price}\n"+f"Total supply: {totalSupply / 10 ** 18:,.0f}\n"+f" Tokens held: {guage_bal / 10 ** 18:.4f}\n")
-
-    for j in range(len(purchase_array)):
-        x = _price_oracle[1] / purchase_array[j]["btc_price"]
-        y = _price_oracle[2] / purchase_array[j]["eth_price"]
-        z = (x+y+1) / 3
-        sim_total += z * purchase_array[j]['dollar_value']
+        for j in range(len(purchase_array)):
+            x = _price_oracle[1] / purchase_array[j]["btc_price"]
+            y = _price_oracle[2] / purchase_array[j]["eth_price"]
+            z = (x+y+1) / 3
+            sim_total += z * purchase_array[j]['dollar_value']
+            if fulldisplay:
+                thiscolor = Fore.RED+Style.BRIGHT
+                if _all_dollars_spent < sim_total:
+                    thiscolor = Fore.GREEN+Style.BRIGHT
+                print(f"Purchase #{j+1: 2d}: $"+Fore.GREEN+f"{purchase_array[j]['dollar_value']:06,d}"+Style.RESET_ALL, end = "")
+                print("  for  ©"+Fore.MAGENTA+f"{purchase_array[j]['tokens_recieved']:5.2f}"+Style.RESET_ALL+f"      ${purchase_array[j]['dollar_value']/purchase_array[j]['tokens_recieved']:.0f}", end = "   ")
+                print("Actual ["+Fore.CYAN+f"{((_curr_val/(guage_bal/10**18)/(purchase_array[j]['dollar_value']/purchase_array[j]['tokens_recieved']))-1)*100:6.2f}"+Style.RESET_ALL+"%]", end = "  ")
+                print("Sim ["+Fore.CYAN+Style.BRIGHT+f"{(z-1)*100:6.2f}"+Style.RESET_ALL+"%] "+f"BTC[{(x-1) * 100:6.2f}%] ETH[{(y-1) * 100:6.2f}%]")
+                #print(" "*44,"Simulated ["+Fore.CYAN+Style.BRIGHT+f"{(z-1)*100:6.2f}"+Style.RESET_ALL+"%]"+Style.RESET_ALL)  #= worth $"+Fore.YELLOW+f"{z * purchase_array[j]['dollar_value']:5.0f}
         if fulldisplay:
-            thiscolor = Fore.RED+Style.BRIGHT
-            if _all_dollars_spent < sim_total:
-                thiscolor = Fore.GREEN+Style.BRIGHT
-            print(f"Purchase #{j+1: 2d}: $"+Fore.GREEN+f"{purchase_array[j]['dollar_value']:06,d}"+Style.RESET_ALL, end = "")
-            print("  for  ©"+Fore.MAGENTA+f"{purchase_array[j]['tokens_recieved']:5.2f}"+Style.RESET_ALL+f"      ${purchase_array[j]['dollar_value']/purchase_array[j]['tokens_recieved']:.0f}", end = "   ")
-            print("Actual ["+Fore.CYAN+f"{((_curr_val/(guage_bal/10**18)/(purchase_array[j]['dollar_value']/purchase_array[j]['tokens_recieved']))-1)*100:6.2f}"+Style.RESET_ALL+"%]", end = "  ")
-            print("Sim ["+Fore.CYAN+Style.BRIGHT+f"{(z-1)*100:6.2f}"+Style.RESET_ALL+"%] "+f"BTC[{(x-1) * 100:6.2f}%] ETH[{(y-1) * 100:6.2f}%]")
-            #print(" "*44,"Simulated ["+Fore.CYAN+Style.BRIGHT+f"{(z-1)*100:6.2f}"+Style.RESET_ALL+"%]"+Style.RESET_ALL)  #= worth $"+Fore.YELLOW+f"{z * purchase_array[j]['dollar_value']:5.0f}
-    if fulldisplay:
-        print(" "*3,"Invested: $"+Fore.GREEN+f"{_all_dollars_spent:,.0f}"+Style.RESET_ALL+" (Each "+Fore.MAGENTA+"©"+Style.RESET_ALL+f"token was: ${_all_dollars_spent/(guage_bal/10**18):.0f})\n")
-        print(buf, end="")
-        print(" "*6,"Total: $"+Fore.YELLOW+Style.BRIGHT+f"{_curr_val:,.0f}"+Style.RESET_ALL+" (Each "+Fore.MAGENTA+"©"+Style.RESET_ALL+"token now: $"+thiscolor+f"{_curr_val/(guage_bal/10**18):.0f}"+Style.RESET_ALL+") Change: ["+Fore.CYAN+f"{100*((_curr_val/_all_dollars_spent)-1):6.2f}"+Style.RESET_ALL+"%]\n")
-        print(" "*2,"Simulated: $"+Fore.YELLOW+f"{sim_total:,.0f}"+Style.RESET_ALL+" (Each "+Fore.MAGENTA+"©"+Style.RESET_ALL+"token was: $"+thiscolor+f"{sim_total/(guage_bal/10**18):.0f}"+Style.RESET_ALL+") Simula: ["+Fore.CYAN+Style.BRIGHT+f"{100*((sim_total/_all_dollars_spent)-1):6.2f}"+Style.RESET_ALL+"%]")
-    else:
-        print("["+Fore.CYAN+Style.BRIGHT+f"{100*((sim_total/_all_dollars_spent)-1):5.2f}"+Style.RESET_ALL+"%]",end=' ')
+            print(" "*3,"Invested: $"+Fore.GREEN+f"{_all_dollars_spent:,.0f}"+Style.RESET_ALL+" (Each "+Fore.MAGENTA+"©"+Style.RESET_ALL+f"token was: ${_all_dollars_spent/(guage_bal/10**18):.0f})\n")
+            print(buf, end="")
+            print(" "*6,"Total: $"+Fore.YELLOW+Style.BRIGHT+f"{_curr_val:,.0f}"+Style.RESET_ALL+" (Each "+Fore.MAGENTA+"©"+Style.RESET_ALL+"token now: $"+thiscolor+f"{_curr_val/(guage_bal/10**18):.0f}"+Style.RESET_ALL+") Change: ["+Fore.CYAN+f"{100*((_curr_val/_all_dollars_spent)-1):6.2f}"+Style.RESET_ALL+"%]\n")
+            print(" "*2,"Simulated: $"+Fore.YELLOW+f"{sim_total:,.0f}"+Style.RESET_ALL+" (Each "+Fore.MAGENTA+"©"+Style.RESET_ALL+"token was: $"+thiscolor+f"{sim_total/(guage_bal/10**18):.0f}"+Style.RESET_ALL+") Simula: ["+Fore.CYAN+Style.BRIGHT+f"{100*((sim_total/_all_dollars_spent)-1):6.2f}"+Style.RESET_ALL+"%]")
+        else:
+            print("["+Fore.CYAN+Style.BRIGHT+f"{100*((sim_total/_all_dollars_spent)-1):5.2f}"+Style.RESET_ALL+"%]",end=' ')
 
-    return sim_total
+        return sim_total
+
+    except Exception:
+        return 0
 
 if __name__ == "__main__":
     print(tri_calc(True,0))

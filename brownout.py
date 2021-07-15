@@ -11,10 +11,10 @@ def load_contract(c):
         return None
     try:
         return Contract(c)
-    except:
+    except Exception:
         try:
             return Contract.from_explorer(c)
-        except:
+        except Exception:
             print(c,"NOT LOADED")
 
 def main():
@@ -32,30 +32,30 @@ def main():
                 print(f"Gauge balance {gauge_bal / 10 ** 18}")
             try:
                 tri_gauge.withdraw(gauge_bal, True, {'from': whale}) #noisy
-            except:
+            except Exception:
                 pass
             try:
                 tri.remove_liquidity_one_coin(gauge_bal, 0, 0, {'from': whale}) #noisy
-            except:
+            except Exception:
                 pass
             try:
                 _coins = _token.balanceOf(whale) / 10 ** 6
-            except:
+            except Exception:
                 pass
             try:
                 network.disconnect() #noisy
-            except:
+            except Exception:
                 pass
             _sim_total = tripool_calc.tri_calc(True, gauge_bal) #noisy
             sys.stdout = sys.__stdout__
             print(f"  ${_coins:,.0f}  ${_sim_total:,.0f}",datetime.now().strftime('%Y-%m-%d %H:%M:%S'),flush=True,end="")
             time.sleep(60*5)
-        except:
+        except Exception:
             sys.stdout = sys.__stdout__
             print("couldnt connect",datetime.now().strftime('%Y-%m-%d %H:%M:%S'),flush=True)
             try:
                 network.disconnect() #noisy
-            except:
+            except Exception:
                 pass
             print("")
             time.sleep(5)

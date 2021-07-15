@@ -6,9 +6,9 @@ try:
     try:
         mypos=webpage.index('%        ')
         crv_interest_hotbit = webpage[mypos-5:mypos]
-    except:
+    except Exception:
         crv_interest_hotbit = "yy.yy"
-except:
+except Exception:
     crv_interest_hotbit = "xx.xx"
 
 print(webpage)
@@ -25,9 +25,9 @@ def update_hbcrv_interest():
             try:
                 mypos=webpage.index('%        ')    #webpage.index('T+1  ',200)
                 hbcrv_interest = str(format(float(webpage[mypos-5:mypos]), '4.1f')).rjust(4)  #float(webpage[mypos-31:mypos-26])
-            except:
+            except Exception:
                 hbcrv_interest = "xx.x"
-        except:
+        except Exception:
             hbcrv_interest = "ww.w"
     else:
         hbcrv_interest = "--.-"
