@@ -66,7 +66,7 @@ else:
 def show_ellipsis():
     try:
         bsc_call=load_contract("0x4076CC26EFeE47825917D0feC3A79d0bB9a6bB5c",bsc_w3).claimableRewards(MY_WALLET_ADDRESS).call() #manually downloaded abi due to BSC explorer limitations
-        print(Fore.MAGENTA+Style.BRIGHT+"Ë"+Style.RESET_ALL+Fore.BLUE+str(format(round(bsc_call[0][1]/10**18,2),'.2f').rjust(5))+Style.RESET_ALL, flush=True, end=' ')
+        print(Fore.MAGENTA+Style.BRIGHT+"Ë"+Style.RESET_ALL+Fore.BLUE+str(format(round(bsc_call[0][1]/10**18,2),'5.2f').rjust(5))+Style.RESET_ALL, flush=True, end=' ')
         #print(Fore.BLUE+str(format(round(bsc_call[1][1]/10**18,2),'.2f'))+Fore.WHITE+ "B"+Style.RESET_ALL,end=' - ')
     except Exception:
         print("B", end='')
@@ -80,23 +80,23 @@ def show_other_exchanges():
     except Exception:
         print("AC", end='')
 
-def show_convex(eoa,extramins,minut,name,label,pf):
+def show_convex(eoa,extramins,minut,name,label,extrapools, tokenmodindex):
     """cvx display"""
     labels = [ "I", "V", "X", "3"]
-    pricefactor = [ carray["token_value_modifyer"][pf], myarray[-1]["USD"], myarray[-1]["USDcvx"], myarray[-1]["USD3pool"]]
+    pricefactor = [ carray["token_value_modifyer"][tokenmodindex], myarray[-1]["USD"], myarray[-1]["USDcvx"], myarray[-1]["USD3pool"]]
     buffer=""
     tprofit=0
-    for i in range(1,3+pf):
+    for i in range(1,3+extrapools):
         buffer+=Fore.RED+labels[i]+Fore.WHITE
         try:
-            buffer+=str(format(round((myarray[-1][name][i]-myarray[eoa][name][i])/(60+extramins)*pricefactor[i]*60*24*365/(myarray[eoa][name][0]*pricefactor[pf])*100, 2), '.2f')).rjust(5)+""
+            buffer+=str(format(round((myarray[-1][name][i]-myarray[eoa][name][i])/(60+extramins)*pricefactor[i]*60*24*365/(myarray[eoa][name][0]*pricefactor[extrapools])*100, 2), '.2f')).rjust(5)+""
             tprofit+=(myarray[-1][name][i]-myarray[eoa][name][i])/(60+extramins)*pricefactor[i]*60*24*365
         except Exception:
             buffer+="xx.xx"
-        subtotal=str(format(round(tprofit/(myarray[eoa][name][0]*pricefactor[pf])*100, 2), '.2f')).rjust(5)
+        subtotal=str(format(round(tprofit/(myarray[eoa][name][0]*pricefactor[extrapools])*100, 2), '5.2f')).rjust(5)
 
         #try:
-        #    buffer+= Style.DIM+Fore.GREEN+ str(format(round((myarray[-1][name][i]-myarrayh[-args.Hourslookback-1][name][i])/(args.Hourslookback+float(int(minut)/60))/60*pricefactor[i]*60*24*365/(myarray[eoa][name][0]*pricefactor[pf])*100, 2), '.2f')).rjust(5)+" "+Style.RESET_ALL
+        #    buffer+= Style.DIM+Fore.GREEN+ str(format(round((myarray[-1][name][i]-myarrayh[-args.Hourslookback-1][name][i])/(args.Hourslookback+float(int(minut)/60))/60*pricefactor[i]*60*24*365/(myarray[eoa][name][0]*pricefactor[extrapools])*100, 2), '.2f')).rjust(5)+" "+Style.RESET_ALL
         #except Exception:
         #    buffer += Style.DIM+Fore.GREEN+"xx.xx "+Style.RESET_ALL
     print(Fore.RED+Style.BRIGHT+label+Style.RESET_ALL+subtotal+Style.DIM+"{"+buffer+"}"+Style.RESET_ALL, end=' ')
@@ -125,7 +125,7 @@ def print_status_line(USD, eoa):
                 buffer += Style.DIM+Fore.GREEN+str(format(round((myarray[-1][carray["name"][i]+"profit"]-myarrayh[-args.Hourslookback-1][carray["name"][i]+"profit"])/(args.Hourslookback+float(int(minut)/60))/60*60*USD*24*365/carray["invested"][i]*100, 2), '.2f')).rjust(5)+Style.RESET_ALL+" "
             except Exception:
                 buffer += Style.DIM+Fore.GREEN+"xx.xx "+Style.RESET_ALL
-    print(Fore.GREEN+Style.BRIGHT+str(format(round((difference)*USD*24*365/(sum(carray["invested"])+(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][0]))*100, 2), '.2f'))+Style.RESET_ALL+"/", end='')
+    print(Fore.GREEN+Style.BRIGHT+str(format(round((difference)*USD*24*365/(sum(carray["invested"])+(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][carray["longname"].index("tRicrypto")]))*100, 2), '.2f'))+Style.RESET_ALL+"/", end='')
     #print(Fore.CYAN+str(format(round((difference)*24*365/sum(carray["invested"])*100, 2), '.2f')).rjust(5)+Fore.WHITE+"% APR", end='')
     print(Fore.YELLOW+str(format(round((tprofit/60*60)*24*365/sum(carray["invested"])*100, 2), '5.2f'))+Style.RESET_ALL+"% APR", end='')
     print(' -',buffer, end='') if not args.Small else print("\n"+buffer)
@@ -136,11 +136,14 @@ def print_status_line(USD, eoa):
     #      "/$"+Fore.YELLOW+str(format(round(24*365*tprofit,2), '.0f')).rjust(4)+Style.RESET_ALL, end=' ')
     #show_other_exchanges()
     #show_ellipsis()
-    show_convex(eoa,extramins,minut,"trix_rewards","xTri", 0) #Indicates needing to use token_value_modifyer
-    print('- ', end='') if not args.Small else print("")
+    print('[', end='')
     curve_boost_check(carray,w3)
+    print('\b] ', end='') if not args.Small else print("")
+    show_convex(eoa,extramins,minut,"trix_rewards","xTri", 0, carray["longname"].index("tRicrypto")) #Indicates no third pool and using token_value_modifyer
     tripool_calc.tri_calc(False,-1)
-    show_convex(eoa,extramins,minut,"cvx_rewards","xCRV", 1) #Indicates not using
+    show_convex(eoa,extramins,minut,"cvx_rewards","xCRV", 1, 0) #Indicates having an extra 3pool and not using token_value_modifyer
+    print("["+Fore.CYAN+Style.BRIGHT+f"{((myarray[-1]['USDcvxCRV']-myarray[-1]['USD'])/myarray[-1]['USD'])*100:5.2f}"+Style.RESET_ALL+"%]",end=" ")
+    #print("$"+Fore.YELLOW+Style.BRIGHT+f"{myarray[-1]['USDcvxCRV']:.2f}"+Style.RESET_ALL,end=" ")
     print("$"+Fore.YELLOW+Style.BRIGHT+f"{myarray[-1]['USDcvx']:.2f}"+Style.RESET_ALL,end=" ")
     if extramins >= 0: #air bubble extra minutes
         print(Fore.RED+str(round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa+1)+Style.RESET_ALL, end=' ', flush=True)
@@ -148,8 +151,12 @@ def print_status_line(USD, eoa):
         print(Fore.RED+Style.BRIGHT+str(61+eoa).rjust(2)+Style.RESET_ALL, end=' ', flush=True)
     if myarray[-1]["invested"] != myarray[eoa]["invested"]:
         print(Fore.RED+str(myarray[-1]["invested"] - myarray[eoa]["invested"])+Style.RESET_ALL, end=' ', flush=True)
+    if myarray[-1]["cvx_rewards"][0] != myarray[eoa]["cvx_rewards"][0]:
+        print(Fore.RED+str(myarray[-1]["cvx_rewards"][0] - myarray[eoa]["cvx_rewards"][0])+Style.RESET_ALL, end=' ', flush=True)
+    if myarray[-1]["trix_rewards"][0] != myarray[eoa]["trix_rewards"][0]:
+        print(Fore.RED+str(myarray[-1]["trix_rewards"][0] - myarray[eoa]["trix_rewards"][0])+Style.RESET_ALL, end=' ', flush=True)
 
-    return round(((difference*myarray[-1]["USD"])+(tprofit/60*60))*24*365/(sum(carray["invested"])+(25*carray["token_value_modifyer"][0]))*100, 2) #display_percent
+    return round(((difference*myarray[-1]["USD"])+(tprofit/60*60))*24*365/(sum(carray["invested"])+(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][carray["longname"].index("tRicrypto")]))*100, 2) #display_percent
 
 def key_capture_thread():
     global enter_hit
@@ -197,6 +204,7 @@ def main():
                   "USD" : update_price("curve-dao-token"),
                   "USDcvx" : update_price("convex-finance"),
                   "USD3pool" : update_price("lp-3pool-curve"),
+                  "USDcvxCRV" : update_price("convex-crv"),
                   "invested" : sum(carray["invested"])}     #Update dictionary values and price information
         update_curve_pools(mydict, carray, myarray, myarrayh, w3)
         mydict["cvx_rewards"] = convex_examiner.cvx_getvalue(False, myarray)

@@ -3,9 +3,9 @@
 # pylint: disable=C0103,C0116,C0301,W0105,E0401,R0914
 import time
 import json
+from pycoingecko import CoinGeckoAPI
 from colorama import Fore, Style, init
 init()
-from pycoingecko import CoinGeckoAPI
 cg = CoinGeckoAPI()
 
 file_nameh = "history/history_archive.json"
@@ -20,7 +20,7 @@ def show_me(inputs, inpute, update, isprice, invested, newline, myarrayh):
                 myarrayh = json.load(openfile)
         except Exception:
             print("Error reading from",file_nameh)
-            return
+            return False
     try:
         totalinvested = myarrayh[inputs]["invested"]
     except Exception:
@@ -49,7 +49,7 @@ def show_me(inputs, inpute, update, isprice, invested, newline, myarrayh):
         #print(usym + str(format(round(a, 2), '.2f')).rjust(5) + Style.RESET_ALL + "/" + csym + str(format(a/USD, '.2f')).rjust(5) + Style.RESET_ALL, "profit in", str(round(b)).rjust(3), "hours", end=' - ')
         print(str(round(b/24, 1)).rjust(4), "days", end=' - ')
     print("between", myarrayh[inpute]["human_time"], "and", myarrayh[inputs]["human_time"], end=' ')
-    if not invested == totalinvested:
+    if invested != totalinvested:
         print(invested,"/", totalinvested)
     else:
         print(totalinvested, end='')

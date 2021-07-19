@@ -17,25 +17,22 @@ trix_crv = load_contract("0x5Edced358e6C0B435D53CC30fbE6f5f0833F404F",infura_w3)
 
 def convex_header_display(myarray, carray, w3, fullheader):
 
-    print("xTripool"," "*16,(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][0]),end=" ")
-    #print(Style.DIM+Fore.CYAN+str(format(round(myarray[-1][carray["name"][i]+"pool"]-(round(carray["minted"][i]/10**18,2)), 2), '.2f')).rjust(cw[3])+Style.RESET_ALL, end=' ')
-    print(" "*23,Style.DIM+Fore.CYAN+str(round((myarray[-1]["trix_rewards"][2]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))+myarray[-1]["trix_rewards"][1],2)),Style.RESET_ALL,end=" ")
-    print(" "*9,"v"+str(format(round(myarray[-1]["trix_rewards"][1],2), '.2f')).rjust(5)+"x"+str(format(round(myarray[-1]["trix_rewards"][2],2), '.2f')).rjust(5),end="")
+    trix_value = ((myarray[-1]["trix_rewards"][2]*myarray[-1]["USDcvx"])+
+                  (myarray[-1]["trix_rewards"][1]*myarray[-1]["USD"]))
 
-    myval = round((myarray[-1]["trix_rewards"][2]*myarray[-1]["USDcvx"])+
-                  (myarray[-1]["trix_rewards"][1]*myarray[-1]["USD"]),2)
+    cvx_value = ((myarray[-1]["cvx_rewards"][3]*myarray[-1]["USD3pool"])+
+                 (myarray[-1]["cvx_rewards"][2]*myarray[-1]["USDcvx"])+
+                 (myarray[-1]["cvx_rewards"][1]*myarray[-1]["USD"]))
 
-    print(" "*15,"$"+str(myval))
+    print("xTripool"," "*16,(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][carray["longname"].index("tRicrypto")]),end=" ")
+    print(" "*23,Style.DIM+Fore.CYAN+str(format(round((myarray[-1]["trix_rewards"][2]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))+myarray[-1]["trix_rewards"][1],2),'5.2f')),Style.RESET_ALL,end=" ")
+    print(" "*17,"v"+str(format(round(myarray[-1]["trix_rewards"][1],2), '5.2f')).rjust(5)+"x"+str(format(round(myarray[-1]["trix_rewards"][2],2), '5.2f')).rjust(5),end="")
+    print(" "*6,"$"+str(format(round(trix_value,2), '5.2f')).rjust(6))
 
     print("xCRV"," "*27,"cvxCRV minted","Ç"+str(myarray[-1]["cvx_rewards"][0]),end=" ")
-    print(" "*2,Style.DIM+Fore.CYAN+str(format(round((myarray[-1]["cvx_rewards"][3]*(myarray[-1]["USD3pool"]/myarray[-1]["USD"]))+(myarray[-1]["cvx_rewards"][2]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))+myarray[-1]["cvx_rewards"][1],2), '.2f')),Style.RESET_ALL,end=" ")
-    print(" "*9,"v"+str(format(round(myarray[-1]["cvx_rewards"][1],2), '.2f')).rjust(5)+"x"+str(format(round(myarray[-1]["cvx_rewards"][2],2), '.2f')).rjust(5)+"t"+str(format(round(myarray[-1]["cvx_rewards"][3],2), '.2f')).rjust(5),end="")
-
-    myval = round((myarray[-1]["cvx_rewards"][3]*myarray[-1]["USD3pool"])+
-                  (myarray[-1]["cvx_rewards"][2]*myarray[-1]["USDcvx"])+
-                  (myarray[-1]["cvx_rewards"][1]*myarray[-1]["USD"]),2)
-
-    print(" "*9,"$"+str(myval))
+    print(" "*2,Style.DIM+Fore.CYAN+str(format(round((myarray[-1]["cvx_rewards"][3]*(myarray[-1]["USD3pool"]/myarray[-1]["USD"]))+(myarray[-1]["cvx_rewards"][2]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))+myarray[-1]["cvx_rewards"][1],2), '5.2f')),Style.RESET_ALL,end=" ")
+    print(" "*36,"$"+str(format(round(cvx_value,2), '5.2f')).rjust(6),end="")
+    print(" "*6,"v"+str(format(round(myarray[-1]["cvx_rewards"][1],2), '5.2f')).rjust(5)+"x"+str(format(round(myarray[-1]["cvx_rewards"][2],2), '5.2f')).rjust(5)+"t"+str(format(round(myarray[-1]["cvx_rewards"][3],2), '5.2f')).rjust(5))
 
 def cvx_getvalue(printit, myarray):
     try:

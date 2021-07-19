@@ -5,6 +5,7 @@ import sys, os
 from brownie import *
 import tripool_calc
 from datetime import datetime
+import convex_examiner
 
 def load_contract(c):
     if c == ZERO_ADDRESS:
@@ -46,7 +47,10 @@ def main():
                 network.disconnect() #noisy
             except Exception:
                 pass
-            _sim_total = tripool_calc.tri_calc(True, gauge_bal) #noisy
+
+            _coins_in_covex_guage = convex_examiner.trix_getvalue(False,None)[0]
+            _coins = (_coins/(gauge_bal / 10 ** 18))*((gauge_bal / 10 ** 18)+_coins_in_covex_guage)
+            _sim_total = tripool_calc.tri_calc(True, gauge_bal+(_coins_in_covex_guage*(10**18))) #noisy
             sys.stdout = sys.__stdout__
             print(f"  ${_coins:,.0f}  ${_sim_total:,.0f}",datetime.now().strftime('%Y-%m-%d %H:%M:%S'),flush=True,end="")
             time.sleep(60*5)

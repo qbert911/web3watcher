@@ -7,13 +7,15 @@ from etherscan.contracts import Contract
 
 def load_contract(_contract, _eth_connect):
     key = 'WXPQDYFIT982E3GPJR9JEHXHNYRADB34BN'
-    address = _contract
     file_name = 'abi/'+_contract+'.json'
     if not os.path.isfile(file_name):
-        api = Contract(address=address, api_key=key)
-        _this_abi = api.get_abi()
-        print("Downloading missing abi for ", _contract)
-        json.dump(_this_abi, open(file_name, "w"), indent=4)          #Output dictionary to minute file
+        api = Contract(address=_contract, api_key=key)
+        try:
+            _this_abi = api.get_abi()
+            print("Downloading missing abi for ", _contract)
+            json.dump(_this_abi, open(file_name, "w"), indent=4)          #Output dictionary to minute file
+        except Exception:
+            pass
     else:
         _this_abi = json.load(open(file_name, 'r'))
 

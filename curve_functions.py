@@ -83,24 +83,28 @@ def combined_stats(myarray, carray, w3, virutal_price_sum):
     crv_func = load_contract("0xD533a949740bb3306d119CC777fa900bA034cd52",w3)
     vecrv_func = load_contract("0x5f3b5DfEb7B28CDbD7FAba78963EE202a494e2A2",w3)
     CRV_inwallet = round(call_me(crv_func.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
-    veCRV_locked = round(call_me(vecrv_func.locked(MY_WALLET_ADDRESS))/10**18, 2)
-    veCRV_mine = round(call_me(vecrv_func.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
+    veCRV_locked = round(call_me(vecrv_func.locked(MY_WALLET_ADDRESS))/10**18)
+    veCRV_mine = round(call_me(vecrv_func.balanceOf(MY_WALLET_ADDRESS))/10**18)
     x_claimable = round((myarray[-1]["cvx_rewards"][3]*(myarray[-1]["USD3pool"]/myarray[-1]["USD"]))+(myarray[-1]["cvx_rewards"][2]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))+myarray[-1]["cvx_rewards"][1],2) + round((myarray[-1]["trix_rewards"][2]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))+myarray[-1]["trix_rewards"][1],2)
 
-    print("$"+str(sum(carray["invested"])+(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][0])), "invested,",sum(carray["invested"]),"is now",int(virutal_price_sum), end=' ')
+    print("$"+str(sum(carray["invested"])+(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][carray["longname"].index("tRicrypto")])), "invested,",sum(carray["invested"]),"is now",int(virutal_price_sum), end=' ')
     print("("+str(format(round(( virutal_price_sum/sum(carray["invested"])*100)-100,5),'.3f'))+"%)", end='   ')
-    print("Ç"+str(round(veCRV_locked)), " veCRV locked" +Style.DIM+" ("+str(veCRV_mine), "voting)"+Style.RESET_ALL, end='  ')
+    print("Ç"+str(round(veCRV_locked)), " veCRV locked" +Style.DIM+" ("+str(veCRV_mine), "voting)  "+Style.RESET_ALL, end='  ')
     print(csym+str(round(sum(carray["minted"])/10**18, 2))+Style.RESET_ALL, "minted", end=' ')
-    print(csym+str(round(myarray[-1]["claim"]-(sum(carray["minted"])/10**18)+x_claimable, 2))+Style.RESET_ALL, "to claim", end=' ')
+    print(csym+str(format(round(myarray[-1]["claim"]-(sum(carray["minted"])/10**18)+x_claimable, 2),'5.2f'))+Style.RESET_ALL, "to claim", end=' ')
     print("("+csym+str(CRV_inwallet)+Style.RESET_ALL,"wallet)", end='  ')
 
     eoa = 0 - len(myarray)
     if round((round(time.time())-myarray[eoa]["raw_time"])/60, 2)+eoa >= 0.5:
         print(Fore.RED+str(round(((round(time.time())-myarray[eoa]["raw_time"])/60)+eoa, 2))+Style.RESET_ALL+"oos", end=' ')
     if eoa > -61:
-        print(Fore.RED+str(61+eoa)+Style.RESET_ALL+" minutes under 60.", end=' ')
+        print(Style.BRIGHT+Fore.RED+str(61+eoa)+Style.RESET_ALL+" minutes under 60.", end=' ')
     if sum(carray["invested"]) != myarray[eoa]["invested"]:
         print(Fore.RED+str(sum(carray["invested"]) - myarray[eoa]["invested"])+Style.RESET_ALL+" of New $ obs. data", end='')
+    if myarray[-1]["cvx_rewards"][0] != myarray[eoa]["cvx_rewards"][0]:
+        print(Fore.RED+str(myarray[-1]["cvx_rewards"][0] - myarray[eoa]["cvx_rewards"][0])+Style.RESET_ALL+" of New $ obs. data", end=' ', flush=True)
+    if myarray[-1]["trix_rewards"][0] != myarray[eoa]["trix_rewards"][0]:
+        print(Fore.RED+str(myarray[-1]["trix_rewards"][0] - myarray[eoa]["trix_rewards"][0])+Style.RESET_ALL+" of New $ obs. data", end=' ', flush=True)
     print("")
 
 def load_curvepool_array(myarray,barray,w3):

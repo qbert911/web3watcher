@@ -1,16 +1,16 @@
 [
   {
+    "longname": "usdN",       "invested": 6400,  "currentboost": 2.4298,     "name": "N",
+    "guageaddress":"0xF98450B5602fa59CC66e1379DFfB6FDDc724CfC4",
+    "swapaddress":"0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1",
+    "tokenaddress":"0x4f3E8F405CF5aFC05D68142F3783bDfE13811522"
+  },
+  {
     "longname": "tRicrypto",  "invested": 4125, "currentboost": 2.2237,       "name": "R",
     "guageaddress":"0x6955a55416a06839309018A8B0cB72c4DDC11f15",
     "swapaddress":"0x80466c64868E1ab14a1Ddf27A676C3fcBE638Fe5",
     "tokenaddress":"0xcA3d75aC011BF5aD07a98d02f18225F9bD9A6BDF",
     "token_value_modifyer":1235
-  },
-  {
-    "longname": "usdN",       "invested": 6400,  "currentboost": 2.4298,     "name": "N",
-    "guageaddress":"0xF98450B5602fa59CC66e1379DFfB6FDDc724CfC4",
-    "swapaddress":"0x0f9cb53Ebe405d49A0bbdBD291A65Ff571bC83e1",
-    "tokenaddress":"0x4f3E8F405CF5aFC05D68142F3783bDfE13811522"
   },
   {
     "longname": "Lusd",       "invested": 0,  "currentboost": 0,    "name": "L",
