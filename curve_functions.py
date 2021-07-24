@@ -91,7 +91,7 @@ def combined_stats(myarray, carray, w3, virutal_price_sum):
     print("("+str(format(round(( virutal_price_sum/sum(carray["invested"])*100)-100,5),'.3f'))+"%)", end='   ')
     print("Ç"+str(round(veCRV_locked)), " veCRV locked" +Style.DIM+" ("+str(veCRV_mine), "voting)  "+Style.RESET_ALL, end='  ')
     print(csym+str(round(sum(carray["minted"])/10**18, 2))+Style.RESET_ALL, "minted", end=' ')
-    print(csym+str(format(round(myarray[-1]["claim"]-(sum(carray["minted"])/10**18)+x_claimable, 2),'5.2f'))+Style.RESET_ALL, "to claim", end=' ')
+    print(csym+str(format(round(myarray[-1]["claim"]-(sum(carray["minted"])/10**18)+x_claimable, 2),'5.2f')).rjust(6)+Style.RESET_ALL, "to claim", end=' ')
     print("("+csym+str(CRV_inwallet)+Style.RESET_ALL,"wallet)", end='  ')
 
     eoa = 0 - len(myarray)
@@ -102,9 +102,9 @@ def combined_stats(myarray, carray, w3, virutal_price_sum):
     if sum(carray["invested"]) != myarray[eoa]["invested"]:
         print(Fore.RED+str(sum(carray["invested"]) - myarray[eoa]["invested"])+Style.RESET_ALL+" of New $ obs. data", end='')
     if myarray[-1]["cvx_rewards"][0] != myarray[eoa]["cvx_rewards"][0]:
-        print(Fore.RED+str(myarray[-1]["cvx_rewards"][0] - myarray[eoa]["cvx_rewards"][0])+Style.RESET_ALL+" of New $ obs. data", end=' ', flush=True)
+        print(Fore.RED+str(myarray[-1]["cvx_rewards"][0] - myarray[eoa]["cvx_rewards"][0])+Style.RESET_ALL+" of New $ obs. data", end=' ')
     if myarray[-1]["trix_rewards"][0] != myarray[eoa]["trix_rewards"][0]:
-        print(Fore.RED+str(myarray[-1]["trix_rewards"][0] - myarray[eoa]["trix_rewards"][0])+Style.RESET_ALL+" of New $ obs. data", end=' ', flush=True)
+        print(Fore.RED+str(myarray[-1]["trix_rewards"][0] - myarray[eoa]["trix_rewards"][0])+Style.RESET_ALL+" of New $ obs. data", end=' ')
     print("")
 
 def load_curvepool_array(myarray,barray,w3):
@@ -115,14 +115,13 @@ def load_curvepool_array(myarray,barray,w3):
 
     barray["minted"] = [0]*len(thisarray)
     barray["balanceof"] = [0]*len(thisarray)
-    barray["raw"] = [1]*len(thisarray)
+    barray["raw"] = [0]*len(thisarray)
     barray["totalsupply"] = [0]*len(thisarray)
     barray["futureboost"] = [0]*len(thisarray)
     barray["booststatus"] = [0]*len(thisarray)
     barray["virtprice"] = [0]*len(thisarray)
     barray["token_value_modifyer"] = [0]*len(thisarray)
     print(len(thisarray),"pools loaded from curvepools.json")
-    #print(thisarray,flush=True)
     for i in range(0, len(thisarray)):
         barray["longname"].append(thisarray[i]["longname"])
         barray["invested"].append(thisarray[i]["invested"])
@@ -151,7 +150,7 @@ def update_curve_pools(mydict,carray,myarray,myarrayh,w3):
     for i in range(0, len(carray["name"])):
         mydict[carray["name"][i]+"invested"] = carray["invested"][i]
         try:
-            if carray["raw"][i] > 0: #skip updating empty pools after the initial check
+            if carray["invested"][i] > 0: #skip updating empty pools
                 carray["raw"][i] = call_me(load_contract(carray["guageaddress"][i],w3).claimable_tokens(MY_WALLET_ADDRESS))
                 potential_virtprice_update = call_me(load_contract(carray["swapaddress"][i],w3).get_virtual_price())/10**18
                 if potential_virtprice_update > carray["virtprice"][i]:

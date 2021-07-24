@@ -6,7 +6,14 @@
     "tokenaddress":"0x4f3E8F405CF5aFC05D68142F3783bDfE13811522"
   },
   {
-    "longname": "tRicrypto",  "invested": 4125, "currentboost": 2.2237,       "name": "R",
+    "longname": "tRicrypto",  "invested": 4125, "currentboost": 1.1675,       "name": "R",
+    "guageaddress":"0xDeFd8FdD20e0f34115C7018CCfb655796F6B2168",
+    "swapaddress":"0xD51a44d3FaE010294C616388b506AcdA1bfAAE46",
+    "tokenaddress":"0xc4AD29ba4B3c580e6D59105FFf484999997675Ff",
+    "token_value_modifyer":1235
+  },
+  {
+    "longname": "tRicryptoOLD",  "invested": 0, "currentboost": 0,       "name": "Q",
     "guageaddress":"0x6955a55416a06839309018A8B0cB72c4DDC11f15",
     "swapaddress":"0x80466c64868E1ab14a1Ddf27A676C3fcBE638Fe5",
     "tokenaddress":"0xcA3d75aC011BF5aD07a98d02f18225F9bD9A6BDF",

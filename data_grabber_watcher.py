@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """curve"""
 # pylint: disable=C0103,C0301,W0105,E0401,R0914,C0411,W0702,C0200,C0116,w0106
+import shutil
 import json
 import time
 import cursor
@@ -25,7 +26,7 @@ cursor.hide()
 init()
 
 MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
-INFURA_ID = "69f858948f844da48f4bda85e2811972" #"6aa1a043a9854eaa9fa68d17f619f326" #753484fba9304da39c9c724e8b8dfccf
+INFURA_ID = "69f858948f844da48f4bda85e2811972"
 
 file_name = "ghistory.json"
 file_nameh = "ghistoryh.json"
@@ -48,7 +49,7 @@ bsc_w3 = Web3(Web3.HTTPProvider('https://bsc-dataseed1.ninicoin.io/'))
 infura_w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
 if args.Local:
     print("Data Source: LOCAL (except gas)")
-    w3 = Web3(Web3.HTTPProvider('http://192.168.0.198:8545'))
+    w3 = Web3(Web3.HTTPProvider('http://192.168.0.41:8545'))
     print("Local Node Found:",w3.isConnected())
 
     while True:
@@ -66,7 +67,7 @@ else:
 def show_ellipsis():
     try:
         bsc_call=load_contract("0x4076CC26EFeE47825917D0feC3A79d0bB9a6bB5c",bsc_w3).claimableRewards(MY_WALLET_ADDRESS).call() #manually downloaded abi due to BSC explorer limitations
-        print(Fore.MAGENTA+Style.BRIGHT+"Ë"+Style.RESET_ALL+Fore.BLUE+str(format(round(bsc_call[0][1]/10**18,2),'5.2f').rjust(5))+Style.RESET_ALL, flush=True, end=' ')
+        print(Fore.MAGENTA+Style.BRIGHT+"Ë"+Style.RESET_ALL+Fore.BLUE+str(format(round(bsc_call[0][1]/10**18,2),'5.2f').rjust(5))+Style.RESET_ALL, end=' ')
         #print(Fore.BLUE+str(format(round(bsc_call[1][1]/10**18,2),'.2f'))+Fore.WHITE+ "B"+Style.RESET_ALL,end=' - ')
     except Exception:
         print("B", end='')
@@ -76,11 +77,11 @@ def show_other_exchanges():
         crcrv_interest = round(((((load_contract("0xc7Fd8Dcee4697ceef5a2fd4608a7BD6A94C77480", w3).supplyRatePerBlock().call()*4*60*24/10**18)+1)**364)-1)*100, 2)
         aacrv_interest = round(load_contract("0xc7Fd8Dcee4697ceef5a2fd4608a7BD6A94C77480", w3).getReserveData("0xD533a949740bb3306d119CC777fa900bA034cd52").call()[3]/10**25,2)
         print("A"+Fore.BLUE+str(format(aacrv_interest, '4.1f')).rjust(4)+Style.RESET_ALL+"%",
-              "C"+Fore.BLUE+str(format(crcrv_interest, '4.1f')).rjust(4)+Style.RESET_ALL+"%", end=' ', flush=True)  #+"C"+str(crusdc_interest)+"% "+Fore.MAGENTA+Style.BRIGHT+"Ç"+str(format(crcrv_interest, '.2f'))+"%"
+              "C"+Fore.BLUE+str(format(crcrv_interest, '4.1f')).rjust(4)+Style.RESET_ALL+"%", end=' ')  #+"C"+str(crusdc_interest)+"% "+Fore.MAGENTA+Style.BRIGHT+"Ç"+str(format(crcrv_interest, '.2f'))+"%"
     except Exception:
         print("AC", end='')
 
-def show_convex(eoa,extramins,minut,name,label,extrapools, tokenmodindex):
+def show_convex(eoa, extramins, name, label, extrapools, tokenmodindex):
     """cvx display"""
     labels = [ "I", "V", "X", "3"]
     pricefactor = [ carray["token_value_modifyer"][tokenmodindex], myarray[-1]["USD"], myarray[-1]["USDcvx"], myarray[-1]["USD3pool"]]
@@ -95,21 +96,19 @@ def show_convex(eoa,extramins,minut,name,label,extrapools, tokenmodindex):
             buffer+="xx.xx"
         subtotal=str(format(round(tprofit/(myarray[eoa][name][0]*pricefactor[extrapools])*100, 2), '5.2f')).rjust(5)
 
-        #try:
-        #    buffer+= Style.DIM+Fore.GREEN+ str(format(round((myarray[-1][name][i]-myarrayh[-args.Hourslookback-1][name][i])/(args.Hourslookback+float(int(minut)/60))/60*pricefactor[i]*60*24*365/(myarray[eoa][name][0]*pricefactor[extrapools])*100, 2), '.2f')).rjust(5)+" "+Style.RESET_ALL
-        #except Exception:
-        #    buffer += Style.DIM+Fore.GREEN+"xx.xx "+Style.RESET_ALL
     print(Fore.RED+Style.BRIGHT+label+Style.RESET_ALL+subtotal+Style.DIM+"{"+buffer+"}"+Style.RESET_ALL, end=' ')
 
-def print_status_line(USD, eoa):
-    """print main status line"""
-    extramins = round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa
-    difference = ((myarray[-1]["claim"]+myarray[-1]["trix_rewards"][1]+(myarray[-1]["USDcvx"]*myarray[-1]["trix_rewards"][2]/myarray[-1]["USD"]))-(myarray[eoa]["claim"]+myarray[eoa]["trix_rewards"][1]+(myarray[-1]["USDcvx"]*myarray[eoa]["trix_rewards"][2]/myarray[-1]["USD"])))/(60+extramins)*60
-    if args.Small:
-        print("\033[A"*3,end='')
-    print("\r",end='',flush=True)
-    print(myarray[-1]["human_time"], end=' ')
-    print("$"+Fore.YELLOW+Style.BRIGHT+f"{USD:.2f}"+Style.RESET_ALL, end = ' - ') #csym+"1"+Style.RESET_ALL+" = "+
+def show_cvx_rewards(eoa, extramins):
+    """cvx staking rewards display"""
+    try:
+        tprofit=(myarray[-1]["cvxcrv_rewards"][1]-myarray[eoa]["cvxcrv_rewards"][1])/(60+extramins)*myarray[-1]["USDcvxCRV"]*60*24*365
+        subtotal=str(format(round(tprofit/(myarray[eoa]["cvxcrv_rewards"][0]*myarray[-1]["USDcvx"])*100, 2), '5.2f')).rjust(5)
+    except Exception:
+        subtotal="xx.xx"
+
+    print(Fore.RED+Style.BRIGHT+"xCVX"+Style.RESET_ALL+subtotal, end=' ')
+
+def show_curve(eoa, extramins, USD):
     tprofit = 0
     buffer = ""
     _, _, _, minut = map(str, time.strftime("%m %d %H %M").split())
@@ -121,12 +120,29 @@ def print_status_line(USD, eoa):
             except Exception:
                 buffer+="xx.xx"
             try:
-                tprofit += (myarray[-1][carray["name"][i]+"profit"]-myarrayh[-args.Hourslookback-1][carray["name"][i]+"profit"])/(args.Hourslookback+float(int(minut)/60))
-                buffer += Style.DIM+Fore.GREEN+str(format(round((myarray[-1][carray["name"][i]+"profit"]-myarrayh[-args.Hourslookback-1][carray["name"][i]+"profit"])/(args.Hourslookback+float(int(minut)/60))/60*60*USD*24*365/carray["invested"][i]*100, 2), '.2f')).rjust(5)+Style.RESET_ALL+" "
+                thisdiff = (myarray[-1][carray["name"][i]+"profit"]-myarrayh[-args.Hourslookback-1][carray["name"][i]+"profit"])/(args.Hourslookback+float(int(minut)/60))
             except Exception:
+                thisdiff = 0
+            if thisdiff > 0:
+                tprofit += thisdiff
+                buffer += Style.DIM+Fore.GREEN+str(format(round(thisdiff/60*60*USD*24*365/carray["invested"][i]*100, 2), '.2f')).rjust(5)+" "+Style.RESET_ALL
+            else:
                 buffer += Style.DIM+Fore.GREEN+"xx.xx "+Style.RESET_ALL
+
+    return tprofit, buffer
+
+def print_status_line(USD, eoa):
+    """print main status line"""
+    extramins = round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa
+    difference = ((myarray[-1]["claim"]+myarray[-1]["trix_rewards"][1]+(myarray[-1]["USDcvx"]*myarray[-1]["trix_rewards"][2]/myarray[-1]["USD"]))-(myarray[eoa]["claim"]+myarray[eoa]["trix_rewards"][1]+(myarray[-1]["USDcvx"]*myarray[eoa]["trix_rewards"][2]/myarray[-1]["USD"])))/(60+extramins)*60
+    if args.Small:
+        print("\033[A"*3,end='')
+    print("\r",end='',flush=True)
+    print(myarray[-1]["human_time"], end=' ')
+    print("$"+Fore.YELLOW+Style.BRIGHT+f"{USD:.2f}"+Style.RESET_ALL, end = ' - ') #csym+"1"+Style.RESET_ALL+" = "+
+
+    tprofit, buffer = show_curve(eoa, extramins, USD)
     print(Fore.GREEN+Style.BRIGHT+str(format(round((difference)*USD*24*365/(sum(carray["invested"])+(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][carray["longname"].index("tRicrypto")]))*100, 2), '.2f'))+Style.RESET_ALL+"/", end='')
-    #print(Fore.CYAN+str(format(round((difference)*24*365/sum(carray["invested"])*100, 2), '.2f')).rjust(5)+Fore.WHITE+"% APR", end='')
     print(Fore.YELLOW+str(format(round((tprofit/60*60)*24*365/sum(carray["invested"])*100, 2), '5.2f'))+Style.RESET_ALL+"% APR", end='')
     print(' -',buffer, end='') if not args.Small else print("\n"+buffer)
     #print("H"+csym+format((round(difference, 5)), '.4f')+Style.RESET_ALL, end=' ')
@@ -139,22 +155,23 @@ def print_status_line(USD, eoa):
     print('[', end='')
     curve_boost_check(carray,w3)
     print('\b] ', end='') if not args.Small else print("")
-    show_convex(eoa,extramins,minut,"trix_rewards","xTri", 0, carray["longname"].index("tRicrypto")) #Indicates no third pool and using token_value_modifyer
+    show_convex(eoa,extramins,"trix_rewards","xTri", 0, carray["longname"].index("tRicrypto")) #Indicates no third pool and using token_value_modifyer
     tripool_calc.tri_calc(False,-1)
-    show_convex(eoa,extramins,minut,"cvx_rewards","xCRV", 1, 0) #Indicates having an extra 3pool and not using token_value_modifyer
+    show_convex(eoa,extramins,"cvx_rewards","xCRV", 1, 0) #Indicates having an extra 3pool and not using token_value_modifyer
     print("["+Fore.CYAN+Style.BRIGHT+f"{((myarray[-1]['USDcvxCRV']-myarray[-1]['USD'])/myarray[-1]['USD'])*100:5.2f}"+Style.RESET_ALL+"%]",end=" ")
     #print("$"+Fore.YELLOW+Style.BRIGHT+f"{myarray[-1]['USDcvxCRV']:.2f}"+Style.RESET_ALL,end=" ")
-    print("$"+Fore.YELLOW+Style.BRIGHT+f"{myarray[-1]['USDcvx']:.2f}"+Style.RESET_ALL,end=" ")
+    show_cvx_rewards(eoa,extramins)
+    print("$"+Fore.YELLOW+Style.BRIGHT+f"{myarray[-1]['USDcvx']:.2f}"+Style.RESET_ALL,end=" ", flush=True)
     if extramins >= 0: #air bubble extra minutes
-        print(Fore.RED+str(round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa+1)+Style.RESET_ALL, end=' ', flush=True)
+        print(Fore.RED+str(round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa+1)+Style.RESET_ALL, end=' ')
     if eoa > -61:  #fewer than 60 records in the ghistory.json file
-        print(Fore.RED+Style.BRIGHT+str(61+eoa).rjust(2)+Style.RESET_ALL, end=' ', flush=True)
+        print(Fore.RED+Style.BRIGHT+str(61+eoa).rjust(2)+Style.RESET_ALL, end=' ')
     if myarray[-1]["invested"] != myarray[eoa]["invested"]:
-        print(Fore.RED+str(myarray[-1]["invested"] - myarray[eoa]["invested"])+Style.RESET_ALL, end=' ', flush=True)
+        print(Fore.RED+str(myarray[-1]["invested"] - myarray[eoa]["invested"])+Style.RESET_ALL, end=' ')
     if myarray[-1]["cvx_rewards"][0] != myarray[eoa]["cvx_rewards"][0]:
-        print(Fore.RED+str(myarray[-1]["cvx_rewards"][0] - myarray[eoa]["cvx_rewards"][0])+Style.RESET_ALL, end=' ', flush=True)
+        print(Fore.RED+str(myarray[-1]["cvx_rewards"][0] - myarray[eoa]["cvx_rewards"][0])+Style.RESET_ALL, end=' ')
     if myarray[-1]["trix_rewards"][0] != myarray[eoa]["trix_rewards"][0]:
-        print(Fore.RED+str(myarray[-1]["trix_rewards"][0] - myarray[eoa]["trix_rewards"][0])+Style.RESET_ALL, end=' ', flush=True)
+        print(Fore.RED+str(myarray[-1]["trix_rewards"][0] - myarray[eoa]["trix_rewards"][0])+Style.RESET_ALL, end=' ')
 
     return round(((difference*myarray[-1]["USD"])+(tprofit/60*60))*24*365/(sum(carray["invested"])+(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][carray["longname"].index("tRicrypto")]))*100, 2) #display_percent
 
@@ -165,6 +182,7 @@ def key_capture_thread():
     enter_hit = True
 
 def gas_and_sleep():
+    global w3
     firstpass = True                                                            #Prevent header display from outputting in conflict with regular update
     month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
     while month+"/"+day+" "+hour+":"+minut == myarray[-1]["human_time"]:        #Wait for each minute to pass to run again
@@ -187,7 +205,16 @@ def gas_and_sleep():
         firstpass = False
         time.sleep(10)
         month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
-
+    if args.Local:
+        try:
+            if w3.eth.syncing:
+                print("\nLocal Node Sync Issue, Switching to INFURA")
+                args.Local = False
+                w3 = infura_w3
+        except Exception:
+            print("\nLocal Node Connection Issue, Switching to INFURA")
+            args.Local = False
+            w3 = infura_w3
 def main():
     """monitor various curve contracts"""
     print("Calc Pool APR over hours:",args.Hourslookback)
@@ -207,14 +234,16 @@ def main():
                   "USDcvxCRV" : update_price("convex-crv"),
                   "invested" : sum(carray["invested"])}     #Update dictionary values and price information
         update_curve_pools(mydict, carray, myarray, myarrayh, w3)
-        mydict["cvx_rewards"] = convex_examiner.cvx_getvalue(False, myarray)
-        mydict["trix_rewards"] = convex_examiner.trix_getvalue(False, myarray)
+        mydict["cvxcrv_rewards"] = convex_examiner.cvxcrv_getvalue(False, myarray, w3)
+        mydict["trix_rewards"] = convex_examiner.trix_getvalue(False, myarray, w3)
+        mydict["cvx_rewards"] = convex_examiner.cvx_getvalue(False, myarray, w3)
 
         myarray.append(mydict)
         if len(myarray) > 61:
             del myarray[0]
         eoa = 0 - len(myarray)
         if not args.Readonly:
+            shutil.copyfile(file_name, file_name+".bak")
             json.dump(myarray, open(file_name, "w"), indent=4)          #Output dictionary to minute file
 
         display_percent = print_status_line(myarray[-1]["USD"], eoa)    #update information on hats and screen
@@ -228,6 +257,7 @@ def main():
         if minut == "00" and mydict["claim"] > 1:
             myarrayh.append(mydict)
             if not args.Readonly:
+                shutil.copyfile(file_nameh, file_nameh+".bak")
                 json.dump(myarrayh, open(file_nameh, "w"), indent=4)    #Output dictionary to hour file
 
 if __name__ == "__main__":

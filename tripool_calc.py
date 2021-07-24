@@ -15,9 +15,8 @@ MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
 INFURA_ID = "1d651358519346beb661128bf65ab651"
 infura_w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
 
-tri_guage = load_contract("0x6955a55416a06839309018A8B0cB72c4DDC11f15",infura_w3)
-tri_swap = load_contract("0x80466c64868E1ab14a1Ddf27A676C3fcBE638Fe5",infura_w3)
-
+tri_guage = load_contract("0xDeFd8FdD20e0f34115C7018CCfb655796F6B2168",infura_w3)
+tri_swap = load_contract("0xD51a44d3FaE010294C616388b506AcdA1bfAAE46",infura_w3)
 
 def tri_calc(fulldisplay, guage_bal):
     _all_dollars_spent = sum(item['dollar_value'] for item in purchase_array)
@@ -38,7 +37,7 @@ def tri_calc(fulldisplay, guage_bal):
             _price_oracle[1] = args2.Btcvalue
     try:
         if guage_bal < 1:
-            _coins_in_covex_guage = convex_examiner.trix_getvalue(False,None)[0]
+            _coins_in_covex_guage = convex_examiner.trix_getvalue(False,None,infura_w3)[0]
             guage_bal = tri_guage.balanceOf(MY_WALLET_ADDRESS).call() +(_coins_in_covex_guage*(10**18))
         totalSupply = tri_guage.totalSupply().call()
         virt_price = tri_swap.get_virtual_price().call()/10**18
