@@ -3,7 +3,7 @@
 # pylint: disable=C0103,C0116,C0301,W0105,E0401,R0914
 from web3 import Web3
 from colorama import Fore, Style
-from load_contract import load_contract
+from tools.load_contract import load_contract
 
 CVX_fraction_factor = 0.425 #HACK
 

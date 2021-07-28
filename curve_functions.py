@@ -4,7 +4,7 @@
 import json
 import time
 from colorama import Fore, Style
-from load_contract import load_contract, call_me
+from tools.load_contract import load_contract, call_me
 
 MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
 csym = Fore.MAGENTA + Style.BRIGHT + "Ç" + Style.RESET_ALL + Fore.CYAN
@@ -203,4 +203,7 @@ def curve_boost_check(carray,w3):
         if not outputflag:
             print(Fore.GREEN+'Bööst'+Style.RESET_ALL, end=' ')
     except Exception:
-        print("\nupdate boost exception")
+        print("\nupdate boost exception", carray["name"][i],i)
+
+if __name__ == "__main__":
+    print("this module is not meant to be run solo")

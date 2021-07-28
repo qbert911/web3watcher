@@ -2,9 +2,9 @@
 """tripool functions"""
 # pylint: disable=C0103,C0116,C0301,W0105,E0401,R0914
 import argparse
-from colorama import Fore, Style, init
 from web3 import Web3
-from load_contract import load_contract
+from colorama import Fore, Style, init
+from tools.load_contract import load_contract
 import convex_examiner
 init()
 purchase_array = [{"dollar_value":11000, "tokens_recieved":  8.2626, "btc_price": 37665, "eth_price":2233},

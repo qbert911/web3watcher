@@ -4,12 +4,16 @@
 write to the seven leds on the top of the rainbow HAT
 """
 import sys
-import smbus
-import rainbowhat
-import microdotphat
-rainbowhat.rainbow.set_clear_on_exit(False)
+try:
+    import smbus
+    import rainbowhat
+    import microdotphat
+    rainbowhat.rainbow.set_clear_on_exit(False)
 
-bus = smbus.SMBus(1) # 1 indicates /dev/i2c-1
+    bus = smbus.SMBus(1) # 1 indicates /dev/i2c-1
+except:
+    pass
+
 
 red = [2, 0, 0]
 green = [0, 2, 0]
