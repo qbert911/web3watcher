@@ -10,7 +10,7 @@ import argparse
 from colorama import Fore, Style, init
 from hour_log_process import update_price
 from load_contract import load_contract
-from curve_functions import curve_header_display, load_curvepool_array, update_curve_pools, curve_boost_check, combined_stats
+from curve_functions import curve_header_display, load_curvepools_fromjson, update_curve_pools, curve_boost_check, combined_stats_display
 import logging
 logging.getLogger().disabled = True
 from web3 import Web3
@@ -27,6 +27,9 @@ init()
 
 MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
 INFURA_ID = "69f858948f844da48f4bda85e2811972"
+bsc_w3 = Web3(Web3.HTTPProvider('https://bsc-dataseed1.ninicoin.io/'))
+infura_w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
+mylocal_w3 = Web3(Web3.HTTPProvider('http://192.168.0.4:8545'))
 
 file_name = "ghistory.json"
 file_nameh = "ghistoryh.json"
@@ -45,24 +48,20 @@ parser.add_argument("-s", "--Small", help = "Small screen size", action="store_t
 parser.add_argument("-b", "--Hourslookback", type=int, help="Use this many hours when calculating pool APR", default=24)
 args = parser.parse_args()
 
-bsc_w3 = Web3(Web3.HTTPProvider('https://bsc-dataseed1.ninicoin.io/'))
-infura_w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
-if args.Local:
-    print("Data Source: LOCAL (except gas)")
-    w3 = Web3(Web3.HTTPProvider('http://192.168.0.41:8545'))
-    print("Local Node Found:",w3.isConnected())
-
+def wait_for_local_node_sync(w3):
     while True:
-        a = w3.eth.syncing
-        if a is False:
-            print("Local Node Sync: Done")
-            break
-        print("Local Node has:",a['highestBlock']-a['currentBlock'], "blocks left to catch up")
-
-        time.sleep(60)
-else:
-    print("Data Source: Infura")
-    w3 = infura_w3
+        try:
+            a = w3.eth.syncing
+            try:
+                blockdiff = a['highestBlock']-a['currentBlock']
+            except Exception:
+                blockdiff = 0
+            if a is False or blockdiff < 5:
+                break
+            print("\rLocal Node has:",blockdiff, "blocks left to catch up\r",end="")
+        except Exception:
+            print("\rLocal Node communication error", end="")
+        time.sleep(10)
 
 def show_ellipsis():
     try:
@@ -72,7 +71,7 @@ def show_ellipsis():
     except Exception:
         print("B", end='')
 
-def show_other_exchanges():
+def show_other_exchanges(w3):
     try:
         crcrv_interest = round(((((load_contract("0xc7Fd8Dcee4697ceef5a2fd4608a7BD6A94C77480", w3).supplyRatePerBlock().call()*4*60*24/10**18)+1)**364)-1)*100, 2)
         aacrv_interest = round(load_contract("0xc7Fd8Dcee4697ceef5a2fd4608a7BD6A94C77480", w3).getReserveData("0xD533a949740bb3306d119CC777fa900bA034cd52").call()[3]/10**25,2)
@@ -122,16 +121,18 @@ def show_curve(eoa, extramins, USD):
             try:
                 thisdiff = (myarray[-1][carray["name"][i]+"profit"]-myarrayh[-args.Hourslookback-1][carray["name"][i]+"profit"])/(args.Hourslookback+float(int(minut)/60))
             except Exception:
-                thisdiff = 0
-            if thisdiff > 0:
+                thisdiff = -1
+
+            if thisdiff >= 0:
                 tprofit += thisdiff
                 buffer += Style.DIM+Fore.GREEN+str(format(round(thisdiff/60*60*USD*24*365/carray["invested"][i]*100, 2), '.2f')).rjust(5)+" "+Style.RESET_ALL
             else:
                 buffer += Style.DIM+Fore.GREEN+"xx.xx "+Style.RESET_ALL
+                #print("\n",carray["name"][i],thisdiff,myarray[-1][carray["name"][i]+"profit"],myarrayh[-args.Hourslookback-1][carray["name"][i]+"profit"])
 
     return tprofit, buffer
 
-def print_status_line(USD, eoa):
+def print_status_line(USD, eoa, w3):
     """print main status line"""
     extramins = round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa
     difference = ((myarray[-1]["claim"]+myarray[-1]["trix_rewards"][1]+(myarray[-1]["USDcvx"]*myarray[-1]["trix_rewards"][2]/myarray[-1]["USD"]))-(myarray[eoa]["claim"]+myarray[eoa]["trix_rewards"][1]+(myarray[-1]["USDcvx"]*myarray[eoa]["trix_rewards"][2]/myarray[-1]["USD"])))/(60+extramins)*60
@@ -142,18 +143,18 @@ def print_status_line(USD, eoa):
     print("$"+Fore.YELLOW+Style.BRIGHT+f"{USD:.2f}"+Style.RESET_ALL, end = ' - ') #csym+"1"+Style.RESET_ALL+" = "+
 
     tprofit, buffer = show_curve(eoa, extramins, USD)
-    print(Fore.GREEN+Style.BRIGHT+str(format(round((difference)*USD*24*365/(sum(carray["invested"])+(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][carray["longname"].index("tRicrypto")]))*100, 2), '.2f'))+Style.RESET_ALL+"/", end='')
+    print(Fore.GREEN+Style.BRIGHT+str(format(round((difference)*USD*24*365/(sum(carray["invested"])+(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][carray["longname"].index("tRicrypto")]))*100, 2), '5.2f'))+Style.RESET_ALL+"/", end='')
     print(Fore.YELLOW+str(format(round((tprofit/60*60)*24*365/sum(carray["invested"])*100, 2), '5.2f'))+Style.RESET_ALL+"% APR", end='')
     print(' -',buffer, end='') if not args.Small else print("\n"+buffer)
     #print("H"+csym+format((round(difference, 5)), '.4f')+Style.RESET_ALL, end=' ')
     #print("D"+csym+format((round(difference*24, 2)), '.2f').rjust(5)+Style.RESET_ALL+
-    #      "/$"+Fore.YELLOW+f"{round(24*tprofit,2):5.2f}"+Style.RESET_ALL,
-    #      "Y"+csym+format((round(difference*24*365, 0)), '.0f').rjust(4)+Style.RESET_ALL+
+    #      "/$"+Fore.YELLOW+f"{round(24*tprofit,2):5.2f}"+Style.RESET_ALL, end= ' ')
+    #print("Y"+csym+format((round(difference*24*365, 0)), '.0f').rjust(4)+Style.RESET_ALL+
     #      "/$"+Fore.YELLOW+str(format(round(24*365*tprofit,2), '.0f')).rjust(4)+Style.RESET_ALL, end=' ')
     #show_other_exchanges()
     #show_ellipsis()
     print('[', end='')
-    curve_boost_check(carray,w3)
+    curve_boost_check(carray, w3)
     print('\b] ', end='') if not args.Small else print("")
     show_convex(eoa,extramins,"trix_rewards","xTri", 0, carray["longname"].index("tRicrypto")) #Indicates no third pool and using token_value_modifyer
     tripool_calc.tri_calc(False,-1)
@@ -162,6 +163,7 @@ def print_status_line(USD, eoa):
     #print("$"+Fore.YELLOW+Style.BRIGHT+f"{myarray[-1]['USDcvxCRV']:.2f}"+Style.RESET_ALL,end=" ")
     show_cvx_rewards(eoa,extramins)
     print("$"+Fore.YELLOW+Style.BRIGHT+f"{myarray[-1]['USDcvx']:.2f}"+Style.RESET_ALL,end=" ", flush=True)
+    print("D"+csym+format((round(difference*24, 2)), '.2f').rjust(5)+Style.RESET_ALL,end=" ")
     if extramins >= 0: #air bubble extra minutes
         print(Fore.RED+str(round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa+1)+Style.RESET_ALL, end=' ')
     if eoa > -61:  #fewer than 60 records in the ghistory.json file
@@ -181,8 +183,13 @@ def key_capture_thread():
     input()
     enter_hit = True
 
-def gas_and_sleep():
-    global w3
+def show_headers(w3):
+    virutal_price_sum=curve_header_display(myarray, carray, w3, args.Fullheader) if not args.Small else print("\n"*3)
+    convex_examiner.convex_header_display(myarray, carray, w3, args.Fullheader) if not args.Small else print("\n"*3)
+    combined_stats_display(myarray, carray, w3, virutal_price_sum)
+    threading.Thread(target=key_capture_thread, args=(), name='key_capture_thread', daemon=True).start()
+
+def gas_and_sleep(w3):
     firstpass = True                                                            #Prevent header display from outputting in conflict with regular update
     month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
     while month+"/"+day+" "+hour+":"+minut == myarray[-1]["human_time"]:        #Wait for each minute to pass to run again
@@ -197,68 +204,73 @@ def gas_and_sleep():
         if enter_hit:
             if firstpass:
                 print("")
-            virutal_price_sum=curve_header_display(myarray, carray, w3, args.Fullheader) if not args.Small else print("\n"*3)
-            convex_examiner.convex_header_display(myarray, carray, w3, args.Fullheader) if not args.Small else print("\n"*3)
-            combined_stats(myarray, carray, w3, virutal_price_sum)
-            threading.Thread(target=key_capture_thread, args=(), name='key_capture_thread', daemon=True).start()
-
+                show_headers(w3)
         firstpass = False
         time.sleep(10)
         month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
     if args.Local:
-        try:
-            if w3.eth.syncing:
-                print("\nLocal Node Sync Issue, Switching to INFURA")
-                args.Local = False
-                w3 = infura_w3
-        except Exception:
-            print("\nLocal Node Connection Issue, Switching to INFURA")
-            args.Local = False
-            w3 = infura_w3
+        wait_for_local_node_sync(w3)
+        #try:
+        #    if w3.eth.syncing:
+        #        print("\nLocal Node Sync Issue, Switching to INFURA")
+        #        args.Local = False
+        #        w3 = infura_w3
+        #except Exception:
+        #    print("\nLocal Node Connection Issue, Switching to INFURA")
+        #    args.Local = False
+        #    w3 = infura_w3
 def main():
     """monitor various curve contracts"""
     print("Calc Pool APR over hours:",args.Hourslookback)
     print("Read Only Mode:",args.Readonly)
-    load_curvepool_array(myarray,carray,w3)
-    virutal_price_sum=curve_header_display(myarray, carray, w3, args.Fullheader) if not args.Small else print("\n"*3)
-    convex_examiner.convex_header_display(myarray, carray, w3, args.Fullheader) if not args.Small else print("\n"*3)
-    combined_stats(myarray, carray, w3, virutal_price_sum)
-    threading.Thread(target=key_capture_thread, args=(), name='key_capture_thread', daemon=True).start()
-    while True:                                                                     #Initiate main program loop
-        gas_and_sleep()
+    if not args.Local:
+        print("Data Source: Infura")
+        w3 = infura_w3
+    else:
+        print("Data Source: LOCAL (except gas)")
+        w3 = mylocal_w3
+        print("Local Node Found:", w3.isConnected())
+        wait_for_local_node_sync(w3)
+    load_curvepools_fromjson(myarray, carray, w3)
+    show_headers(w3)
+#Main program loop starts here
+    while True:
+#Check gas price every 10 seconds and wait for a minute to pass
+        gas_and_sleep(w3)
+#Update dictionary values and price information
         month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
         mydict = {"raw_time" : round(time.time()), "human_time": month+"/"+day+" "+hour+":"+minut,
                   "USD" : update_price("curve-dao-token"),
                   "USDcvx" : update_price("convex-finance"),
                   "USD3pool" : update_price("lp-3pool-curve"),
                   "USDcvxCRV" : update_price("convex-crv"),
-                  "invested" : sum(carray["invested"])}     #Update dictionary values and price information
+                  "invested" : sum(carray["invested"])}
         update_curve_pools(mydict, carray, myarray, myarrayh, w3)
         mydict["cvxcrv_rewards"] = convex_examiner.cvxcrv_getvalue(False, myarray, w3)
         mydict["trix_rewards"] = convex_examiner.trix_getvalue(False, myarray, w3)
         mydict["cvx_rewards"] = convex_examiner.cvx_getvalue(False, myarray, w3)
-
+#Keep one hour worth of data in hourly log
         myarray.append(mydict)
         if len(myarray) > 61:
             del myarray[0]
-        eoa = 0 - len(myarray)
-        if not args.Readonly:
-            shutil.copyfile(file_name, file_name+".bak")
-            json.dump(myarray, open(file_name, "w"), indent=4)          #Output dictionary to minute file
-
-        display_percent = print_status_line(myarray[-1]["USD"], eoa)    #update information on hats and screen
+#update information on screen and pi hats when possible
+        display_percent = print_status_line(myarray[-1]["USD"], 0 - len(myarray), w3)
         try:
             curve_hats_update(display_percent,
                               str(format(round(update_price("ethereum")),',')).rjust(6),
                               carray["booststatus"])
         except Exception:
             pass
-
+#Output dictionary to minute file
+        if not args.Readonly:
+            shutil.copyfile(file_name, file_name+".bak")
+            json.dump(myarray, open(file_name, "w"), indent=4)
+#Output dictionary to hour file on the top of each hour
         if minut == "00" and mydict["claim"] > 1:
             myarrayh.append(mydict)
             if not args.Readonly:
                 shutil.copyfile(file_nameh, file_nameh+".bak")
-                json.dump(myarrayh, open(file_nameh, "w"), indent=4)    #Output dictionary to hour file
+                json.dump(myarrayh, open(file_nameh, "w"), indent=4)
 
 if __name__ == "__main__":
     main()

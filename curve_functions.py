@@ -79,7 +79,7 @@ def curve_header_display(myarray, carray, w3, fullheader):
                 print("")
     return virutal_price_sum
 
-def combined_stats(myarray, carray, w3, virutal_price_sum):
+def combined_stats_display(myarray, carray, w3, virutal_price_sum):
     crv_func = load_contract("0xD533a949740bb3306d119CC777fa900bA034cd52",w3)
     vecrv_func = load_contract("0x5f3b5DfEb7B28CDbD7FAba78963EE202a494e2A2",w3)
     CRV_inwallet = round(call_me(crv_func.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
@@ -107,7 +107,7 @@ def combined_stats(myarray, carray, w3, virutal_price_sum):
         print(Fore.RED+str(myarray[-1]["trix_rewards"][0] - myarray[eoa]["trix_rewards"][0])+Style.RESET_ALL+" of New $ obs. data", end=' ')
     print("")
 
-def load_curvepool_array(myarray,barray,w3):
+def load_curvepools_fromjson(myarray,barray,w3):
     """prepare iteratable array from json file"""
     with open("curvepools.json", 'r') as thisfile:
         thisarray = json.load(thisfile)
@@ -132,17 +132,17 @@ def load_curvepool_array(myarray,barray,w3):
         try:
             barray["minted"][i] = call_me(minter_func.minted(MY_WALLET_ADDRESS, barray["guageaddress"][i]))
             barray["tokenaddress"].append(thisarray[i]["tokenaddress"])
-        except:
+        except Exception:
             barray["tokenaddress"].append("")
         try:
             _ = myarray[-1][barray["name"][i]+"pool"]
-        except:
+        except Exception:
             print(thisarray[i]["longname"], "not found in current history file, adding now.")
             myarray[-1][barray["name"][i]+"pool"] = 0
             myarray[-1][barray["name"][i]+"invested"] = 0
         try:
             barray["token_value_modifyer"][i] = thisarray[i]["token_value_modifyer"]
-        except:
+        except Exception:
             barray["token_value_modifyer"][i] = 1
 
 def update_curve_pools(mydict,carray,myarray,myarrayh,w3):
@@ -151,11 +151,11 @@ def update_curve_pools(mydict,carray,myarray,myarrayh,w3):
         mydict[carray["name"][i]+"invested"] = carray["invested"][i]
         try:
             if carray["invested"][i] > 0: #skip updating empty pools
+                carray["balanceof"][i] = call_me(load_contract(carray["guageaddress"][i],w3).balanceOf(MY_WALLET_ADDRESS))/10**18
                 carray["raw"][i] = call_me(load_contract(carray["guageaddress"][i],w3).claimable_tokens(MY_WALLET_ADDRESS))
                 potential_virtprice_update = call_me(load_contract(carray["swapaddress"][i],w3).get_virtual_price())/10**18
                 if potential_virtprice_update > carray["virtprice"][i]:
                     carray["virtprice"][i] = potential_virtprice_update
-                carray["balanceof"][i] = call_me(load_contract(carray["guageaddress"][i],w3).balanceOf(MY_WALLET_ADDRESS))/10**18
                 if (carray["virtprice"][i]*carray["balanceof"][i]*carray["token_value_modifyer"][i])-carray["invested"][i] > -10:
                     mydict[carray["name"][i]+"profit"] = (carray["virtprice"][i]*carray["balanceof"][i]*carray["token_value_modifyer"][i])-carray["invested"][i]
             if abs(round((carray["raw"][i]+carray["minted"][i])/10**18, 5) - myarray[-1][carray["name"][i]+"pool"]) > 3:
@@ -165,7 +165,8 @@ def update_curve_pools(mydict,carray,myarray,myarrayh,w3):
             mydict[carray["name"][i]+"pool"] = round((carray["raw"][i]+carray["minted"][i])/10**18, 5)
             if myarray[-1][carray["name"][i]+"pool"] - mydict[carray["name"][i]+"pool"] > 0.01: #debug lines ... should not happen
                 print(myarray[-1][carray["name"][i]+"pool"] - mydict[carray["name"][i]+"pool"], "\nerror with lower raw value"+carray["name"][i], myarray[-1][carray["name"][i]+"pool"], mydict[carray["name"][i]+"pool"], end='')
-        except: #usually happens when snx is down for maintenance
+        except Exception: #usually happens when snx is down for maintenance
+            print("\nupdate curve pools exception", carray["name"][i], i)
             mydict[carray["name"][i]+"pool"] = myarrayh[-1][carray["name"][i]+"pool"]
             carray["raw"][i] = (myarrayh[-1][carray["name"][i]+"pool"]*10**18) - carray["minted"][i]
     mydict["claim"] = round((sum(carray["raw"])+sum(carray["minted"]))/10**18, 6)
@@ -201,5 +202,5 @@ def curve_boost_check(carray,w3):
 
         if not outputflag:
             print(Fore.GREEN+'Bööst'+Style.RESET_ALL, end=' ')
-    except:
-        pass
+    except Exception:
+        print("\nupdate boost exception")

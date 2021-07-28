@@ -27,13 +27,15 @@ def convex_header_display(myarray, carray, w3, fullheader):
     print(" "*14,"v"+str(format(round(myarray[-1]["trix_rewards"][1],2), '5.2f')).rjust(5)+"x"+str(format(round(myarray[-1]["trix_rewards"][2],2), '5.2f')).rjust(5),end="")
     print(" "*5,"$"+str(format(round(trix_value,2), '5.2f')).rjust(6))
 
-    print("xCRV"," "*27,"cvxCRV minted","Ç"+str(myarray[-1]["cvx_rewards"][0]),end=" ")
+    print("xCRV"," "*23,Style.DIM+str(round(myarray[-1]["cvx_rewards"][0]*myarray[-1]["USDcvxCRV"])).rjust(5)+Style.RESET_ALL,end=" ")
+    print(" "*4,"cvxCRV","Ç"+str(myarray[-1]["cvx_rewards"][0]),end=" ")
     print(" "*5,Style.DIM+Fore.CYAN+str(format(round((myarray[-1]["cvx_rewards"][3]*(myarray[-1]["USD3pool"]/myarray[-1]["USD"]))+(myarray[-1]["cvx_rewards"][2]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))+myarray[-1]["cvx_rewards"][1],2), '5.2f')),Style.RESET_ALL,end=" ")
     print(" "*32,"$"+str(format(round(cvx_value,2), '5.2f')).rjust(6),end="")
     print(" "*7,"v"+str(format(round(myarray[-1]["cvx_rewards"][1],2), '5.2f')).rjust(5)+"x"+str(format(round(myarray[-1]["cvx_rewards"][2],2), '5.2f')).rjust(5)+"t"+str(format(round(myarray[-1]["cvx_rewards"][3],2), '5.2f')).rjust(5))
 
-    print("xCVX"," "*23,str(round(myarray[-1]["cvxcrv_rewards"][0]*myarray[-1]["USDcvx"])).rjust(5),end=" ")
-    print(" "*23,Style.DIM+Fore.CYAN+str(format(round(myarray[-1]["cvxcrv_rewards"][1]*(myarray[-1]["USDcvxCRV"]/myarray[-1]["USD"]),2),'5.2f'))+Style.RESET_ALL,end=" ")
+    print("xCVX"," "*23,Style.DIM+str(round(myarray[-1]["cvxcrv_rewards"][0]*myarray[-1]["USDcvx"])).rjust(5)+Style.RESET_ALL,end=" ")
+    print(" "*10,"xÇ"+str(round(myarray[-1]["cvxcrv_rewards"][0])).rjust(4),end=" ")
+    print(" "*5,Style.DIM+Fore.CYAN+str(format(round(myarray[-1]["cvxcrv_rewards"][1]*(myarray[-1]["USDcvxCRV"]/myarray[-1]["USD"]),2),'5.2f'))+Style.RESET_ALL,end=" ")
     print(" "*33,"$"+str(format(round(cvxcrv_value,2), '5.2f')).rjust(6),end="")
     print(" "*38,"xv"+str(format(round(myarray[-1]["cvxcrv_rewards"][1],2), '5.2f')).rjust(5))
 
@@ -51,6 +53,7 @@ def cvx_getvalue(printit, myarray, w3):
             print(f"3pool: {tpool_earned}")
         return [invested, crv_earned, cvx_earned, tpool_earned]
     except Exception:
+        print("\nupdate cvx exception")
         return [myarray[-1]["cvx_rewards"][0],myarray[-1]["cvx_rewards"][1],myarray[-1]["cvx_rewards"][2],myarray[-1]["cvx_rewards"][3]]
 
 def trix_getvalue(printit, myarray, w3):
@@ -64,6 +67,7 @@ def trix_getvalue(printit, myarray, w3):
             print(f"  CVX: {cvx_earned}")
         return [invested, crv_earned, cvx_earned]
     except Exception:
+        print("\nupdate trix exception")
         return [myarray[-1]["trix_rewards"][0],myarray[-1]["trix_rewards"][1],myarray[-1]["trix_rewards"][2]]
 
 def cvxcrv_getvalue(printit, myarray, w3):
@@ -75,6 +79,7 @@ def cvxcrv_getvalue(printit, myarray, w3):
             print(f"  cvxCRV: {cvxcrv_earned}")
         return [invested, cvxcrv_earned]
     except Exception:
+        print("\nupdate cvxcrv exception")
         return [myarray[-1]["cvxcrv_rewards"][0] ,myarray[-1]["cvxcrv_rewards"][1]]
 
 

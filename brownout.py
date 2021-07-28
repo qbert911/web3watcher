@@ -48,7 +48,7 @@ def main():
             except Exception:
                 pass
 
-            _coins_in_covex_guage = convex_examiner.trix_getvalue(False,None)[0]
+            _coins_in_covex_guage = 25  #HACK  convex_examiner.trix_getvalue(False,None)[0]
             _coins = (_coins/(gauge_bal / 10 ** 18))*((gauge_bal / 10 ** 18)+_coins_in_covex_guage)
             _sim_total = tripool_calc.tri_calc(True, gauge_bal+(_coins_in_covex_guage*(10**18))) #noisy
             sys.stdout = sys.__stdout__

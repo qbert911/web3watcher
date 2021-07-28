@@ -4,7 +4,7 @@ from web3 import Web3, HTTPProvider
 from hour_log_process import update_price
 
 
-web3_rpc = Web3(HTTPProvider('http://192.168.0.198:8545'))
+web3_rpc = Web3(HTTPProvider('http://192.168.0.4:8545'))
 print(web3_rpc.isConnected())
 
 while True:

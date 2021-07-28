@@ -80,6 +80,7 @@ def tri_calc(fulldisplay, guage_bal):
         return sim_total
 
     except Exception:
+        print("\nupdate tripool exception")
         return 0
 
 if __name__ == "__main__":
