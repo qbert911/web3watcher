@@ -18,7 +18,7 @@ import status_line_printer
 cursor.hide()
 init()
 
-INFURA_ID = "69f858948f844da48f4bda85e2811972"
+INFURA_ID = "9c51dd19cb9e456387014e7d1661afa3"
 
 infura_w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
 mylocal_w3 = Web3(Web3.HTTPProvider('http://192.168.0.4:8545'))

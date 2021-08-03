@@ -8,7 +8,7 @@ from colorama import Fore, Style, init
 init()
 cg = CoinGeckoAPI()
 
-file_nameh = "history/history_archive.json"
+file_nameh = "../history/history_archive.json"
 usym = Fore.YELLOW + Style.BRIGHT + "$" + Fore.GREEN
 csym = Fore.MAGENTA + Style.BRIGHT + "Ç" + Style.RESET_ALL + Fore.CYAN
 

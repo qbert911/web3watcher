@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# pylint: disable=C0103,C0326
+# pylint: disable=C0103,E0401
 """
 write to the seven leds on the top of the rainbow HAT
 """

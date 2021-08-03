@@ -12,8 +12,9 @@ purchase_array = [{"dollar_value":11000, "tokens_recieved":  8.2626, "btc_price"
                   {"dollar_value": 5160, "tokens_recieved":  3.9146, "btc_price": 35391, "eth_price":2351}]
 
 MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
-INFURA_ID = "1d651358519346beb661128bf65ab651"
+INFURA_ID = "bfdd3973b810492db7cb27792702782f"   #bw-tricalc #"1d651358519346beb661128bf65ab651" #by-tricalc
 infura_w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
+
 
 tri_guage = load_contract("0xDeFd8FdD20e0f34115C7018CCfb655796F6B2168",infura_w3)
 tri_swap = load_contract("0xD51a44d3FaE010294C616388b506AcdA1bfAAE46",infura_w3)

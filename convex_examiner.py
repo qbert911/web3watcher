@@ -5,7 +5,7 @@ from web3 import Web3
 from colorama import Fore, Style
 from tools.load_contract import load_contract
 
-CVX_fraction_factor = 0.425 #HACK
+CVX_fraction_factor = 0.404 #HACK
 
 MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
 #cvx_token = load_contract("0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B",infura_w3)#cvx token to calculate ratio, cliff etc
@@ -84,7 +84,7 @@ def cvxcrv_getvalue(printit, myarray, w3):
 
 
 if __name__ == "__main__":
-    INFURA_ID = "6aa1a043a9854eaa9fa68d17f619f326"
+    INFURA_ID = "1d651358519346beb661128bf65ab651"
     infura_w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
     a = cvx_getvalue(True, None, infura_w3)
     print(a,"\n\n")

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import time
 import urllib.request
 
 try:
@@ -17,18 +18,16 @@ print("crv_hotbit_interest:",crv_interest_hotbit)
 
 
 def update_hbcrv_interest():
-    if not args.Local:
+    try:
+        webpage1=urllib.request.urlopen("http://192.168.0.198:4333/https://www.hotbit.io/invest/detail/776")
+        time.sleep(6)
+        webpage = str(webpage1.read())
         try:
-            webpage1=urllib.request.urlopen("http://192.168.0.198:4333/https://www.hotbit.io/invest/detail/776")
-            time.sleep(6)
-            webpage = str(webpage1.read())
-            try:
-                mypos=webpage.index('%        ')    #webpage.index('T+1  ',200)
-                hbcrv_interest = str(format(float(webpage[mypos-5:mypos]), '4.1f')).rjust(4)  #float(webpage[mypos-31:mypos-26])
-            except Exception:
-                hbcrv_interest = "xx.x"
+            mypos=webpage.index('%        ')    #webpage.index('T+1  ',200)
+            hbcrv_interest = str(format(float(webpage[mypos-5:mypos]), '4.1f')).rjust(4)  #float(webpage[mypos-31:mypos-26])
         except Exception:
-            hbcrv_interest = "ww.w"
-    else:
-        hbcrv_interest = "--.-"
+            hbcrv_interest = "xx.x"
+    except Exception:
+        hbcrv_interest = "ww.w"
+
     return hbcrv_interest

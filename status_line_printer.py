@@ -5,6 +5,9 @@ import time
 from colorama import Fore, Style
 import curve_functions
 import tripool_calc
+from tools.ens_helper import ipfs_hash_value
+
+curve_ipfs_current_hash="Qmap8m62DnovFjN7jpdvbqhiBuQsipux2gEKLFjQmiNrqB"
 
 csym = Fore.MAGENTA + Style.BRIGHT + "Ç" + Style.RESET_ALL + Fore.CYAN
 
@@ -97,6 +100,14 @@ def print_status_line(carray, myarray, myarrayh, USD, eoa, w3, lookback):
         print(Fore.RED+str(myarray[-1]["cvx_rewards"][0] - myarray[eoa]["cvx_rewards"][0])+Style.RESET_ALL, end=' ')
     if myarray[-1]["trix_rewards"][0] != myarray[eoa]["trix_rewards"][0]:
         print(Fore.RED+str(myarray[-1]["trix_rewards"][0] - myarray[eoa]["trix_rewards"][0])+Style.RESET_ALL, end=' ')
+    try:  #check to see if the interface linked on ipfs has changed
+        if ipfs_hash_value(w3,'curve.eth') != curve_ipfs_current_hash:
+            print(Fore.RED+Style.BRIGHT+"W"+Style.RESET_ALL, end=' ')
+        else:
+            print("W", end=' ')
+    except:
+        print(Fore.WHITE+Style.DIM+"W"+Style.RESET_ALL, end=' ')
+
 
     return round(((difference*myarray[-1]["USD"])+(tprofit/60*60))*24*365/(sum(carray["invested"])+(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][carray["longname"].index("tRicrypto")]))*100, 2) #display_percent
 

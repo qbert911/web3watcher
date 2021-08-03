@@ -154,6 +154,7 @@ def update_curve_pools(mydict,carray,myarray,myarrayh,w3):
                 carray["balanceof"][i] = call_me(load_contract(carray["guageaddress"][i],w3).balanceOf(MY_WALLET_ADDRESS))/10**18
                 carray["raw"][i] = call_me(load_contract(carray["guageaddress"][i],w3).claimable_tokens(MY_WALLET_ADDRESS))
                 potential_virtprice_update = call_me(load_contract(carray["swapaddress"][i],w3).get_virtual_price())/10**18
+                mydict[carray["name"][i]+"virtprice"] = potential_virtprice_update 
                 if potential_virtprice_update > carray["virtprice"][i]:
                     carray["virtprice"][i] = potential_virtprice_update
                 if (carray["virtprice"][i]*carray["balanceof"][i]*carray["token_value_modifyer"][i])-carray["invested"][i] > -10:
@@ -203,7 +204,7 @@ def curve_boost_check(carray,w3):
         if not outputflag:
             print(Fore.GREEN+'Bööst'+Style.RESET_ALL, end=' ')
     except Exception:
-        print("\nupdate boost exception", carray["name"][i],i)
+        print("upbe", carray["name"][i])
 
 if __name__ == "__main__":
     print("this module is not meant to be run solo")

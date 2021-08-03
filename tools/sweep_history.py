@@ -6,8 +6,8 @@ import json
 maxhistlen = 170
 
 def sweep_history_log():
-    file_nameh = "ghistoryh.json"
-    file_nameha = "history/history_archive.json"
+    file_nameh = "../ghistoryh.json"
+    file_nameha = "../history/history_archive.json"
 
     with open(file_nameh, 'r') as openfile:
         myarrayh = json.load(openfile)
