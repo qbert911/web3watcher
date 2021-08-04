@@ -7,7 +7,7 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     z=hour_log_process.daily_log(1,1,0)
-    news=hour_log_process.show_me(-1, (z*24), 0, hour_log_process.update_price("curve-dao-token"), 1000, 0, 0)
+    news=hour_log_process.show_me(-1, (z*24), 0, price_getter.update_price("curve-dao-token"), 1000, 0, 0)
     return render_template('index.html', news=news)
 
 @app.route('/<name>')

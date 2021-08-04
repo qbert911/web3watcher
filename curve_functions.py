@@ -152,9 +152,10 @@ def update_curve_pools(mydict,carray,myarray,myarrayh,w3):
         try:
             if carray["invested"][i] > 0: #skip updating empty pools
                 carray["balanceof"][i] = call_me(load_contract(carray["guageaddress"][i],w3).balanceOf(MY_WALLET_ADDRESS))/10**18
+                time.sleep(0.1)
                 carray["raw"][i] = call_me(load_contract(carray["guageaddress"][i],w3).claimable_tokens(MY_WALLET_ADDRESS))
                 potential_virtprice_update = call_me(load_contract(carray["swapaddress"][i],w3).get_virtual_price())/10**18
-                mydict[carray["name"][i]+"virtprice"] = potential_virtprice_update 
+                mydict[carray["name"][i]+"virtprice"] = potential_virtprice_update
                 if potential_virtprice_update > carray["virtprice"][i]:
                     carray["virtprice"][i] = potential_virtprice_update
                 if (carray["virtprice"][i]*carray["balanceof"][i]*carray["token_value_modifyer"][i])-carray["invested"][i] > -10:
@@ -168,6 +169,7 @@ def update_curve_pools(mydict,carray,myarray,myarrayh,w3):
                 print(myarray[-1][carray["name"][i]+"pool"] - mydict[carray["name"][i]+"pool"], "\nerror with lower raw value"+carray["name"][i], myarray[-1][carray["name"][i]+"pool"], mydict[carray["name"][i]+"pool"], end='')
         except Exception: #usually happens when snx is down for maintenance
             print("\nupdate curve pools exception", carray["name"][i], i)
+            time.sleep(1)
             mydict[carray["name"][i]+"pool"] = myarrayh[-1][carray["name"][i]+"pool"]
             carray["raw"][i] = (myarrayh[-1][carray["name"][i]+"pool"]*10**18) - carray["minted"][i]
     mydict["claim"] = round((sum(carray["raw"])+sum(carray["minted"]))/10**18, 6)

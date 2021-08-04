@@ -10,7 +10,7 @@ import time
 from web3 import Web3
 from colorama import Fore, Style, init
 from tools.curve_rainbowhat_functions import curve_hats_update
-from tools.hour_log_process import update_price
+from tools.price_getter import update_price
 import convex_examiner
 import curve_functions
 import status_line_printer
@@ -86,12 +86,13 @@ def gas_and_sleep(w3):
         if enter_hit:
             if firstpass:
                 print("")
-                show_headers(w3)
+            show_headers(w3)
         firstpass = False
         time.sleep(10)
         month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
     if args.Local:
         wait_for_local_node_sync(w3)
+    print("\r",end="")
 
 def main():
     """monitor various curve contracts"""
@@ -114,15 +115,15 @@ def main():
 #Update dictionary values and price information
         month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
         mydict = {"raw_time" : round(time.time()), "human_time": month+"/"+day+" "+hour+":"+minut,
-                  "USD" : update_price("curve-dao-token"),
-                  "USDcvx" : update_price("convex-finance"),
-                  "USD3pool" : update_price("lp-3pool-curve"),
-                  "USDcvxCRV" : update_price("convex-crv"),
+                  "USD" : update_price("curve-dao-token",'.','o'),
+                  "USDcvx" : update_price("convex-finance",'.','O'),
+                  "USD3pool" : 1.02, #update_price("lp-3pool-curve"),
+                  "USDcvxCRV" : update_price("convex-crv",'.','0'),
                   "invested" : sum(carray["invested"])}
-        curve_functions.update_curve_pools(mydict, carray, myarray, myarrayh, w3)
         mydict["cvxcrv_rewards"] = convex_examiner.cvxcrv_getvalue(False, myarray, w3)
         mydict["trix_rewards"] = convex_examiner.trix_getvalue(False, myarray, w3)
         mydict["cvx_rewards"] = convex_examiner.cvx_getvalue(False, myarray, w3)
+        curve_functions.update_curve_pools(mydict, carray, myarray, myarrayh, w3)
 #Keep one hour worth of data in hourly log
         myarray.append(mydict)
         if len(myarray) > 61:

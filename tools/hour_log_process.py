@@ -5,22 +5,13 @@ import time
 import json
 from pycoingecko import CoinGeckoAPI
 from colorama import Fore, Style, init
+from price_getter import update_price
 init()
 cg = CoinGeckoAPI()
 
 file_nameh = "../history/history_archive.json"
 usym = Fore.YELLOW + Style.BRIGHT + "$" + Fore.GREEN
 csym = Fore.MAGENTA + Style.BRIGHT + "Ç" + Style.RESET_ALL + Fore.CYAN
-
-def update_price(coin_type):
-    USD = -1
-    while USD == -1:
-        try:
-            USD = cg.get_price(ids=coin_type, vs_currencies='usd')[coin_type]["usd"]
-        except Exception:
-            time.sleep(2)
-            print("Z", end='', flush=True)
-    return USD
 
 def show_me(inputs, inpute, update, isprice, invested, newline, myarrayh):
     USD = float(isprice)
