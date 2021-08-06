@@ -40,7 +40,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-f", "--Fullheader", help = "Show empty pools in header", action="store_true")
 parser.add_argument("-l", "--Local", help = "Local Node Used", action="store_true")
 parser.add_argument("-r", "--Readonly", help = "Don't write output to file", action="store_true")
-parser.add_argument("-s", "--Small", help = "Small screen size", action="store_true")
 parser.add_argument("-b", "--Hourslookback", type=int, help="Use this many hours when calculating pool APR", default=24)
 args = parser.parse_args()
 
@@ -66,13 +65,17 @@ def key_capture_thread():
     enter_hit = True
 
 def show_headers(w3):
-    virutal_price_sum=curve_functions.curve_header_display(myarray, carray, w3, args.Fullheader) if not args.Small else print("\n"*3)
-    convex_examiner.convex_header_display(myarray, carray, w3, args.Fullheader) if not args.Small else print("\n"*3)
+    virutal_price_sum=curve_functions.curve_header_display(myarray, carray, w3, args.Fullheader)
+    convex_examiner.convex_header_display(myarray, carray, w3, args.Fullheader)
     curve_functions.combined_stats_display(myarray, carray, w3, virutal_price_sum)
     threading.Thread(target=key_capture_thread, args=(), name='key_capture_thread', daemon=True).start()
 
-def gas_and_sleep(w3):
+def gas_and_sleep(w3, mydict):
     firstpass = True                                                            #Prevent header display from outputting in conflict with regular update
+    mydict["USD"] = update_price("curve-dao-token",'▸','▹')
+    mydict["USDcvx"] = update_price("convex-finance",'▸','▹')
+    mydict["USDcvxCRV"] = update_price("convex-crv",'▸','▹')
+    mydict["USD3pool"] = 1.02 #update_price("lp-3pool-curve")
     month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
     while month+"/"+day+" "+hour+":"+minut == myarray[-1]["human_time"]:        #Wait for each minute to pass to run again
         try:
@@ -81,8 +84,6 @@ def gas_and_sleep(w3):
             print(str("~"+Fore.RED+Style.BRIGHT+"xxx"+Style.RESET_ALL+"~"), "\b"*6, end="", flush=True)
         if firstpass and minut == "00":
             print("")
-            if args.Small:
-                print("\n"*3)
         if enter_hit:
             if firstpass:
                 print("")
@@ -111,15 +112,13 @@ def main():
 #Main program loop starts here
     while True:
 #Check gas price every 10 seconds and wait for a minute to pass
-        gas_and_sleep(w3)
+        mydict = {"USD": 1, "USDcvx" : 1, "USDcvxCRV" : 1, "USD3pool" : 1.02}
+        gas_and_sleep(w3, mydict)
 #Update dictionary values and price information
         month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
-        mydict = {"raw_time" : round(time.time()), "human_time": month+"/"+day+" "+hour+":"+minut,
-                  "USD" : update_price("curve-dao-token",'.','o'),
-                  "USDcvx" : update_price("convex-finance",'.','O'),
-                  "USD3pool" : 1.02, #update_price("lp-3pool-curve"),
-                  "USDcvxCRV" : update_price("convex-crv",'.','0'),
-                  "invested" : sum(carray["invested"])}
+        mydict["raw_time"] = round(time.time())
+        mydict["human_time"] = month+"/"+day+" "+hour+":"+minut
+        mydict["invested"] = sum(carray["invested"])
         mydict["cvxcrv_rewards"] = convex_examiner.cvxcrv_getvalue(False, myarray, w3)
         mydict["trix_rewards"] = convex_examiner.trix_getvalue(False, myarray, w3)
         mydict["cvx_rewards"] = convex_examiner.cvx_getvalue(False, myarray, w3)
@@ -131,9 +130,7 @@ def main():
 #update information on screen and pi hats when possible
         display_percent = status_line_printer.print_status_line(carray, myarray, myarrayh, myarray[-1]["USD"], 0 - len(myarray), w3, args.Hourslookback)
         try:
-            curve_hats_update(display_percent,
-                              str(format(round(update_price("ethereum")),',')).rjust(6),
-                              carray["booststatus"])
+            curve_hats_update(display_percent, carray["booststatus"])
         except Exception:
             pass
 #Output dictionary to minute file

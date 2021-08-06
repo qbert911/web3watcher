@@ -4,6 +4,8 @@
 write to the seven leds on the top of the rainbow HAT
 """
 import sys
+
+from tools.price_getter import update_price
 try:
     import smbus
     import rainbowhat
@@ -58,11 +60,11 @@ def rainbow_show_float(vala):
     except Exception:
         pass
 
-def curve_hats_update(myfloat, mystring, bootstatusarray):
+def curve_hats_update(myfloat, bootstatusarray):
     """output to rainbow and microdot hats"""
     rainbow_show_float(myfloat)
     rainbow_show_boost_status(bootstatusarray)
     microdotphat.set_clear_on_exit(False)
     microdotphat.set_rotate180(1)
-    microdotphat.write_string(mystring, offset_x=0, kerning=False)
+    microdotphat.write_string(str(format(round(update_price("ethereum")),',')).rjust(6), offset_x=0, kerning=False)
     microdotphat.show()

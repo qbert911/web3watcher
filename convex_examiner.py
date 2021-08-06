@@ -22,7 +22,7 @@ def convex_header_display(myarray, carray, w3, fullheader):
 
     cvxcrv_value = (myarray[-1]["cvxcrv_rewards"][1]*myarray[-1]["USDcvxCRV"])
 
-    print("xTripool"," "*19,(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][carray["longname"].index("tRicrypto")]),end=" ")
+    print("xTripool"," "*19,str((myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][carray["longname"].index("tRicrypto")])).rjust(5),end=" ")
     print(" "*23,Style.DIM+Fore.CYAN+str(format(round((myarray[-1]["trix_rewards"][2]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))+myarray[-1]["trix_rewards"][1],2),'5.2f')),Style.RESET_ALL,end=" ")
     print(" "*14,"v"+str(format(round(myarray[-1]["trix_rewards"][1],2), '5.2f')).rjust(5)+"x"+str(format(round(myarray[-1]["trix_rewards"][2],2), '5.2f')).rjust(5),end="")
     print(" "*5,"$"+str(format(round(trix_value,2), '5.2f')).rjust(6))
@@ -57,7 +57,7 @@ def cvx_getvalue(printit, myarray, w3):
         return [myarray[-1]["cvx_rewards"][0],myarray[-1]["cvx_rewards"][1],myarray[-1]["cvx_rewards"][2],myarray[-1]["cvx_rewards"][3]]
 
 def trix_getvalue(printit, myarray, w3):
-    trix_crv = load_contract("0x5Edced358e6C0B435D53CC30fbE6f5f0833F404F",w3)#convex tripool crv rewards
+    trix_crv = load_contract("0x9D5C5E364D81DaB193b72db9E9BE9D8ee669B652",w3)#convex tripool crv rewards
     try:
         invested = round(trix_crv.balanceOf(MY_WALLET_ADDRESS).call()/10**18)
         crv_earned = trix_crv.earned(MY_WALLET_ADDRESS).call()/10**18

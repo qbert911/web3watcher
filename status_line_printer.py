@@ -20,11 +20,15 @@ def show_convex(carray, myarray, eoa, extramins, name, label, extrapools, tokenm
     for i in range(1,3+extrapools):
         buffer+=Fore.RED+labels[i]+Fore.WHITE
         try:
-            buffer+=str(format(round((myarray[-1][name][i]-myarray[eoa][name][i])/(60+extramins)*pricefactor[i]*60*24*365/(myarray[eoa][name][0]*pricefactor[extrapools])*100, 2), '.2f')).rjust(5)+""
-            tprofit+=(myarray[-1][name][i]-myarray[eoa][name][i])/(60+extramins)*pricefactor[i]*60*24*365
+            thisdiff=(myarray[-1][name][i]-myarray[eoa][name][i])/(60+extramins)*pricefactor[i]*60*24*365
+            if thisdiff >= 0:
+                tprofit+=thisdiff
+                buffer+=str(format(round((myarray[-1][name][i]-myarray[eoa][name][i])/(60+extramins)*pricefactor[i]*60*24*365/(myarray[eoa][name][0]*pricefactor[extrapools])*100, 2), '.2f')).rjust(5)+""
+            else:
+                buffer+="xx.xx"
         except Exception:
             buffer+="xx.xx"
-        subtotal=str(format(round(tprofit/(myarray[eoa][name][0]*pricefactor[extrapools])*100, 2), '5.2f')).rjust(5)
+        subtotal=str(format(round(tprofit/((myarray[eoa][name][0]+.000000001)*pricefactor[extrapools])*100, 2), '5.2f')).rjust(5)
 
     print(Fore.RED+Style.BRIGHT+label+Style.RESET_ALL+subtotal+Style.DIM+"{"+buffer+"}"+Style.RESET_ALL, end=' ')
 
@@ -46,7 +50,7 @@ def show_curve(carray, myarray, myarrayh, eoa, extramins, USD, lookback):
         if carray["currentboost"][i] > 0:
             buffer+=Fore.RED+Style.BRIGHT+carray["name"][i]+Style.RESET_ALL
             try:
-                buffer+=str(format(round((myarray[-1][carray["name"][i]+"pool"]-myarray[eoa][carray["name"][i]+"pool"])/(60+extramins)*60*USD*24*365/carray["invested"][i]*100, 2), '.2f')).rjust(5)
+                buffer+=str(format(round((myarray[-1][carray["name"][i]+"pool"]-myarray[eoa][carray["name"][i]+"pool"])/(60+extramins)*60*USD*24*365/carray["invested"][i]*100, 2), '.2f')).rjust(5)[0:5]
             except Exception:
                 buffer+="xx.xx"
             try:
@@ -56,7 +60,7 @@ def show_curve(carray, myarray, myarrayh, eoa, extramins, USD, lookback):
 
             if thisdiff >= 0:
                 tprofit += thisdiff
-                buffer += Style.DIM+Fore.GREEN+str(format(round(thisdiff/60*60*USD*24*365/carray["invested"][i]*100, 2), '.2f')).rjust(5)+" "+Style.RESET_ALL
+                buffer += Style.DIM+Fore.GREEN+str(format(round(thisdiff/60*60*USD*24*365/carray["invested"][i]*100, 2), '.2f')).rjust(5)[0:5]+" "+Style.RESET_ALL
             else:
                 buffer += Style.DIM+Fore.GREEN+"xx.xx "+Style.RESET_ALL
 
@@ -65,7 +69,9 @@ def show_curve(carray, myarray, myarrayh, eoa, extramins, USD, lookback):
 def print_status_line(carray, myarray, myarrayh, USD, eoa, w3, lookback):
     """print main status line"""
     extramins = round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa
-    difference = ((myarray[-1]["claim"]+myarray[-1]["trix_rewards"][1]+(myarray[-1]["USDcvx"]*myarray[-1]["trix_rewards"][2]/myarray[-1]["USD"]))-(myarray[eoa]["claim"]+myarray[eoa]["trix_rewards"][1]+(myarray[-1]["USDcvx"]*myarray[eoa]["trix_rewards"][2]/myarray[-1]["USD"])))/(60+extramins)*60
+    diffa = max(0,(myarray[-1]["claim"]-myarray[eoa]["claim"]))
+    diffb = max(0,myarray[-1]["trix_rewards"][1]-myarray[eoa]["trix_rewards"][1]+((myarray[eoa]["trix_rewards"][2]-myarray[-1]["trix_rewards"][2])*myarray[-1]["USDcvx"]/myarray[-1]["USD"]))
+    difference = (diffa + diffb) / (60+extramins)*60
     print("\r",end='',flush=True)
     print(myarray[-1]["human_time"], end=' ')
     print("$"+Fore.YELLOW+Style.BRIGHT+f"{USD:.2f}"+Style.RESET_ALL, end = ' - ') #csym+"1"+Style.RESET_ALL+" = "+
@@ -95,14 +101,16 @@ def print_status_line(carray, myarray, myarrayh, USD, eoa, w3, lookback):
     if eoa > -61:  #fewer than 60 records in the ghistory.json file
         print(Fore.RED+Style.BRIGHT+str(61+eoa).rjust(2)+Style.RESET_ALL, end=' ')
     if myarray[-1]["invested"] != myarray[eoa]["invested"]:
-        print(Fore.RED+str(myarray[-1]["invested"] - myarray[eoa]["invested"])+Style.RESET_ALL, end=' ')
+        print(Fore.RED+str(round(myarray[-1]["invested"] - myarray[eoa]["invested"]))+Style.RESET_ALL, end=' ')
     if myarray[-1]["cvx_rewards"][0] != myarray[eoa]["cvx_rewards"][0]:
-        print(Fore.RED+str(myarray[-1]["cvx_rewards"][0] - myarray[eoa]["cvx_rewards"][0])+Style.RESET_ALL, end=' ')
+        print(Fore.RED+str(round(myarray[-1]["cvx_rewards"][0] - myarray[eoa]["cvx_rewards"][0]))+Style.RESET_ALL, end=' ')
     if myarray[-1]["trix_rewards"][0] != myarray[eoa]["trix_rewards"][0]:
-        print(Fore.RED+str(myarray[-1]["trix_rewards"][0] - myarray[eoa]["trix_rewards"][0])+Style.RESET_ALL, end=' ')
+        print(Fore.RED+str(round(myarray[-1]["trix_rewards"][0] - myarray[eoa]["trix_rewards"][0]))+Style.RESET_ALL, end=' ')
+    if myarray[-1]["cvxcrv_rewards"][0] != myarray[eoa]["cvxcrv_rewards"][0]:
+        print(Fore.RED+str(round(myarray[-1]["cvxcrv_rewards"][0] - myarray[eoa]["cvxcrv_rewards"][0]))+Style.RESET_ALL, end=' ')
     try:  #check to see if the interface linked on ipfs has changed
         if ipfs_hash_value(w3, 'curve.eth') != curve_ipfs_current_hash:
-            print(Fore.RED+Style.BRIGHT+"W"+Style.RESET_ALL, end=' ')
+            print(Fore.RED+Style.BRIGHT+"WW"+Style.RESET_ALL, end=' ')
         else:
             print("W", end=' ')
     except:
