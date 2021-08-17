@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 # pylint: disable=C0103,E0401
-"""
-write to the seven leds on the top of the rainbow HAT
-"""
-import sys
-
-from tools.price_getter import update_price
+"""write to the seven leds on the top of the rainbow HAT"""
 try:
     import smbus
     import rainbowhat
@@ -15,7 +10,6 @@ try:
     bus = smbus.SMBus(1) # 1 indicates /dev/i2c-1
 except:
     pass
-
 
 red = [2, 0, 0]
 green = [0, 2, 0]
@@ -60,11 +54,11 @@ def rainbow_show_float(vala):
     except Exception:
         pass
 
-def curve_hats_update(myfloat, bootstatusarray):
+def curve_hats_update(myfloat, bootstatusarray, eth_price):
     """output to rainbow and microdot hats"""
     rainbow_show_float(myfloat)
     rainbow_show_boost_status(bootstatusarray)
     microdotphat.set_clear_on_exit(False)
     microdotphat.set_rotate180(1)
-    microdotphat.write_string(str(format(round(update_price("ethereum")),',')).rjust(6), offset_x=0, kerning=False)
+    microdotphat.write_string(str(format(round(eth_price),',')).rjust(6), offset_x=0, kerning=False)
     microdotphat.show()

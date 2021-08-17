@@ -15,7 +15,7 @@ def virtprice_inspector():
             print(myarrayh[x]["human_time"],str(round((a-lasta)*10_000_000)).rjust(5),str(round((b-lastb)*10_000_000)).rjust(5))
             lastb = b
             lasta = a
-        except Exception as e:
+        except Exception:
             pass
 
 if __name__ == "__main__":

@@ -62,8 +62,8 @@ def curve_header_display(myarray, carray, w3, fullheader):
                     print("")
                 else:
                     print(Style.BRIGHT+Fore.GREEN+str(format(carray["currentboost"][i], '.4f')).rjust(cw[8]).replace("0", " ")+Style.RESET_ALL, end=' ')
-                    print(" "*cw[9], end=' ')
-                    print(("$"+str(format(round(maxinvestforfullboost-carray["balanceof"][i]), '.0f'))).rjust(cw[10])+Style.RESET_ALL, "can still fit")
+                    #print(" "*cw[9], end=' ')
+                    print(("$"+str(format((maxinvestforfullboost-carray["balanceof"][i])*carray["token_value_modifyer"][i], '.0f'))).ljust(5)+Style.RESET_ALL, "fits   $", end='')
             elif carray["currentboost"][i] > 0:
                 #print(Style.DIM+str(format(round(maxinvestforfullboost-carray["balanceof"][i], 2), '.2f')).rjust(cw[7])+Style.RESET_ALL, end=' ')
                 print(str(format(carray["currentboost"][i], '.4f')).rjust(cw[8]), end=' ')
@@ -73,26 +73,40 @@ def curve_header_display(myarray, carray, w3, fullheader):
                     print(Style.DIM+Fore.RED+str(format(carray["futureboost"][i]-carray["currentboost"][i], '.4f')).rjust(cw[9])+Style.RESET_ALL, end=' ')
                 else:
                     print(Style.BRIGHT+Fore.RED+str(format(carray["futureboost"][i]-carray["currentboost"][i], '.4f')).rjust(cw[9])+Style.RESET_ALL, end=' ')
-                print("")
                 #print(Style.DIM+str(needed_veCRV).rjust(cw[10]), "additional veCRV needed for full boost."+Style.RESET_ALL)
-            else:
-                print("")
+                print("     $",end='')
+            if abs(round(myarray[-1][carray["name"][i]+"pool"]-round(carray["minted"][i]/10**18,2), 2)) > 0.1:
+                print(str(format(round((myarray[-1][carray["name"][i]+"pool"]-(round(carray["minted"][i]/10**18,2)))*myarray[-1]["USD"], 2), '5.2f')).rjust(6)+Style.RESET_ALL, end=' ')
+            print("")
     return virutal_price_sum
 
 def combined_stats_display(myarray, carray, w3, virutal_price_sum):
     crv_func = load_contract("0xD533a949740bb3306d119CC777fa900bA034cd52",w3)
     vecrv_func = load_contract("0x5f3b5DfEb7B28CDbD7FAba78963EE202a494e2A2",w3)
-    CRV_inwallet = round(call_me(crv_func.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
-    veCRV_locked = round(call_me(vecrv_func.locked(MY_WALLET_ADDRESS))/10**18)
-    veCRV_mine = round(call_me(vecrv_func.balanceOf(MY_WALLET_ADDRESS))/10**18)
-    x_claimable = round((myarray[-1]["cvx_rewards"][3]*(myarray[-1]["USD3pool"]/myarray[-1]["USD"]))+(myarray[-1]["cvx_rewards"][2]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))+myarray[-1]["cvx_rewards"][1],2) + round((myarray[-1]["trix_rewards"][2]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))+myarray[-1]["trix_rewards"][1],2)
+    cvx_token = load_contract("0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B",w3)
+    cvxcrv_token = load_contract("0x62B9c7356A2Dc64a1969e19C23e4f579F9810Aa7",w3)
+    crv3pool_token = load_contract("0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",w3)
 
+    CRV_inwallet = round(call_me(crv_func.balanceOf(MY_WALLET_ADDRESS))/10**18)
+    cvx_inwallet = round(call_me(cvx_token.balanceOf(MY_WALLET_ADDRESS))/10**18)
+    cvxcrv_inwallet = round(call_me(cvxcrv_token.balanceOf(MY_WALLET_ADDRESS))/10**18)
+    crv3pool_inwallet = round(call_me(crv3pool_token.balanceOf(MY_WALLET_ADDRESS))/10**18)
+
+    veCRV_mine = round(call_me(vecrv_func.balanceOf(MY_WALLET_ADDRESS))/10**18)
+    veCRV_locked = round(call_me(vecrv_func.locked(MY_WALLET_ADDRESS))/10**18)
+    x_claimable = (myarray[-1]["cvx_rewards"][3]*(myarray[-1]["USD3pool"]/myarray[-1]["USD"]))+\
+                  (myarray[-1]["cvx_rewards"][2]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))+\
+                  myarray[-1]["cvx_rewards"][1]+\
+                  (myarray[-1]["trix_rewards"][2]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))+\
+                  myarray[-1]["trix_rewards"][1]+\
+                  myarray[-1]["cvxcrv_rewards"][1]
+    sushi_claimable = (myarray[-1]["cvxsushi_rewards"][1]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))
     print("$"+str(sum(carray["invested"])+(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][carray["longname"].index("tRicrypto")])), "invested,",sum(carray["invested"]),"is now",int(virutal_price_sum), end=' ')
-    print("("+str(format(round(( virutal_price_sum/sum(carray["invested"])*100)-100,5),'.3f'))+"%)", end='   ')
-    print("Ç"+str(round(veCRV_locked)), " veCRV locked" +Style.DIM+" ("+str(veCRV_mine), "voting)  "+Style.RESET_ALL, end='  ')
-    print(csym+str(round(sum(carray["minted"])/10**18, 2))+Style.RESET_ALL, "minted", end=' ')
-    print(csym+str(format(round(myarray[-1]["claim"]-(sum(carray["minted"])/10**18)+x_claimable, 2),'5.2f')).rjust(6)+Style.RESET_ALL, "to claim", end=' ')
-    print("("+csym+str(CRV_inwallet)+Style.RESET_ALL,"wallet)", end='  ')
+    print("("+str(format(round(( virutal_price_sum/sum(carray["invested"])*100)-100,5),'.3f'))+"%)  ", end=' ')
+    print("Ç"+str(round(veCRV_locked)), "veCRV locked" +Style.DIM+" ("+str(veCRV_mine), "voting)   "+Style.RESET_ALL, end=' ')
+    #print(csym+str(round(sum(carray["minted"])/10**18, 2))+Style.RESET_ALL, "minted ", end=' ')
+    print(" "*5,"$"+str(format(round((myarray[-1]["claim"]-(sum(carray["minted"])/10**18)+x_claimable+sushi_claimable)*myarray[-1]["USD"], 2),'5.2f')).rjust(6)+Style.RESET_ALL,("("+str(round(x_claimable*myarray[-1]["USD"]))+") to claim  ").rjust(17), end=' ')
+    show_wallet(CRV_inwallet, cvxcrv_inwallet, cvx_inwallet, crv3pool_inwallet)
 
     eoa = 0 - len(myarray)
     if round((round(time.time())-myarray[eoa]["raw_time"])/60, 2)+eoa >= 0.5:
@@ -106,6 +120,18 @@ def combined_stats_display(myarray, carray, w3, virutal_price_sum):
     if myarray[-1]["trix_rewards"][0] != myarray[eoa]["trix_rewards"][0]:
         print(Fore.RED+str(myarray[-1]["trix_rewards"][0] - myarray[eoa]["trix_rewards"][0])+Style.RESET_ALL+" of New $ obs. data", end=' ')
     print("")
+
+def show_wallet(CRV_inwallet,cvxcrv_inwallet,cvx_inwallet,crv3pool_inwallet):
+    print("[", end='')
+    if CRV_inwallet > 0:
+        print(csym+f"{CRV_inwallet:02}"+Style.RESET_ALL, end='')
+    if cvxcrv_inwallet > 0:
+        print("v"+csym+f"{cvxcrv_inwallet:02}"+Style.RESET_ALL, end='')
+    if cvx_inwallet > 0:
+        print("x"+Fore.BLUE+f"{cvx_inwallet:02}"+Style.RESET_ALL, end='')
+    if crv3pool_inwallet > 0:
+        print("t"+Fore.YELLOW+Style.BRIGHT+f"{crv3pool_inwallet:02}"+Style.RESET_ALL, end='')
+    print("] in wallet ", end='  ')
 
 def load_curvepools_fromjson(myarray,barray,w3):
     """prepare iteratable array from json file"""

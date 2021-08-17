@@ -25,13 +25,8 @@ mylocal_w3 = Web3(Web3.HTTPProvider('http://192.168.0.4:8545'))
 
 file_name = "ghistory.json"
 file_nameh = "ghistoryh.json"
-try:
-    myarray = json.load(open(file_name, 'r'))
-    myarrayh = json.load(open(file_nameh, 'r'))
-except:
-    print("FIX IT")
-
-
+myarray = json.load(open(file_name, 'r'))
+myarrayh = json.load(open(file_nameh, 'r'))
 carray = {"longname": [], "name": [], "invested": [], "currentboost": [], "guageaddress" : [], "swapaddress" : [], "tokenaddress" : []}
 
 enter_hit = False
@@ -66,7 +61,7 @@ def key_capture_thread():
 
 def show_headers(w3):
     virutal_price_sum=curve_functions.curve_header_display(myarray, carray, w3, args.Fullheader)
-    convex_examiner.convex_header_display(myarray, carray, w3, args.Fullheader)
+    convex_examiner.convex_header_display(myarray, carray)
     curve_functions.combined_stats_display(myarray, carray, w3, virutal_price_sum)
     threading.Thread(target=key_capture_thread, args=(), name='key_capture_thread', daemon=True).start()
 
@@ -76,6 +71,8 @@ def gas_and_sleep(w3, mydict):
     mydict["USDcvx"] = update_price("convex-finance",'▸','▹')
     mydict["USDcvxCRV"] = update_price("convex-crv",'▸','▹')
     mydict["USD3pool"] = 1.02 #update_price("lp-3pool-curve")
+    mydict["ETH"] = update_price("ethereum",'▸','▹')
+    mydict["SUSHI"] = update_price("sushi",'▸','▹')
     month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
     while month+"/"+day+" "+hour+":"+minut == myarray[-1]["human_time"]:        #Wait for each minute to pass to run again
         try:
@@ -112,7 +109,7 @@ def main():
 #Main program loop starts here
     while True:
 #Check gas price every 10 seconds and wait for a minute to pass
-        mydict = {"USD": 1, "USDcvx" : 1, "USDcvxCRV" : 1, "USD3pool" : 1.02}
+        mydict = {"USD": 1, "USDcvx" : 1, "USDcvxCRV" : 1, "USD3pool" : 1.02, "ETH": 1, "SUSHI": 1}
         gas_and_sleep(w3, mydict)
 #Update dictionary values and price information
         month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
@@ -122,6 +119,7 @@ def main():
         mydict["cvxcrv_rewards"] = convex_examiner.cvxcrv_getvalue(False, myarray, w3)
         mydict["trix_rewards"] = convex_examiner.trix_getvalue(False, myarray, w3)
         mydict["cvx_rewards"] = convex_examiner.cvx_getvalue(False, myarray, w3)
+        mydict["cvxsushi_rewards"] = convex_examiner.cvxsushi_getvalue(False, myarray, w3)
         curve_functions.update_curve_pools(mydict, carray, myarray, myarrayh, w3)
 #Keep one hour worth of data in hourly log
         myarray.append(mydict)

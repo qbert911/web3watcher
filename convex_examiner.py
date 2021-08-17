@@ -5,13 +5,13 @@ from web3 import Web3
 from colorama import Fore, Style
 from tools.load_contract import load_contract
 
-CVX_fraction_factor = 0.404 #HACK
+CVX_fraction_factor = 0.390 #HACK
 
 MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
 #cvx_token = load_contract("0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B",infura_w3)#cvx token to calculate ratio, cliff etc
 #https://docs.convexfinance.com/convexfinanceintegration/cvx-minting
 
-def convex_header_display(myarray, carray, w3, fullheader):
+def convex_header_display(myarray, carray):
 
     trix_value = ((myarray[-1]["trix_rewards"][2]*myarray[-1]["USDcvx"])+
                   (myarray[-1]["trix_rewards"][1]*myarray[-1]["USD"]))
@@ -22,22 +22,32 @@ def convex_header_display(myarray, carray, w3, fullheader):
 
     cvxcrv_value = (myarray[-1]["cvxcrv_rewards"][1]*myarray[-1]["USDcvxCRV"])
 
+    cvxsushi_value = (myarray[-1]["cvxsushi_rewards"][1]*myarray[-1]["USDcvx"])
+
+
     print("xTripool"," "*19,str((myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][carray["longname"].index("tRicrypto")])).rjust(5),end=" ")
     print(" "*23,Style.DIM+Fore.CYAN+str(format(round((myarray[-1]["trix_rewards"][2]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))+myarray[-1]["trix_rewards"][1],2),'5.2f')),Style.RESET_ALL,end=" ")
-    print(" "*14,"v"+str(format(round(myarray[-1]["trix_rewards"][1],2), '5.2f')).rjust(5)+"x"+str(format(round(myarray[-1]["trix_rewards"][2],2), '5.2f')).rjust(5),end="")
-    print(" "*5,"$"+str(format(round(trix_value,2), '5.2f')).rjust(6))
+    print(" "*20,"$"+str(format(round(trix_value,2), '5.2f')).rjust(6),end=" ")
+    print(" "*3,"v"+str(format(round(myarray[-1]["trix_rewards"][1],2), '5.2f')).rjust(5)+"x"+str(format(round(myarray[-1]["trix_rewards"][2],2), '5.2f')).rjust(5))
 
-    print("xCRV"," "*23,Style.DIM+str(round(myarray[-1]["cvx_rewards"][0]*myarray[-1]["USDcvxCRV"])).rjust(5)+Style.RESET_ALL,end=" ")
-    print(" "*4,"cvxCRV","Ç"+str(myarray[-1]["cvx_rewards"][0]),end=" ")
-    print(" "*5,Style.DIM+Fore.CYAN+str(format(round((myarray[-1]["cvx_rewards"][3]*(myarray[-1]["USD3pool"]/myarray[-1]["USD"]))+(myarray[-1]["cvx_rewards"][2]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))+myarray[-1]["cvx_rewards"][1],2), '5.2f')),Style.RESET_ALL,end=" ")
-    print(" "*32,"$"+str(format(round(cvx_value,2), '5.2f')).rjust(6),end="")
-    print(" "*7,"v"+str(format(round(myarray[-1]["cvx_rewards"][1],2), '5.2f')).rjust(5)+"x"+str(format(round(myarray[-1]["cvx_rewards"][2],2), '5.2f')).rjust(5)+"t"+str(format(round(myarray[-1]["cvx_rewards"][3],2), '5.2f')).rjust(5))
+    print("Staked CRV"," "*17,Style.DIM+str(round(myarray[-1]["cvx_rewards"][0]*myarray[-1]["USDcvxCRV"])).rjust(5)+Style.RESET_ALL,end=" ")
+    print(" "*8,"vv"+str(myarray[-1]["cvx_rewards"][0]),end=" ")
+    print(" "*7,Style.DIM+Fore.CYAN+str(format(round((myarray[-1]["cvx_rewards"][3]*(myarray[-1]["USD3pool"]/myarray[-1]["USD"]))+(myarray[-1]["cvx_rewards"][2]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))+myarray[-1]["cvx_rewards"][1],2), '5.2f')),Style.RESET_ALL,end=" ")
+    print(" "*20,"$"+str(format(round(cvx_value,2), '5.2f')).rjust(6),end="")
+    print(" "*37,"v"+str(format(round(myarray[-1]["cvx_rewards"][1],2), '5.2f')).rjust(5)+"x"+str(format(round(myarray[-1]["cvx_rewards"][2],2), '5.2f')).rjust(5)+"t"+str(format(round(myarray[-1]["cvx_rewards"][3],2), '5.2f')).rjust(5))
 
-    print("xCVX"," "*23,Style.DIM+str(round(myarray[-1]["cvxcrv_rewards"][0]*myarray[-1]["USDcvx"])).rjust(5)+Style.RESET_ALL,end=" ")
-    print(" "*10,"xÇ"+str(round(myarray[-1]["cvxcrv_rewards"][0])).rjust(4),end=" ")
-    print(" "*5,Style.DIM+Fore.CYAN+str(format(round(myarray[-1]["cvxcrv_rewards"][1]*(myarray[-1]["USDcvxCRV"]/myarray[-1]["USD"]),2),'5.2f'))+Style.RESET_ALL,end=" ")
-    print(" "*33,"$"+str(format(round(cvxcrv_value,2), '5.2f')).rjust(6),end="")
-    print(" "*38,"xv"+str(format(round(myarray[-1]["cvxcrv_rewards"][1],2), '5.2f')).rjust(5))
+    print("Staked CVX"," "*17,Style.DIM+str(round(myarray[-1]["cvxcrv_rewards"][0]*myarray[-1]["USDcvx"])).rjust(5)+Style.RESET_ALL,end=" ")
+    print(" "*9,"x"+str(round(myarray[-1]["cvxcrv_rewards"][0])).rjust(4),end=" ")
+    print(" "*7,Style.DIM+Fore.CYAN+str(format(round(myarray[-1]["cvxcrv_rewards"][1]*(myarray[-1]["USDcvxCRV"]/myarray[-1]["USD"]),2),'5.2f'))+Style.RESET_ALL,end=" ")
+    print(" "*21,"$"+str(format(round(cvxcrv_value,2), '5.2f')).rjust(6),end="")
+    print(" "*68,"vv"+str(format(round(myarray[-1]["cvxcrv_rewards"][1],2), '5.2f')).rjust(5))
+
+    cvxsushi_token_modifyer = 270 # HACK
+    print("Sushi CVX/ETH"," "*14,Style.DIM+str(round(myarray[-1]["cvxsushi_rewards"][0]*cvxsushi_token_modifyer)).rjust(5)+Style.RESET_ALL,end=" ")
+    print(" "*23,Style.DIM+Fore.CYAN+str(format(round(myarray[-1]["cvxsushi_rewards"][1]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]),2),'5.2f'))+Style.RESET_ALL,end=" ")
+    print(" "*21,"$"+str(format(round(cvxsushi_value,2), '5.2f')).rjust(6),end="")
+    print(" "*79,"x"+str(format(round(myarray[-1]["cvxsushi_rewards"][1],2), '5.2f')).rjust(5))
+
 
 def cvx_getvalue(printit, myarray, w3):
     cvxcrv_3pool = load_contract("0x7091dbb7fcbA54569eF1387Ac89Eb2a5C9F6d2EA",w3)#convexCRV staking 3pool rewards
@@ -82,6 +92,20 @@ def cvxcrv_getvalue(printit, myarray, w3):
         print("\nupdate cvxcrv exception")
         return [myarray[-1]["cvxcrv_rewards"][0] ,myarray[-1]["cvxcrv_rewards"][1]]
 
+def cvxsushi_getvalue(printit, myarray, w3):
+    sushi=load_contract("0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d", w3)
+    cvx_rewarder=load_contract("0x9e01aaC4b3e8781a85b21d9d9F848e72Af77B362", w3)
+    try:
+        invested = cvx_rewarder.sushiBalanceOf(MY_WALLET_ADDRESS).call()/10**18
+        cvx_earned = cvx_rewarder.earned(MY_WALLET_ADDRESS).call()/10**18
+        sushi_earned = sushi.pendingSushi(1,MY_WALLET_ADDRESS).call()/10**18
+        if printit:
+            print(f"  cvx/eth sushi pool cvx: {cvx_earned}")
+            print(f"  cvx/eth sushi pool sushi: {sushi_earned}")
+        return [invested, cvx_earned, sushi_earned]
+    except Exception:
+        print("\nupdate cvx/eth sushi exception")
+        return [myarray[-1]["cvxsushi_rewards"][0], myarray[-1]["cvxsushi_rewards"][1], myarray[-1]["cvxsushi_rewards"][2]]
 
 if __name__ == "__main__":
     INFURA_ID = "1d651358519346beb661128bf65ab651"
@@ -91,4 +115,6 @@ if __name__ == "__main__":
     a = trix_getvalue(True, None, infura_w3)
     print(a,"\n\n")
     a = cvxcrv_getvalue(True, None, infura_w3)
+    print(a,"\n\n")
+    a = cvxsushi_getvalue(True, None, infura_w3)
     print(a)
