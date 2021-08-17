@@ -7,16 +7,28 @@ import shutil
 import argparse
 import json
 import time
+import logging
+import click
 from web3 import Web3
 from colorama import Fore, Style, init
+from flask import Flask, jsonify
 from tools.curve_rainbowhat_functions import curve_hats_update
 from tools.price_getter import update_price
 import convex_examiner
 import curve_functions
 import status_line_printer
 
-cursor.hide()
-init()
+log = logging.getLogger('werkzeug')         #following lines are to prevent
+log.setLevel(logging.ERROR)                 #flask from spamming console
+def secho(text, file=None, nl=None, err=None, color=None, **styles):
+    pass
+def echo(text, file=None, nl=None, err=None, color=None, **styles):
+    pass
+click.echo = echo
+click.secho = secho                         #flask spam prevention complete
+cursor.hide()                               #don't draw the cursor
+init()                                      #initialize colorama
+app = Flask(__name__)                       #initialize webserver object
 
 INFURA_ID = "9c51dd19cb9e456387014e7d1661afa3"
 
@@ -59,6 +71,20 @@ def key_capture_thread():
     input()
     enter_hit = True
 
+def pyportal_update(display_percent, booststatusarray):
+    pyportal_dict = {}
+    pyportal_dict["display_percent"] = display_percent
+    pyportal_dict["booststatus"] = booststatusarray
+    try:
+        json.dump(pyportal_dict, open("pyportal.json", "w"), indent=4)
+    except:
+        print("error writing to pyportal.json")
+
+@app.route('/')
+def index():
+    pyportal = json.load(open("pyportal.json", 'r'))
+    return jsonify(pyportal)
+
 def show_headers(w3):
     virutal_price_sum=curve_functions.curve_header_display(myarray, carray, w3, args.Fullheader)
     convex_examiner.convex_header_display(myarray, carray)
@@ -94,6 +120,8 @@ def gas_and_sleep(w3, mydict):
 
 def main():
     """monitor various curve contracts"""
+    print("Starting Web Server for PyPortal on port 5000")
+    threading.Thread(target=app.run, daemon=True, kwargs={'host': '0.0.0.0', 'port': 5000, 'threaded': True, 'use_reloader': False, 'debug': False}).start()
     print("Calc Pool APR over hours:",args.Hourslookback)
     print("Read Only Mode:",args.Readonly)
     if not args.Local:
@@ -135,6 +163,7 @@ def main():
         if not args.Readonly:
             shutil.copyfile(file_name, file_name+".bak")
             json.dump(myarray, open(file_name, "w"), indent=4)
+            pyportal_update(display_percent, carray["booststatus"])
 #Output dictionary to hour file on the top of each hour
         if minut == "00" and mydict["claim"] > 1:
             myarrayh.append(mydict)
