@@ -72,7 +72,7 @@ def gas_and_sleep(w3, mydict):
     mydict["USDcvxCRV"] = update_price("convex-crv",'▸','▹')
     mydict["USD3pool"] = 1.02 #update_price("lp-3pool-curve")
     mydict["ETH"] = update_price("ethereum",'▸','▹')
-    mydict["SUSHI"] = update_price("sushi",'▸','▹')
+    #mydict["SUSHI"] = update_price("sushi",'▸','▹')
     month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
     while month+"/"+day+" "+hour+":"+minut == myarray[-1]["human_time"]:        #Wait for each minute to pass to run again
         try:
@@ -109,7 +109,7 @@ def main():
 #Main program loop starts here
     while True:
 #Check gas price every 10 seconds and wait for a minute to pass
-        mydict = {"USD": 1, "USDcvx" : 1, "USDcvxCRV" : 1, "USD3pool" : 1.02, "ETH": 1, "SUSHI": 1}
+        mydict = {}
         gas_and_sleep(w3, mydict)
 #Update dictionary values and price information
         month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
@@ -128,7 +128,7 @@ def main():
 #update information on screen and pi hats when possible
         display_percent = status_line_printer.print_status_line(carray, myarray, myarrayh, myarray[-1]["USD"], 0 - len(myarray), w3, args.Hourslookback)
         try:
-            curve_hats_update(display_percent, carray["booststatus"])
+            curve_hats_update(display_percent, carray["booststatus"], mydict["ETH"])
         except Exception:
             pass
 #Output dictionary to minute file

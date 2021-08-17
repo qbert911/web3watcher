@@ -5,11 +5,11 @@ import time
 import json
 from pycoingecko import CoinGeckoAPI
 from colorama import Fore, Style, init
-from price_getter import update_price
+#from price_getter import update_price
 init()
 cg = CoinGeckoAPI()
 
-file_nameh = "../history/history_archive.json"
+file_nameh = "history/history_archive.json"
 usym = Fore.YELLOW + Style.BRIGHT + "$" + Fore.GREEN
 csym = Fore.MAGENTA + Style.BRIGHT + "Ç" + Style.RESET_ALL + Fore.CYAN
 
@@ -31,9 +31,9 @@ def show_me(inputs, inpute, update, isprice, invested, newline, myarrayh):
         invested = totalinvested
 
     while update and USD == 1:
-        try:
-            USD = float(update_price("curve-dao-token"))
-        except Exception:
+        #try:
+            #USD = float(update_price("curve-dao-token"))
+        #except Exception:
             print("PRICE BREAK")
             time.sleep(1)
 

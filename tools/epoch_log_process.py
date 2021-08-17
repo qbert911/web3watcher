@@ -3,12 +3,12 @@
 # pylint: disable=C0103,C0116,C0301,W0105,E0401,R0914
 import datetime
 import json
-from hour_log_process import show_me
-from price_getter import update_price
+#import hour_log_process
+#from price_getter import update_price
 from colorama import Fore, Style, init
 init()
 
-file_nameh = "../history/history_archive.json"
+file_nameh = "history/history_archive.json"
 usym = Fore.YELLOW + Style.BRIGHT + "$" + Fore.GREEN
 csym = Fore.MAGENTA + Style.BRIGHT + "Ç" + Style.RESET_ALL + Fore.CYAN
 
@@ -84,7 +84,7 @@ def find_epochs(targetperson,printit):
     return epochsdict, profitdict
 
 if __name__ == "__main__":
-    aa=show_me(-1, 0, 0, update_price("curve-dao-token"), 1, 1, 0)
+#    aa=hour_log_process.show_me(-1, 0, 0, update_price("curve-dao-token"), 1, 1, 0)
     #print(aa)
     epochsdic, profitdic = find_epochs("all",1)
     print (profitdic)

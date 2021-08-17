@@ -54,10 +54,10 @@ def rainbow_show_float(vala):
     except Exception:
         pass
 
-def curve_hats_update(myfloat, bootstatusarray, eth_price):
+def curve_hats_update(myfloat, booststatusarray, eth_price):
     """output to rainbow and microdot hats"""
     rainbow_show_float(myfloat)
-    rainbow_show_boost_status(bootstatusarray)
+    rainbow_show_boost_status(booststatusarray)
     microdotphat.set_clear_on_exit(False)
     microdotphat.set_rotate180(1)
     microdotphat.write_string(str(format(round(eth_price),',')).rjust(6), offset_x=0, kerning=False)
