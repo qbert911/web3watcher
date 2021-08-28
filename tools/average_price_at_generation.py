@@ -6,7 +6,7 @@ import json
 from colorama import Fore, Style, init
 init()
 
-file_nameh = "history/history_archive.json"
+file_nameh = "../history/history_archive.json"
 usym = Fore.YELLOW + Style.BRIGHT + "$" + Style.RESET_ALL
 csym = Fore.MAGENTA + Style.BRIGHT + "Ç" + Style.RESET_ALL + Fore.CYAN
 with open(file_nameh, 'r') as openfile:

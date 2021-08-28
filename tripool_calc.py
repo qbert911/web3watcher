@@ -10,6 +10,7 @@ init()
 purchase_array = [{"dollar_value":11000, "tokens_recieved":  8.2626, "btc_price": 37665, "eth_price":2233},
                   {"dollar_value":18854, "tokens_recieved": 16.1750, "btc_price": 31968, "eth_price":1828},
                   {"dollar_value": 5160, "tokens_recieved":  3.9146, "btc_price": 35391, "eth_price":2351}]
+FUDGE = .934 #HACK
 
 MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
 INFURA_ID = "bfdd3973b810492db7cb27792702782f"   #bw-tricalc #"1d651358519346beb661128bf65ab651" #by-tricalc
@@ -46,12 +47,11 @@ def tri_calc(fulldisplay, guage_bal):
             if i > 0 and _price_oracle[i] < 1:
                 _price_oracle[i] = tri_swap.price_oracle(i - 1).call()/ 10 ** 18
 
-            if fulldisplay:
-                _allthiscoin = tri_swap.balances(i).call()/ 10 ** decimals[i]
-                _coins.append( guage_bal / totalSupply * _allthiscoin )
-                _val = _coins[i] * _price_oracle[i]
-                _curr_val += _val
-                buf+=(f"         {labels[i]}: ${_val:06,.0f} ={_coins[i]: 12.5f} @ "+Fore.CYAN+f"${_price_oracle[i]:,.2f}\n"+Style.RESET_ALL)
+            _allthiscoin = tri_swap.balances(i).call()/ 10 ** decimals[i]
+            _coins.append( guage_bal / totalSupply * _allthiscoin )
+            _val = _coins[i] * _price_oracle[i]
+            _curr_val += _val
+            buf+=(f"         {labels[i]}: ${_val:06,.0f} ={_coins[i]: 12.5f} @ "+Fore.CYAN+f"${_price_oracle[i]:,.2f}\n"+Style.RESET_ALL)
 
         if fulldisplay:
             print(f"   virtprice: {virt_price}\n"+f"Total supply: {totalSupply / 10 ** 18:,.0f}\n"+f" Tokens held: {guage_bal / 10 ** 18:.4f}\n")
@@ -75,10 +75,11 @@ def tri_calc(fulldisplay, guage_bal):
             print(buf, end="")
             print(" "*6,"Total: $"+Fore.YELLOW+Style.BRIGHT+f"{_curr_val:,.0f}"+Style.RESET_ALL+" (Each "+Fore.MAGENTA+"©"+Style.RESET_ALL+"token now: $"+thiscolor+f"{_curr_val/(guage_bal/10**18):.0f}"+Style.RESET_ALL+") Change: ["+Fore.CYAN+f"{100*((_curr_val/_all_dollars_spent)-1):6.2f}"+Style.RESET_ALL+"%]\n")
             print(" "*2,"Simulated: $"+Fore.YELLOW+f"{sim_total:,.0f}"+Style.RESET_ALL+" (Each "+Fore.MAGENTA+"©"+Style.RESET_ALL+"token was: $"+thiscolor+f"{sim_total/(guage_bal/10**18):.0f}"+Style.RESET_ALL+") Simula: ["+Fore.CYAN+Style.BRIGHT+f"{100*((sim_total/_all_dollars_spent)-1):6.2f}"+Style.RESET_ALL+"%]")
-        else:
-            print("["+Fore.BLUE+f"{100*((sim_total/_all_dollars_spent)-1):5.2f}"+Style.RESET_ALL+"%]",end=' ')
-
-        return sim_total
+            print("\nFUDGE",FUDGE)
+        if sim_total > _curr_val:  #use the lower of the two estimates for other calculations
+            sim_total = _curr_val
+        output = (sim_total*FUDGE/_all_dollars_spent)
+        return output, "["+Fore.BLUE+f"{100*(output-1):5.2f}"+Style.RESET_ALL+"%]"
 
     except Exception:
         print("\nupdate tripool exception")
@@ -86,5 +87,4 @@ def tri_calc(fulldisplay, guage_bal):
 
 if __name__ == "__main__":
     print(tri_calc(True,0))
-
     print(tri_calc(False,0))

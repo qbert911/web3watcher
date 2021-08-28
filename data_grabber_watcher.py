@@ -7,28 +7,16 @@ import shutil
 import argparse
 import json
 import time
-import logging
-import click
 from web3 import Web3
 from colorama import Fore, Style, init
-from flask import Flask, jsonify
 from tools.curve_rainbowhat_functions import curve_hats_update
 from tools.price_getter import update_price
 import convex_examiner
 import curve_functions
 import status_line_printer
 
-log = logging.getLogger('werkzeug')         #following lines are to prevent
-log.setLevel(logging.ERROR)                 #flask from spamming console
-def secho(text, file=None, nl=None, err=None, color=None, **styles):
-    pass
-def echo(text, file=None, nl=None, err=None, color=None, **styles):
-    pass
-click.echo = echo
-click.secho = secho                         #flask spam prevention complete
 cursor.hide()                               #don't draw the cursor
 init()                                      #initialize colorama
-app = Flask(__name__)                       #initialize webserver object
 
 INFURA_ID = "9c51dd19cb9e456387014e7d1661afa3"
 
@@ -48,6 +36,7 @@ parser.add_argument("-f", "--Fullheader", help = "Show empty pools in header", a
 parser.add_argument("-l", "--Local", help = "Local Node Used", action="store_true")
 parser.add_argument("-r", "--Readonly", help = "Don't write output to file", action="store_true")
 parser.add_argument("-b", "--Hourslookback", type=int, help="Use this many hours when calculating pool APR", default=24)
+parser.add_argument("-o", "--Outputtohats", help = "Raspberry Pi Hats Signaling", action="store_true")
 args = parser.parse_args()
 
 def wait_for_local_node_sync(w3):
@@ -71,19 +60,15 @@ def key_capture_thread():
     input()
     enter_hit = True
 
-def pyportal_update(display_percent, booststatusarray):
+def pyportal_update(display_percent, booststatusarray, tripool_value_modifyer):
     pyportal_dict = {}
     pyportal_dict["display_percent"] = display_percent
     pyportal_dict["booststatus"] = booststatusarray
+    pyportal_dict["tripool_value_modifyer"] = tripool_value_modifyer
     try:
         json.dump(pyportal_dict, open("pyportal.json", "w"), indent=4)
     except:
         print("error writing to pyportal.json")
-
-@app.route('/')
-def index():
-    pyportal = json.load(open("pyportal.json", 'r'))
-    return jsonify(pyportal)
 
 def show_headers(w3):
     virutal_price_sum=curve_functions.curve_header_display(myarray, carray, w3, args.Fullheader)
@@ -120,10 +105,9 @@ def gas_and_sleep(w3, mydict):
 
 def main():
     """monitor various curve contracts"""
-    print("Starting Web Server for PyPortal on port 5000")
-    threading.Thread(target=app.run, daemon=True, kwargs={'host': '0.0.0.0', 'port': 5000, 'threaded': True, 'use_reloader': False, 'debug': False}).start()
     print("Calc Pool APR over hours:",args.Hourslookback)
     print("Read Only Mode:",args.Readonly)
+    print("Output to Hats:",args.Outputtohats)
     if not args.Local:
         print("Data Source: Infura")
         w3 = infura_w3
@@ -154,16 +138,17 @@ def main():
         if len(myarray) > 61:
             del myarray[0]
 #update information on screen and pi hats when possible
-        display_percent = status_line_printer.print_status_line(carray, myarray, myarrayh, myarray[-1]["USD"], 0 - len(myarray), w3, args.Hourslookback)
-        try:
-            curve_hats_update(display_percent, carray["booststatus"], mydict["ETH"])
-        except Exception:
-            pass
+        display_percent, tripool_value_modifyer = status_line_printer.print_status_line(carray, myarray, myarrayh, myarray[-1]["USD"], 0 - len(myarray), w3, args.Hourslookback)
+        if args.Outputtohats:
+            try:
+                curve_hats_update(display_percent, carray["booststatus"], mydict["ETH"])
+            except Exception:
+                pass
 #Output dictionary to minute file
         if not args.Readonly:
             shutil.copyfile(file_name, file_name+".bak")
             json.dump(myarray, open(file_name, "w"), indent=4)
-            pyportal_update(display_percent, carray["booststatus"])
+            pyportal_update(display_percent, carray["booststatus"], tripool_value_modifyer)
 #Output dictionary to hour file on the top of each hour
         if minut == "00" and mydict["claim"] > 1:
             myarrayh.append(mydict)

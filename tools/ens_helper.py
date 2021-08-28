@@ -7,7 +7,7 @@ def ipfs_hash_value(w3, website, showerror=False):
         return ENS.fromWeb3(w3).content(website)['hash']
     except Exception as e:
         if showerror:
-            print(e)
+            print("\n",e)
             print("need to install web3.py pull request via pip to get access to content function:")
             print("     pip3 install git+https://github.com/ethereum/web3.py@refs/pull/1411/merge")
         return

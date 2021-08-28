@@ -16,22 +16,27 @@ def sweep_history_log():
         myarrayha = json.load(openfile)
 
     sync = 0
-    print("\nBefore\nArchive:", len(myarrayha),myarrayha[0]["human_time"], myarrayha[-1]["human_time"])
-    print("Cur log:", len(myarrayh),myarrayh[0]["human_time"], myarrayh[-1]["human_time"])
+    print("\nBefore\nArchive:", len(myarrayha), myarrayha[0]["human_time"], myarrayha[-1]["human_time"])
+    print("Cur log:", len(myarrayh), myarrayh[0]["human_time"], myarrayh[-1]["human_time"])
     for x in range(len(myarrayh)):
         if sync == 1:
             myarrayha.append(myarrayh[x])
         if myarrayh[x]["human_time"] == myarrayha[-1]["human_time"] and sync != 1:
-            print("\nsync at",x,myarrayh[x]["human_time"])
+            print("\nsync at", x+1, myarrayh[x]["human_time"])
             sync = 1
+
+    if sync == 0:
+        for x in range(len(myarrayh)):
+            myarrayha.append(myarrayh[x])
+        print("\nno sync found, so adding all records")
 
     while len(myarrayh) > maxhistlen:
         del myarrayh[0]
 
     json.dump(myarrayha, open(file_nameha, "w"), indent=4)
     json.dump(myarrayh, open(file_nameh, "w"), indent=4)
-    print("\nAfter\nArchive:", len(myarrayha),myarrayha[0]["human_time"], myarrayha[-1]["human_time"])
-    print("Cur log:", len(myarrayh),myarrayh[0]["human_time"], myarrayh[-1]["human_time"],"\n")
+    print("\nAfter\nArchive:", len(myarrayha), myarrayha[0]["human_time"], myarrayha[-1]["human_time"])
+    print("Cur log:", len(myarrayh), myarrayh[0]["human_time"], myarrayh[-1]["human_time"],"\n")
 
 if __name__ == "__main__":
     sweep_history_log()
