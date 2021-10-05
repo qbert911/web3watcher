@@ -40,12 +40,11 @@ def show_cvx_rewards(myarray, eoa, extramins):
 
     print(Fore.RED+Style.BRIGHT+"xCVX"+Style.RESET_ALL+subtotal, end=' ')
 
-def show_cvxsushi_rewards(myarray, eoa, extramins):
+def show_cvxsushi_rewards(myarray, eoa, extramins, carray):
     """cvx sushi rewards display"""
-    cvxsushi_token_modifyer = 270 # HACK
     try:
         tprofit=(myarray[-1]["cvxsushi_rewards"][1]-myarray[eoa]["cvxsushi_rewards"][1])/(60+extramins)*myarray[-1]["USDcvx"]*60*24*365
-        subtotal=str(format(round(tprofit/(myarray[-1]["cvxsushi_rewards"][0]*cvxsushi_token_modifyer)*100, 2), '5.2f')).rjust(5)
+        subtotal=str(format(round(tprofit/(myarray[-1]["cvxsushi_rewards"][0]*carray["cvxsushi_token_modifyer"])*100, 2), '5.2f')).rjust(5)
     except Exception:
         subtotal="xx.xx"
 
@@ -108,7 +107,7 @@ def print_status_line(carray, myarray, myarrayh, USD, eoa, w3, lookback):
     tprofit, crv_buffer = show_curve(carray, myarray, myarrayh, eoa, extramins, USD, lookback, tripool_value_modifyer)
     print(Fore.GREEN+Style.BRIGHT+str(format(round((difference)*USD*24*365/(sum(carray["invested"])+(myarray[-1]["trix_rewards"][0]*tripool_value_modifyer*carray["token_value_modifyer"][carray["longname"].index("tRicrypto")]))*100, 2), '5.2f'))+Style.RESET_ALL+"/", end='')
     print(Fore.YELLOW+str(format(round((tprofit/60*60)*24*365/sum(carray["invested"])*100, 2), '5.2f'))[0:5]+Style.RESET_ALL+"% APR", end=' - ')
-    print("D$"+format((round(difference*24*myarray[-1]['USD'], 0)), '.0f')+"/"+format((round(difference_afterparty*24*myarray[-1]['USD'], 0)), '.0f')+Style.RESET_ALL,end="")
+    print("D$"+format((round(difference*24*myarray[-1]['USD'], 0)), '.0f').rjust(2)+"/"+format((round(difference_afterparty*24*myarray[-1]['USD'], 0)), '.0f')+Style.RESET_ALL,end="")
     dbuffer=Fore.RED+"v"+Fore.WHITE+format((round(diffcrv*24/(60+extramins)*60, 1)), '.1f').rjust(4)
     dbuffer+=Fore.RED+"x"+Fore.WHITE+format((round(diffcvx*24/(60+extramins)*60, 1)), '.1f').rjust(4)
     print(Style.DIM+"{"+dbuffer+"}"+Style.RESET_ALL,end=" ")
@@ -125,10 +124,10 @@ def print_status_line(carray, myarray, myarrayh, USD, eoa, w3, lookback):
     show_convex(carray, myarray, eoa,extramins,"trix_rewards","xTri", 0, carray["longname"].index("tRicrypto"),tripool_value_modifyer) #Indicates no third pool and using token_value_modifyer
     print(tri_buffer, end=' ')
     show_convex(carray, myarray, eoa,extramins,"cvx_rewards","xCRV", 1, 0, 1) #Indicates having an extra 3pool and not using token_value_modifyer
+    show_cvx_rewards(myarray, eoa, extramins)
     print("["+Fore.CYAN+Style.BRIGHT+f"{((myarray[-1]['USDcvxCRV']-myarray[-1]['USD'])/myarray[-1]['USD'])*100:5.2f}"+Style.RESET_ALL+"%]",end=" ")
     #print("$"+Fore.YELLOW+Style.BRIGHT+f"{myarray[-1]['USDcvxCRV']:.2f}"+Style.RESET_ALL,end=" ")
-    show_cvx_rewards(myarray, eoa, extramins)
-    show_cvxsushi_rewards(myarray, eoa, extramins)
+    show_cvxsushi_rewards(myarray, eoa, extramins, carray)
     if extramins >= 0: #air bubble extra minutes
         print(Fore.RED+str(round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa+1)+Style.RESET_ALL, end=' ')
     if eoa > -61:  #fewer than 60 records in the ghistory.json file

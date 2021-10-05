@@ -66,7 +66,8 @@ def pyportal_update(display_percent, booststatusarray, tripool_value_modifyer):
     pyportal_dict["booststatus"] = booststatusarray
     pyportal_dict["tripool_value_modifyer"] = tripool_value_modifyer
     try:
-        json.dump(pyportal_dict, open("pyportal.json", "w"), indent=4)
+        json.dump(pyportal_dict, open("pyportal_tmp.json", "w"), indent=4)
+        shutil.copyfile("pyportal_tmp.json", "pyportal.json")
     except:
         print("error writing to pyportal.json")
 
@@ -87,7 +88,7 @@ def gas_and_sleep(w3, mydict):
     month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
     while month+"/"+day+" "+hour+":"+minut == myarray[-1]["human_time"]:        #Wait for each minute to pass to run again
         try:
-            print(str("~"+str(round(infura_w3.eth.gasPrice/10**9))+"~").rjust(5), "\b"*6, end="", flush=True)
+            print(str("~"+str(round(infura_w3.eth.gasPrice/10**9))+"~")[0:5].rjust(5),"\b"*6, end="", flush=True)
         except Exception:
             print(str("~"+Fore.RED+Style.BRIGHT+"xxx"+Style.RESET_ALL+"~"), "\b"*6, end="", flush=True)
         if firstpass and minut == "00":

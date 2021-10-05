@@ -10,7 +10,6 @@ init()
 purchase_array = [{"dollar_value":11000, "tokens_recieved":  8.2626, "btc_price": 37665, "eth_price":2233},
                   {"dollar_value":18854, "tokens_recieved": 16.1750, "btc_price": 31968, "eth_price":1828},
                   {"dollar_value": 5160, "tokens_recieved":  3.9146, "btc_price": 35391, "eth_price":2351}]
-FUDGE = .934 #HACK
 
 MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
 INFURA_ID = "bfdd3973b810492db7cb27792702782f"   #bw-tricalc #"1d651358519346beb661128bf65ab651" #by-tricalc
@@ -21,6 +20,7 @@ tri_guage = load_contract("0xDeFd8FdD20e0f34115C7018CCfb655796F6B2168",infura_w3
 tri_swap = load_contract("0xD51a44d3FaE010294C616388b506AcdA1bfAAE46",infura_w3)
 
 def tri_calc(fulldisplay, guage_bal):
+    FUDGE = .958 #HACK
     _all_dollars_spent = sum(item['dollar_value'] for item in purchase_array)
     labels = ['usd', 'btc', 'eth']
     decimals = [6, 8, 18]
@@ -32,7 +32,10 @@ def tri_calc(fulldisplay, guage_bal):
         parser2 = argparse.ArgumentParser()
         parser2.add_argument("-e", "--Ethvalue", type=int, help="Theoretical ETH value")
         parser2.add_argument("-b", "--Btcvalue", type=int, help="Theoretical BTC value")
+        parser2.add_argument("-f", "--Fudge", type=float, help="Fudge value")
         args2 = parser2.parse_args()
+        if args2.Fudge:
+            FUDGE = args2.Fudge
         if args2.Ethvalue:
             _price_oracle[2] = args2.Ethvalue
         if args2.Btcvalue:
@@ -52,9 +55,10 @@ def tri_calc(fulldisplay, guage_bal):
             _val = _coins[i] * _price_oracle[i]
             _curr_val += _val
             buf+=(f"         {labels[i]}: ${_val:06,.0f} ={_coins[i]: 12.5f} @ "+Fore.CYAN+f"${_price_oracle[i]:,.2f}\n"+Style.RESET_ALL)
-
+        calculated_token_value = 3 * virt_price * ((_price_oracle[2] * _price_oracle[1])**(1./3.))
         if fulldisplay:
             print(f"   virtprice: {virt_price}\n"+f"Total supply: {totalSupply / 10 ** 18:,.0f}\n"+f" Tokens held: {guage_bal / 10 ** 18:.4f}\n")
+            print(" Token value:",f"{calculated_token_value:.2f}")
 
         for j in range(len(purchase_array)):
             x = _price_oracle[1] / purchase_array[j]["btc_price"]
@@ -70,15 +74,21 @@ def tri_calc(fulldisplay, guage_bal):
                 print("Actual ["+Fore.CYAN+f"{((_curr_val/(guage_bal/10**18)/(purchase_array[j]['dollar_value']/purchase_array[j]['tokens_recieved']))-1)*100:6.2f}"+Style.RESET_ALL+"%]", end = "  ")
                 print("Sim ["+Fore.CYAN+Style.BRIGHT+f"{(z-1)*100:6.2f}"+Style.RESET_ALL+"%] "+f"BTC[{(x-1) * 100:6.2f}%] ETH[{(y-1) * 100:6.2f}%]")
                 #print(" "*44,"Simulated ["+Fore.CYAN+Style.BRIGHT+f"{(z-1)*100:6.2f}"+Style.RESET_ALL+"%]"+Style.RESET_ALL)  #= worth $"+Fore.YELLOW+f"{z * purchase_array[j]['dollar_value']:5.0f}
+        AUTOFUDGE = 1-((sim_total/_all_dollars_spent)-1)/5.5
+        estimated_total = round(guage_bal*calculated_token_value/10**18)
         if fulldisplay:
             print(" "*3,"Invested: $"+Fore.GREEN+f"{_all_dollars_spent:,.0f}"+Style.RESET_ALL+" (Each "+Fore.MAGENTA+"©"+Style.RESET_ALL+f"token was: ${_all_dollars_spent/(guage_bal/10**18):.0f})\n")
             print(buf, end="")
             print(" "*6,"Total: $"+Fore.YELLOW+Style.BRIGHT+f"{_curr_val:,.0f}"+Style.RESET_ALL+" (Each "+Fore.MAGENTA+"©"+Style.RESET_ALL+"token now: $"+thiscolor+f"{_curr_val/(guage_bal/10**18):.0f}"+Style.RESET_ALL+") Change: ["+Fore.CYAN+f"{100*((_curr_val/_all_dollars_spent)-1):6.2f}"+Style.RESET_ALL+"%]\n")
-            print(" "*2,"Simulated: $"+Fore.YELLOW+f"{sim_total:,.0f}"+Style.RESET_ALL+" (Each "+Fore.MAGENTA+"©"+Style.RESET_ALL+"token was: $"+thiscolor+f"{sim_total/(guage_bal/10**18):.0f}"+Style.RESET_ALL+") Simula: ["+Fore.CYAN+Style.BRIGHT+f"{100*((sim_total/_all_dollars_spent)-1):6.2f}"+Style.RESET_ALL+"%]")
+            print(" "*2,"Simulated: $"+Fore.YELLOW+f"{sim_total:,.0f}"+Style.RESET_ALL+" (Each "+Fore.MAGENTA+"©"+Style.RESET_ALL+"token was: $"+thiscolor+f"{sim_total/(guage_bal/10**18):.0f}"+Style.RESET_ALL+") Simula: ["+Fore.CYAN+Style.BRIGHT+f"{100*((sim_total/_all_dollars_spent)-1):6.2f}"+Style.RESET_ALL+"%]\n")
+            print("Estimated: $",estimated_total)
             print("\nFUDGE",FUDGE)
+            print("AUTOFUDGE",f"{AUTOFUDGE:,.4f}")
         if sim_total > _curr_val:  #use the lower of the two estimates for other calculations
             sim_total = _curr_val
-        output = (sim_total*FUDGE/_all_dollars_spent)
+        if sim_total > estimated_total:  #use the lower of the two estimates for other calculations
+            sim_total = estimated_total
+        output = (sim_total*AUTOFUDGE/_all_dollars_spent)
         return output, "["+Fore.BLUE+f"{100*(output-1):5.2f}"+Style.RESET_ALL+"%]"
 
     except Exception:
@@ -88,3 +98,5 @@ def tri_calc(fulldisplay, guage_bal):
 if __name__ == "__main__":
     print(tri_calc(True,0))
     print(tri_calc(False,0))
+    token_price = round(load_contract("0xE8b2989276E2Ca8FDEA2268E3551b2b4B2418950",infura_w3).lp_price().call() / 10 ** 18)
+    print(token_price)
