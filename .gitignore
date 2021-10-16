@@ -3,6 +3,6 @@ __pycache__
 *$py.class
 *.pyc
 g*.json
-pyportal.json
+pyportal*.json
 *.bak
 *archive.json

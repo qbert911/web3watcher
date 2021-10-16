@@ -18,9 +18,9 @@ def curve_header_display(myarray, carray, w3, fullheader):
     veCRV_total = round(call_me(vecrv_func.totalSupply())/10**18, 2)
     for i in range(0, len(carray["name"])):
         if carray["currentboost"][i] > 0 or fullheader:
-            carray["totalsupply"][i] = round(call_me(load_contract(carray["guageaddress"][i],w3).totalSupply())/10**18, 2)
+            carray["totalsupply"][i] = round(call_me(load_contract(carray["gaugeaddress"][i],w3).totalSupply())/10**18, 2)
             carray["virtprice"][i] = round(call_me(load_contract(carray["swapaddress"][i],w3).get_virtual_price())/10**18, 6)
-            carray["balanceof"][i] = round(call_me(load_contract(carray["guageaddress"][i],w3).balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
+            carray["balanceof"][i] = round(call_me(load_contract(carray["gaugeaddress"][i],w3).balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
             if len(carray["tokenaddress"][i]) > 1:
                 carray["balanceof"][i] += round(call_me(load_contract(carray["tokenaddress"][i],w3).balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
             virutal_price_sum += carray["virtprice"][i]*carray["balanceof"][i]*carray["token_value_modifyer"][i]
@@ -154,10 +154,10 @@ def load_curvepools_fromjson(myarray,barray,w3):
         barray["invested"].append(thisarray[i]["invested"])
         barray["currentboost"].append(thisarray[i]["currentboost"])
         barray["name"].append(thisarray[i]["name"])
-        barray["guageaddress"].append(thisarray[i]["guageaddress"])
+        barray["gaugeaddress"].append(thisarray[i]["gaugeaddress"])
         barray["swapaddress"].append(thisarray[i]["swapaddress"])
         try:
-            barray["minted"][i] = call_me(minter_func.minted(MY_WALLET_ADDRESS, barray["guageaddress"][i]))
+            barray["minted"][i] = call_me(minter_func.minted(MY_WALLET_ADDRESS, barray["gaugeaddress"][i]))
             barray["tokenaddress"].append(thisarray[i]["tokenaddress"])
         except Exception:
             barray["tokenaddress"].append("")
@@ -178,9 +178,9 @@ def update_curve_pools(mydict,carray,myarray,myarrayh,w3):
         mydict[carray["name"][i]+"invested"] = carray["invested"][i]
         try:
             if carray["invested"][i] > 0: #skip updating empty pools
-                carray["balanceof"][i] = call_me(load_contract(carray["guageaddress"][i],w3).balanceOf(MY_WALLET_ADDRESS))/10**18
+                carray["balanceof"][i] = call_me(load_contract(carray["gaugeaddress"][i],w3).balanceOf(MY_WALLET_ADDRESS))/10**18
                 time.sleep(0.1)
-                carray["raw"][i] = call_me(load_contract(carray["guageaddress"][i],w3).claimable_tokens(MY_WALLET_ADDRESS))
+                carray["raw"][i] = call_me(load_contract(carray["gaugeaddress"][i],w3).claimable_tokens(MY_WALLET_ADDRESS))
                 potential_virtprice_update = call_me(load_contract(carray["swapaddress"][i],w3).get_virtual_price())/10**18
                 mydict[carray["name"][i]+"virtprice"] = potential_virtprice_update
                 if potential_virtprice_update > carray["virtprice"][i]:
@@ -189,7 +189,7 @@ def update_curve_pools(mydict,carray,myarray,myarrayh,w3):
                     mydict[carray["name"][i]+"profit"] = (carray["virtprice"][i]*carray["balanceof"][i]*carray["token_value_modifyer"][i])-carray["invested"][i]
             if abs(round((carray["raw"][i]+carray["minted"][i])/10**18, 5) - myarray[-1][carray["name"][i]+"pool"]) > 10:
                 print("\nMINTING HAPPENED:", carray["name"][i], "pool      Before", carray["minted"][i], end='   ')
-                carray["minted"][i] = call_me(minter_func.minted(MY_WALLET_ADDRESS, carray["guageaddress"][i]))
+                carray["minted"][i] = call_me(minter_func.minted(MY_WALLET_ADDRESS, carray["gaugeaddress"][i]))
                 print("After", carray["minted"][i])
             mydict[carray["name"][i]+"pool"] = round((carray["raw"][i]+carray["minted"][i])/10**18, 5)
             if myarray[-1][carray["name"][i]+"pool"] - mydict[carray["name"][i]+"pool"] > 0.01: #debug lines ... should not happen
@@ -214,8 +214,8 @@ def curve_boost_check(carray,w3):
             elif carray["currentboost"][i] == 0:
                 carray["booststatus"][i] = 4                #Blue, pool is empty
             else:
-                carray["balanceof"][i] = round(call_me(load_contract(carray["guageaddress"][i],w3).balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
-                carray["totalsupply"][i] = round(call_me(load_contract(carray["guageaddress"][i],w3).totalSupply())/10**18, 2)
+                carray["balanceof"][i] = round(call_me(load_contract(carray["gaugeaddress"][i],w3).balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
+                carray["totalsupply"][i] = round(call_me(load_contract(carray["gaugeaddress"][i],w3).totalSupply())/10**18, 2)
                 if carray["currentboost"][i] > 0:
                     carray["futureboost"][i] = 2.5 * min((carray["balanceof"][i]/2.5) + (carray["totalsupply"][i]*veCRV_mine/veCRV_total*(1-(1/2.5))), carray["balanceof"][i])/carray["balanceof"][i]
                 if carray["currentboost"][i] >= carray["futureboost"][i]:

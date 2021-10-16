@@ -5,7 +5,7 @@ from web3 import Web3
 from colorama import Fore, Style
 from tools.load_contract import load_contract
 
-CVX_fraction_factor = 0.328 #HACK
+CVX_fraction_factor = 0.292 #HACK
 
 MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
 #cvx_token = load_contract("0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B",infura_w3)#cvx token to calculate ratio, cliff etc
@@ -13,7 +13,7 @@ MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
 
 def convex_header_display(myarray, carray):
 
-    carray["cvxsushi_token_modifyer"] = 400 # HACK
+    carray["cvxsushi_token_modifyer"] = 520 # HACK
     trix_value = ((myarray[-1]["trix_rewards"][2]*myarray[-1]["USDcvx"])+
                   (myarray[-1]["trix_rewards"][1]*myarray[-1]["USD"]))
 
@@ -83,14 +83,15 @@ def trix_getvalue(printit, myarray, w3):
 def cvxcrv_getvalue(printit, myarray, w3):
     cvx_cvxcrv = load_contract("0xD18140b4B819b895A3dba5442F959fA44994AF50",w3)#convex cvxCRV rewards
     try:
-        invested = cvx_cvxcrv.balanceOf(MY_WALLET_ADDRESS).call()/10**18
+        invested = cvx_cvxcrv.balances(MY_WALLET_ADDRESS).call()[0]/10**18
         cvxcrv_earned=cvx_cvxcrv.claimableRewards(MY_WALLET_ADDRESS).call()[0][1]/10**18
         if printit:
             print(f"  cvxCRV: {cvxcrv_earned}")
         return [invested, cvxcrv_earned]
     except Exception:
         print("\nupdate cvxcrv exception")
-        return [myarray[-1]["cvxcrv_rewards"][0] ,myarray[-1]["cvxcrv_rewards"][1]]
+        if not printit:
+            return [myarray[-1]["cvxcrv_rewards"][0] ,myarray[-1]["cvxcrv_rewards"][1]]
 
 def cvxsushi_getvalue(printit, myarray, w3):
     sushi=load_contract("0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d", w3)

@@ -27,7 +27,7 @@ file_name = "ghistory.json"
 file_nameh = "ghistoryh.json"
 myarray = json.load(open(file_name, 'r'))
 myarrayh = json.load(open(file_nameh, 'r'))
-carray = {"longname": [], "name": [], "invested": [], "currentboost": [], "guageaddress" : [], "swapaddress" : [], "tokenaddress" : []}
+carray = {"longname": [], "name": [], "invested": [], "currentboost": [], "gaugeaddress" : [], "swapaddress" : [], "tokenaddress" : []}
 
 enter_hit = False
 
@@ -63,8 +63,8 @@ def key_capture_thread():
 def pyportal_update(display_percent, booststatusarray, tripool_value_modifyer):
     pyportal_dict = {}
     pyportal_dict["display_percent"] = display_percent
-    pyportal_dict["booststatus"] = booststatusarray
-    pyportal_dict["tripool_value_modifyer"] = tripool_value_modifyer
+    #pyportal_dict["booststatus"] = booststatusarray
+    pyportal_dict["tripool_value_modifyer"] = round(tripool_value_modifyer, 5)
     try:
         json.dump(pyportal_dict, open("pyportal_tmp.json", "w"), indent=4)
         shutil.copyfile("pyportal_tmp.json", "pyportal.json")

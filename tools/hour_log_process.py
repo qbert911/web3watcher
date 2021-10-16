@@ -5,7 +5,7 @@ import time
 import json
 from pycoingecko import CoinGeckoAPI
 from colorama import Fore, Style, init
-from price_getter import update_price
+from tools.price_getter import update_price
 init()
 cg = CoinGeckoAPI()
 

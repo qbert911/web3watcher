@@ -103,7 +103,7 @@ def print_status_line(carray, myarray, myarrayh, USD, eoa, w3, lookback):
     print("$"+Fore.YELLOW+Style.BRIGHT+f"{USD:5.2f}"+Style.RESET_ALL, end=' ') #csym+"1"+Style.RESET_ALL+" = "+
     print("$"+Fore.YELLOW+f"{myarray[-1]['USDcvx']:5.2f}"+Style.RESET_ALL,end=" - ", flush=True)
 
-    tripool_value_modifyer, tri_buffer = tripool_calc.tri_calc(False,-1)
+    tripool_value_modifyer, tri_buffer = tripool_calc.tri_calc(False)
     tprofit, crv_buffer = show_curve(carray, myarray, myarrayh, eoa, extramins, USD, lookback, tripool_value_modifyer)
     print(Fore.GREEN+Style.BRIGHT+str(format(round((difference)*USD*24*365/(sum(carray["invested"])+(myarray[-1]["trix_rewards"][0]*tripool_value_modifyer*carray["token_value_modifyer"][carray["longname"].index("tRicrypto")]))*100, 2), '5.2f'))+Style.RESET_ALL+"/", end='')
     print(Fore.YELLOW+str(format(round((tprofit/60*60)*24*365/sum(carray["invested"])*100, 2), '5.2f'))[0:5]+Style.RESET_ALL+"% APR", end=' - ')
@@ -135,11 +135,11 @@ def print_status_line(carray, myarray, myarrayh, USD, eoa, w3, lookback):
     if myarray[-1]["invested"] != myarray[eoa]["invested"]:
         print(Fore.RED+str(round(myarray[-1]["invested"] - myarray[eoa]["invested"]))+Style.RESET_ALL, end=' ')
     if myarray[-1]["cvx_rewards"][0] != myarray[eoa]["cvx_rewards"][0]:
-        print(Fore.RED+str(round(myarray[-1]["cvx_rewards"][0] - myarray[eoa]["cvx_rewards"][0]))+Style.RESET_ALL, end=' ')
+        print(Fore.RED+str(round(myarray[-1]["cvx_rewards"][0] - myarray[eoa]["cvx_rewards"][0]))+Style.RESET_ALL, end='v ')
     if myarray[-1]["trix_rewards"][0] != myarray[eoa]["trix_rewards"][0]:
-        print(Fore.RED+str(round(myarray[-1]["trix_rewards"][0] - myarray[eoa]["trix_rewards"][0]))+Style.RESET_ALL, end=' ')
+        print(Fore.RED+str(round(myarray[-1]["trix_rewards"][0] - myarray[eoa]["trix_rewards"][0]))+Style.RESET_ALL, end='z ')
     if myarray[-1]["cvxcrv_rewards"][0] != myarray[eoa]["cvxcrv_rewards"][0]:
-        print(Fore.RED+str(round(myarray[-1]["cvxcrv_rewards"][0] - myarray[eoa]["cvxcrv_rewards"][0]))+Style.RESET_ALL, end=' ')
+        print(Fore.RED+str(round(myarray[-1]["cvxcrv_rewards"][0] - myarray[eoa]["cvxcrv_rewards"][0]))+Style.RESET_ALL, end='x ')
     try:  #check to see if the interface linked on ipfs has changed
         if ipfs_hash_value(w3, 'curve.eth', True) != curve_ipfs_current_hash:
             print(Fore.RED+Style.BRIGHT+"WW"+Style.RESET_ALL, end=' ')
