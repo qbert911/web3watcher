@@ -21,7 +21,8 @@ init()                                      #initialize colorama
 INFURA_ID = "9c51dd19cb9e456387014e7d1661afa3"
 
 infura_w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
-mylocal_w3 = Web3(Web3.HTTPProvider('http://192.168.0.4:8545'))
+#mylocal_w3 = Web3(Web3.HTTPProvider('http://192.168.0.4:8545'))
+mylocal_w3 = Web3(Web3.WebsocketProvider("ws://192.168.0.4:8546"))
 
 file_name = "ghistory.json"
 file_nameh = "ghistoryh.json"
@@ -43,13 +44,14 @@ def wait_for_local_node_sync(w3):
     while True:
         try:
             a = w3.eth.syncing
+            #print(a,"\r", end="")
             try:
                 blockdiff = a['highestBlock']-a['currentBlock']
             except Exception:
                 blockdiff = 0
-            if a is False or blockdiff < 5:
+            if a is False or blockdiff < 15:
                 break
-            print("\rLocal Node has:",blockdiff, "blocks left to catch up\r",end="")
+            print("\rLocal Node has:",blockdiff, "blocks left to catch up\r", end="")
         except Exception:
             print("\rLocal Node communication error", end="")
         time.sleep(10)
@@ -73,7 +75,7 @@ def pyportal_update(display_percent, booststatusarray, tripool_value_modifyer):
 
 def show_headers(w3):
     virutal_price_sum=curve_functions.curve_header_display(myarray, carray, w3, args.Fullheader)
-    convex_examiner.convex_header_display(myarray, carray)
+    convex_examiner.convex_header_display(myarray, carray, w3)
     curve_functions.combined_stats_display(myarray, carray, w3, virutal_price_sum)
     threading.Thread(target=key_capture_thread, args=(), name='key_capture_thread', daemon=True).start()
 
@@ -130,7 +132,9 @@ def main():
         mydict["human_time"] = month+"/"+day+" "+hour+":"+minut
         mydict["invested"] = sum(carray["invested"])
         mydict["cvxcrv_rewards"] = convex_examiner.cvxcrv_getvalue(False, myarray, w3)
-        mydict["trix_rewards"] = convex_examiner.trix_getvalue(False, myarray, w3)
+        mydict["trix_rewards"] = convex_examiner.regx_getvalue(False, myarray, w3, "trix_rewards", "0x9D5C5E364D81DaB193b72db9E9BE9D8ee669B652")
+        mydict["mimx_rewards"] = convex_examiner.regx_getvalue(False, myarray, w3, "mimx_rewards", "0xC62DE533ea77D46f3172516aB6b1000dAf577E89")
+        mydict["crveth_rewards"] = convex_examiner.regx_getvalue(False, myarray, w3, "crveth_rewards", "0x085A2054c51eA5c91dbF7f90d65e728c0f2A270f",1)
         mydict["cvx_rewards"] = convex_examiner.cvx_getvalue(False, myarray, w3)
         mydict["cvxsushi_rewards"] = convex_examiner.cvxsushi_getvalue(False, myarray, w3)
         curve_functions.update_curve_pools(mydict, carray, myarray, myarrayh, w3)

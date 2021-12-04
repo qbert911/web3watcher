@@ -3,7 +3,7 @@
 # pylint: disable=C0103,C0116,C0301,W0105,E0401,R0914
 import json
 import os.path
-from etherscan.contracts import Contract
+from etherscan.contracts import Contract #py_etherscan_api
 
 def load_contract(_contract, _eth_connect):
     key = 'WXPQDYFIT982E3GPJR9JEHXHNYRADB34BN'   #HACK My etherscan api key

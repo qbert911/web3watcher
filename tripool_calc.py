@@ -18,12 +18,12 @@ tri_gauge = load_contract("0xDeFd8FdD20e0f34115C7018CCfb655796F6B2168",infura_w3
 tri_swap = load_contract("0xD51a44d3FaE010294C616388b506AcdA1bfAAE46",infura_w3)
 
 def tri_calc(fulldisplay):
-    _all_dollars_spent = sum(item['dollar_value'] for item in purchase_array)
     sim_total = 0
     _price_oracle = [1,0,0]
     try:
-        _coins_in_convex_gauge = convex_examiner.trix_getvalue(False,None,infura_w3)[0]
+        _coins_in_convex_gauge = convex_examiner.regx_getvalue(False,None,infura_w3,"trix_rewards","0x9D5C5E364D81DaB193b72db9E9BE9D8ee669B652")[0]
         gauge_bal = tri_gauge.balanceOf(MY_WALLET_ADDRESS).call() + (_coins_in_convex_gauge*(10**18))
+        _all_dollars_spent = sum(item['dollar_value'] for item in purchase_array) * ((gauge_bal/10**18)/sum(item['tokens_recieved'] for item in purchase_array))
         virt_price = tri_swap.get_virtual_price().call()/10**18
         _price_oracle[1] = tri_swap.price_oracle(0).call()/10**18
         _price_oracle[2] = tri_swap.price_oracle(1).call()/10**18
@@ -36,7 +36,7 @@ def tri_calc(fulldisplay):
             x = _price_oracle[1] / purchase_array[j]["btc_price"]
             y = _price_oracle[2] / purchase_array[j]["eth_price"]
             z = (x+y+1) / 3
-            sim_total += z * purchase_array[j]['dollar_value']
+            sim_total += z * purchase_array[j]['dollar_value'] * ((gauge_bal/10**18)/sum(item['tokens_recieved'] for item in purchase_array))
             if fulldisplay:
                 thiscolor = Fore.RED+Style.BRIGHT
                 if _all_dollars_spent < sim_total:

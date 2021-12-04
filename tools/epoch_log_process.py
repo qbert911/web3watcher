@@ -47,8 +47,8 @@ def find_epochs(targetperson,printit):
             totalprofit += amount_generated
             da = round((myarrayh[newinvestment]["raw_time"]-myarrayh[wasinvested]["raw_time"]) / (60*60*24),1)
             if printit:
-                print(usym+str(myarrayh[newinvestment-1]["invested"])+Style.RESET_ALL, end='(')
-                print(str(format((myarrayh[newinvestment-0]["invested"]-myarrayh[newinvestment-1]["invested"]),'+.0f')).rjust(5), end=') - ')
+                print(usym+str(myarrayh[newinvestment-1]["invested"]).rjust(5)+Style.RESET_ALL, end='(')
+                print(str(format((myarrayh[newinvestment-0]["invested"]-myarrayh[newinvestment-1]["invested"]),'+.0f')).rjust(6), end=') - ')
                 print(myarrayh[newinvestment]["human_time"], end=' - ')
                 print(str(da).rjust(4),"days" ,end=' - ')
                 print(csym+str(round(amount_generated)).rjust(3)+Style.RESET_ALL, end=' - ')
@@ -56,7 +56,7 @@ def find_epochs(targetperson,printit):
 
             mypercent=0
             for i in range(0,len(invarray["invested"])):
-                if invarray["raw_time"][i] <= myarrayh[newinvestment]["raw_time"]:
+                if invarray["raw_time"][i] <= myarrayh[newinvestment]["raw_time"] and myarrayh[newinvestment-1]["invested"] > 8000:
                     mypercent += (invarray["invested"][i]/myarrayh[newinvestment-1]["invested"])
                     mypercentme = (invarray["invested"][i]/myarrayh[newinvestment-1]["invested"])
                     if printit:
@@ -80,7 +80,8 @@ def find_epochs(targetperson,printit):
     for key in profitdict:
         if key != "rest":
             profitdict["rest"] = round(profitdict["rest"] - profitdict[key],2)
-    profitdict["all"] = totalprofit
+
+    profitdict["all"] = totalprofit+myarrayh[0]["claim"]
     return epochsdict, profitdict
 
 if __name__ == "__main__":
