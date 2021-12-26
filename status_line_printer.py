@@ -4,15 +4,14 @@
 import time
 from colorama import Fore, Style
 import curve_functions
-import tripool_calc
 from tools.ens_helper import ipfs_hash_value
 
 curve_ipfs_current_hash="Qmap8m62DnovFjN7jpdvbqhiBuQsipux2gEKLFjQmiNrqB"
 
-def show_convex(carray, myarray, eoa, extramins, name, label, extrapools, tokenmodindex, tripool_value_modifyer_in):
+def show_convex(carray, myarray, eoa, extramins, name, label, extrapools, token_value):
     """cvx display"""
     labels = [ "I", "v", "x", "t"]
-    pricefactor = [ tokenmodindex, myarray[-1]["USD"], myarray[-1]["USDcvx"], myarray[-1]["USD3pool"]]
+    pricefactor = [ token_value, myarray[-1]["USD"], myarray[-1]["USDcvx"], myarray[-1]["USD3pool"]]
     buffer=""
     tprofit=0
     for i in range(1,3+extrapools):
@@ -21,12 +20,12 @@ def show_convex(carray, myarray, eoa, extramins, name, label, extrapools, tokenm
             thisdiff=(myarray[-1][name][i]-myarray[eoa][name][i])/(60+extramins)*pricefactor[i]*60*24*365
             if thisdiff >= 0:
                 tprofit+=thisdiff
-                buffer+=str(format(round((myarray[-1][name][i]-myarray[eoa][name][i])/(60+extramins)*pricefactor[i]*60*24*365/(myarray[eoa][name][0]*pricefactor[extrapools]*tripool_value_modifyer_in)*100, 2), '.2f')).rjust(5)+""
+                buffer+=str(format(round((myarray[-1][name][i]-myarray[eoa][name][i])/(60+extramins)*pricefactor[i]*60*24*365/(myarray[eoa][name][0]*pricefactor[extrapools])*100, 2), '.2f')).rjust(5)+""
             else:
                 buffer+="xx.xx"
         except Exception:
             buffer+="xx.xx"
-        subtotal=str(format(round(tprofit/((myarray[eoa][name][0]+.000000001)*pricefactor[extrapools]*tripool_value_modifyer_in)*100, 2), '5.2f')).rjust(5)
+        subtotal=str(format(round(tprofit/((myarray[eoa][name][0]+.000000001)*pricefactor[extrapools])*100, 2), '5.2f')).rjust(5)
 
     print(Fore.RED+Style.BRIGHT+label+Style.RESET_ALL+subtotal+Style.DIM+"{"+buffer+"}"+Style.RESET_ALL, end=' ')
 
@@ -115,16 +114,18 @@ def print_status_line(carray, myarray, myarrayh, USD, eoa, w3, lookback):
     print("$"+Fore.YELLOW+Style.BRIGHT+f"{USD:5.2f}"+Style.RESET_ALL, end=' ') #csym+"1"+Style.RESET_ALL+" = "+
     print("$"+Fore.YELLOW+f"{myarray[-1]['USDcvx']:5.2f}"+Style.RESET_ALL,end=" - ", flush=True)
 
-    tripool_value_modifyer, tri_buffer = tripool_calc.tri_calc(False)
+    tripool_token_price =  3 * ((myarray[-1]["BTC"] * myarray[-1]["ETH"])**(1/3))
+    tripool_value_modifyer = tripool_token_price / 1229
+    tri_buffer = "["+Fore.BLUE+f"{100*round(tripool_value_modifyer-1,2):2.0f}"+Style.RESET_ALL+"%]"
     tprofit, crv_buffer = show_curve(carray, myarray, myarrayh, eoa, extramins, USD, lookback, tripool_value_modifyer)
-    print(Fore.GREEN+Style.BRIGHT+str(format(round((difference)*USD*24*365/(sum(carray["invested"])+myarray[-1]["mimx_rewards"][0]+(myarray[-1]["trix_rewards"][0]*tripool_value_modifyer*carray["token_value_modifyer"][carray["longname"].index("tRicrypto")]))*100, 2), '5.2f'))+Style.RESET_ALL+"/", end='')
+    print(Fore.GREEN+Style.BRIGHT+str(format(round((difference)*USD*24*365/(sum(carray["invested"])+myarray[-1]["mimx_rewards"][0]+(myarray[-1]["trix_rewards"][0]*tripool_token_price))*100, 2), '5.2f'))+Style.RESET_ALL+"/", end='')
     print(Fore.YELLOW+str(format(round((tprofit/60*60)*24*365/sum(carray["invested"])*100, 2), '5.2f'))[0:5]+Style.RESET_ALL+"% APR", end=' - ')
 
     print("D$"+format((round(difference*24*myarray[-1]['USD'], 0)), '.0f').rjust(2)+"/",end="")
     print(format((round(difference_afterparty3*24*myarray[-1]['USD'], 0)), '.0f').rjust(3)+"/"+Style.RESET_ALL,end="")
     print(format((round(difference_afterparty*24*myarray[-1]['USD'], 0)), '.0f').rjust(2)+"/"+Style.RESET_ALL,end="")
     print(format((round(difference_afterparty2*24*myarray[-1]['USD'], 0)), '.0f').rjust(3)+Style.RESET_ALL,end="")
-    dbuffer=Fore.RED+"v"+Fore.WHITE+format((round(diffcrv*24/(60+extramins)*60, 2)), '.2f').rjust(4)
+    dbuffer=Fore.RED+"v"+Fore.WHITE+format((round(diffcrv*24/(60+extramins)*60, 2)), '.2f').rjust(5)
     dbuffer+=Fore.RED+"x"+Fore.WHITE+format((round(diffcvx*24/(60+extramins)*60, 2)), '.2f').rjust(4)
     print(Style.DIM+"{"+dbuffer+"}"+Style.RESET_ALL,end=" ")
 
@@ -138,11 +139,11 @@ def print_status_line(carray, myarray, myarrayh, USD, eoa, w3, lookback):
     #print("Y"+csym+format((round(difference*24*365, 0)), '.0f').rjust(4)+Style.RESET_ALL+
     #      "/$"+Fore.YELLOW+str(format(round(24*365*tprofit,2), '.0f')).rjust(4)+Style.RESET_ALL, end=' ')
     print(tri_buffer, end=' ')
-    #show_convex(carray, myarray, eoa,extramins,"trix_rewards","xTri", 0,  carray["token_value_modifyer"][carray["longname"].index("tRicrypto")] ,tripool_value_modifyer) #Indicates no third pool and using token_value_modifyer
-    crveth_value_modifyer = 2 * ((myarray[-1]["USD"] * myarray[-1]["ETH"])**(1/2))
-    show_convex(carray, myarray, eoa,extramins,"mimx_rewards","xMim", 0, 1, 1) #Indicates no third pool and not using token_value_modifyer
-    show_convex(carray, myarray, eoa,extramins,"crveth_rewards","xV2E", 0, crveth_value_modifyer, 1) #Indicates no third pool and using token_value_modifyer
-    show_convex(carray, myarray, eoa,extramins,"cvx_rewards","xCRV", 1, 0, 1) #Indicates having an extra 3pool and not using token_value_modifyer
+    #show_convex(carray, myarray, eoa,extramins,"trix_rewards","xTri", 0, tripool_token_price) #Indicates no third pool and using token_value_modifyer
+    crveth_token_price = 2 * ((myarray[-1]["USD"] * myarray[-1]["ETH"])**(1/2))
+    show_convex(carray, myarray, eoa,extramins,"mimx_rewards","xMim", 0, 1) #Indicates no third pool and not using token_value_modifyer
+    show_convex(carray, myarray, eoa,extramins,"crveth_rewards","xV2E", 0, crveth_token_price) #Indicates no third pool and using token_value_modifyer
+    show_convex(carray, myarray, eoa,extramins,"cvx_rewards","xCRV", 1, 1) #Indicates having an extra 3pool and not using token_value_modifyer
     show_cvx_rewards(myarray, eoa, extramins)
     #print("$"+Fore.YELLOW+Style.BRIGHT+f"{myarray[-1]['USDcvxCRV']:.2f}"+Style.RESET_ALL,end=" ")
     show_cvxsushi_rewards(myarray, eoa, extramins, carray)
@@ -168,8 +169,8 @@ def print_status_line(carray, myarray, myarrayh, USD, eoa, w3, lookback):
     #        print("W", end=' ')
     #except:
     #    print(Fore.WHITE+Style.DIM+"w"+Style.RESET_ALL, end=' ')
-
-    return round(((difference*myarray[-1]["USD"])+(tprofit/60*60))*24*365/(sum(carray["invested"])+myarray[-1]["mimx_rewards"][0]+(myarray[-1]["trix_rewards"][0]*tripool_value_modifyer*carray["token_value_modifyer"][carray["longname"].index("tRicrypto")]))*100, 2), tripool_value_modifyer #display_percent
+    myvalue = 100*(difference_afterparty2 + difference_afterparty3)*myarray[-1]['USD']*24*365 / ((myarray[-1]["cvxsushi_rewards"][0]*carray["cvxsushi_token_modifyer"])+(myarray[-1]["crveth_rewards"][0]*crveth_token_price))
+    return round(((difference*myarray[-1]["USD"])+(tprofit/60*60))*24*365/(sum(carray["invested"])+myarray[-1]["mimx_rewards"][0]+(myarray[-1]["trix_rewards"][0]*tripool_token_price))*100, 2), myvalue #to pass to pyportal
 
 if __name__ == "__main__":
     print("this module is not meant to be run solo")

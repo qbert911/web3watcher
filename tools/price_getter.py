@@ -12,7 +12,8 @@ def update_price(coin_type, print_symbola='', print_symbolb=''):
             print(print_symbola+("\b"*len(print_symbola)), end='', flush=True)
             USD = cg.get_price(ids=coin_type, vs_currencies='usd')[coin_type]["usd"]
             print(print_symbolb, end='', flush=True)
+            time.sleep(1)
         except Exception:
-            time.sleep(2)
-            print("Z", end='', flush=True)
+            print("Z\b", end='', flush=True)
+            time.sleep(10)
     return USD

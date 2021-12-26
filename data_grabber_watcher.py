@@ -62,11 +62,11 @@ def key_capture_thread():
     input()
     enter_hit = True
 
-def pyportal_update(display_percent, booststatusarray, tripool_value_modifyer):
+def pyportal_update(display_percent, booststatusarray, display_datapoint2):
     pyportal_dict = {}
     pyportal_dict["display_percent"] = display_percent
     #pyportal_dict["booststatus"] = booststatusarray
-    pyportal_dict["tripool_value_modifyer"] = round(tripool_value_modifyer, 5)
+    pyportal_dict["display_datapoint2"] = round(display_datapoint2, 5)
     try:
         json.dump(pyportal_dict, open("pyportal_tmp.json", "w"), indent=4)
         shutil.copyfile("pyportal_tmp.json", "pyportal.json")
@@ -81,11 +81,22 @@ def show_headers(w3):
 
 def gas_and_sleep(w3, mydict):
     firstpass = True                                                            #Prevent header display from outputting in conflict with regular update
-    mydict["USD"] = update_price("curve-dao-token",'▸','▹')
-    mydict["USDcvx"] = update_price("convex-finance",'▸','▹')
-    mydict["USDcvxCRV"] = update_price("convex-crv",'▸','▹')
-    mydict["USD3pool"] = 1.02 #update_price("lp-3pool-curve")
-    mydict["ETH"] = update_price("ethereum",'▸','▹')
+    month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
+    if int(minut) % 2 == 0:
+        mydict["USD"] = update_price("curve-dao-token",'▸','▹')
+        mydict["USDcvx"] = update_price("convex-finance",'▸','▹')
+        mydict["USDcvxCRV"] = update_price("convex-crv",'▸','▹')
+        mydict["USD3pool"] = myarray[-1]["USD3pool"]
+        mydict["ETH"] = myarray[-1]["ETH"]
+        mydict["BTC"] = myarray[-1]["BTC"]
+    else:
+        mydict["USD"] = myarray[-1]["USD"]
+        mydict["USDcvx"] = myarray[-1]["USDcvx"]
+        mydict["USDcvxCRV"] = myarray[-1]["USDcvxCRV"]
+        mydict["USD3pool"] = update_price("lp-3pool-curve",'▸','▹')
+        mydict["ETH"] = update_price("ethereum",'▸','▹')
+        mydict["BTC"] = update_price("bitcoin",'▸','▹')
+
     #mydict["SUSHI"] = update_price("sushi",'▸','▹')
     month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
     while month+"/"+day+" "+hour+":"+minut == myarray[-1]["human_time"]:        #Wait for each minute to pass to run again
@@ -134,7 +145,7 @@ def main():
         mydict["cvxcrv_rewards"] = convex_examiner.cvxcrv_getvalue(False, myarray, w3)
         mydict["trix_rewards"] = convex_examiner.regx_getvalue(False, myarray, w3, "trix_rewards", "0x9D5C5E364D81DaB193b72db9E9BE9D8ee669B652")
         mydict["mimx_rewards"] = convex_examiner.regx_getvalue(False, myarray, w3, "mimx_rewards", "0xC62DE533ea77D46f3172516aB6b1000dAf577E89")
-        mydict["crveth_rewards"] = convex_examiner.regx_getvalue(False, myarray, w3, "crveth_rewards", "0x085A2054c51eA5c91dbF7f90d65e728c0f2A270f",1)
+        mydict["crveth_rewards"] = convex_examiner.regx_getvalue(False, myarray, w3, "crveth_rewards", "0x085A2054c51eA5c91dbF7f90d65e728c0f2A270f")
         mydict["cvx_rewards"] = convex_examiner.cvx_getvalue(False, myarray, w3)
         mydict["cvxsushi_rewards"] = convex_examiner.cvxsushi_getvalue(False, myarray, w3)
         curve_functions.update_curve_pools(mydict, carray, myarray, myarrayh, w3)
@@ -143,7 +154,7 @@ def main():
         if len(myarray) > 61:
             del myarray[0]
 #update information on screen and pi hats when possible
-        display_percent, tripool_value_modifyer = status_line_printer.print_status_line(carray, myarray, myarrayh, myarray[-1]["USD"], 0 - len(myarray), w3, args.Hourslookback)
+        display_percent, display_datapoint2 = status_line_printer.print_status_line(carray, myarray, myarrayh, myarray[-1]["USD"], 0 - len(myarray), w3, args.Hourslookback)
         if args.Outputtohats:
             try:
                 curve_hats_update(display_percent, carray["booststatus"], mydict["ETH"])
@@ -153,7 +164,7 @@ def main():
         if not args.Readonly:
             shutil.copyfile(file_name, file_name+".bak")
             json.dump(myarray, open(file_name, "w"), indent=4)
-            pyportal_update(display_percent, carray["booststatus"], tripool_value_modifyer)
+            pyportal_update(display_percent, carray["booststatus"], display_datapoint2)
 #Output dictionary to hour file on the top of each hour
         if minut == "00" and mydict["claim"] > 1:
             myarrayh.append(mydict)

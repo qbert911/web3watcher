@@ -57,7 +57,7 @@ def curve_header_display(myarray, carray, w3, fullheader):
                 else:
                     print(Style.BRIGHT+Fore.GREEN+str(format(carray["currentboost"][i], '.4f')).rjust(cw[8]).replace("0", " ")+Style.RESET_ALL, end=' ')
                     #print(" "*cw[9], end=' ')
-                    print(("$"+str(format((maxinvestforfullboost-carray["balanceof"][i])*carray["token_value_modifyer"][i], '.0f'))).ljust(5)+Style.RESET_ALL, "fits   ", end='')
+                    print(("$"+str(format((maxinvestforfullboost-carray["balanceof"][i])*carray["token_value_modifyer"][i], '.0f'))).ljust(5)+Style.RESET_ALL, "fits    ", end='')
             elif carray["currentboost"][i] > 0:
                 #print(Style.DIM+str(format(round(maxinvestforfullboost-carray["balanceof"][i], 2), '.2f')).rjust(cw[7])+Style.RESET_ALL, end=' ')
                 print(str(format(carray["currentboost"][i], '.4f')).rjust(cw[8]), end=' ')
@@ -72,9 +72,9 @@ def curve_header_display(myarray, carray, w3, fullheader):
 #            print("|", end=' ')
 #            print(str(format(round(myarray[-1][carray["name"][i]+"pool"], 2), '.0f')).rjust(cw[5]), end=' ')
             #print(" "*7, end='')
-            if abs(round(myarray[-1][carray["name"][i]+"pool"]-round(carray["minted"][i]/10**18,2), 2)) > 0.1:
-                print("$"+str(format(round((myarray[-1][carray["name"][i]+"pool"]-(round(carray["minted"][i]/10**18,2)))*myarray[-1]["USD"], 2), '5.2f')).rjust(6)+Style.RESET_ALL, end=' ')
-                print("  "+str("v"+format(round(myarray[-1][carray["name"][i]+"pool"]-(round(carray["minted"][i]/10**18,2)), 2), '.2f')).rjust(cw[3])+Style.RESET_ALL, end=' ')
+            if abs(round(myarray[-1][carray["name"][i]+"pool"]-round(carray["minted"][i]/10**18,2), 2)) > 0.05:
+                print("$"+str(format(round((myarray[-1][carray["name"][i]+"pool"]-(round(carray["minted"][i]/10**18,2)))*myarray[-1]["USD"], 2), '5.2f')).rjust(6)+Style.RESET_ALL, end='')
+                print(str("   v"+format(round(myarray[-1][carray["name"][i]+"pool"]-(round(carray["minted"][i]/10**18,2)), 2), '.2f')).rjust(cw[3])+Style.RESET_ALL, end=' ')
             else:
                 print(" "*cw[3], end=' ')
             print("")
@@ -106,10 +106,10 @@ def combined_stats_display(myarray, carray, w3, virutal_price_sum):
                   myarray[-1]["cvxcrv_rewards"][1]
     sushi_claimable = (myarray[-1]["cvxsushi_rewards"][1]*(myarray[-1]["USDcvx"]/myarray[-1]["USD"]))
     print("$"+str(round(sum(carray["invested"])+myarray[-1]["mimx_rewards"][0]+(myarray[-1]["trix_rewards"][0]*carray["token_value_modifyer"][carray["longname"].index("tRicrypto")]))), "invested,",sum(carray["invested"]),"is now",int(virutal_price_sum), end=' ')
-    print("("+str(format(round(( virutal_price_sum/sum(carray["invested"])*100)-100,5),'.3f'))+"%)  ", end=' ')
-    print("Ç"+str(round(veCRV_locked)), "veCRV" +Style.DIM+" ("+str(veCRV_mine), "voting)  "+Style.RESET_ALL, end='')
+    print("("+str(format(round(( virutal_price_sum/sum(carray["invested"])*100)-100,5),'.3f'))+"%)", end='')
+    print("             Ç"+str(round(veCRV_locked))+"/"+Style.DIM+str(veCRV_mine)+Style.RESET_ALL, "veCRV   ", end='')
     #print(csym+str(round(sum(carray["minted"])/10**18, 2))+Style.RESET_ALL, "minted ", end=' ')
-    print((" $"+str(format(round((myarray[-1]["claim"]-(sum(carray["minted"])/10**18)+x_claimable+sushi_claimable)*myarray[-1]["USD"], 2),'5.2f'))).rjust(8),end =" ")
+    print(("$"+str(format(round((myarray[-1]["claim"]-(sum(carray["minted"])/10**18)+x_claimable+sushi_claimable)*myarray[-1]["USD"], 2),'5.2f'))).rjust(8),end =" ")
     print("($"+str(round(x_claimable*myarray[-1]["USD"]))+" quick)", end=' ')
     print(Style.DIM+"{"+Fore.RED+"v"+Fore.WHITE+str(round(myarray[-1]["claim"]-(sum(carray["minted"])/10**18))+round(myarray[-1]["cvx_rewards"][1]+myarray[-1]["trix_rewards"][1]+myarray[-1]["mimx_rewards"][1]+myarray[-1]["crveth_rewards"][1]+myarray[-1]["cvxcrv_rewards"][1])),end=" ")
     print(Fore.RED+"x"+Fore.WHITE+str(round(myarray[-1]["cvx_rewards"][2]+myarray[-1]["trix_rewards"][2]+myarray[-1]["mimx_rewards"][2]+myarray[-1]["crveth_rewards"][2])+round(myarray[-1]["cvxsushi_rewards"][1])),end=" ")
