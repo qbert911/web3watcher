@@ -21,8 +21,8 @@ init()                                      #initialize colorama
 INFURA_ID = "9c51dd19cb9e456387014e7d1661afa3"
 
 infura_w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
-#mylocal_w3 = Web3(Web3.HTTPProvider('http://192.168.0.4:8545'))
-mylocal_w3 = Web3(Web3.WebsocketProvider("ws://192.168.0.4:8546"))
+mylocal_w3 = Web3(Web3.HTTPProvider('http://192.168.0.146:8545'))
+#mylocal_w3 = Web3(Web3.WebsocketProvider("ws://192.168.0.146:8546"))
 
 file_name = "ghistory.json"
 file_nameh = "ghistoryh.json"
@@ -62,11 +62,11 @@ def key_capture_thread():
     input()
     enter_hit = True
 
-def pyportal_update(display_percent, booststatusarray, display_datapoint2):
+def pyportal_update(display_percent, spell, frax, dollar_amount):
     pyportal_dict = {}
     pyportal_dict["display_percent"] = display_percent
-    #pyportal_dict["booststatus"] = booststatusarray
-    pyportal_dict["display_datapoint2"] = round(display_datapoint2, 5)
+    pyportal_dict["price_string"] = f"{frax:.0f}"+f"{spell*10000:.0f}".rjust(4)
+    pyportal_dict["dollar_amount"] = dollar_amount
     try:
         json.dump(pyportal_dict, open("pyportal_tmp.json", "w"), indent=4)
         shutil.copyfile("pyportal_tmp.json", "pyportal.json")
@@ -75,29 +75,36 @@ def pyportal_update(display_percent, booststatusarray, display_datapoint2):
 
 def show_headers(w3):
     virutal_price_sum=curve_functions.curve_header_display(myarray, carray, w3, args.Fullheader)
-    convex_examiner.convex_header_display(myarray, carray, w3)
+    convex_examiner.convex_header_display(myarray)
     curve_functions.combined_stats_display(myarray, carray, w3, virutal_price_sum)
     threading.Thread(target=key_capture_thread, args=(), name='key_capture_thread', daemon=True).start()
 
 def gas_and_sleep(w3, mydict):
     firstpass = True                                                            #Prevent header display from outputting in conflict with regular update
     month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
-    if int(minut) % 2 == 0:
+    if int(minut) % 2 == 1:
         mydict["USD"] = update_price("curve-dao-token",'▸','▹')
         mydict["USDcvx"] = update_price("convex-finance",'▸','▹')
         mydict["USDcvxCRV"] = update_price("convex-crv",'▸','▹')
         mydict["USD3pool"] = myarray[-1]["USD3pool"]
+        mydict["FRAX"] = myarray[-1]["FRAX"]
+        mydict["SPELL"] = myarray[-1]["SPELL"]
         mydict["ETH"] = myarray[-1]["ETH"]
         mydict["BTC"] = myarray[-1]["BTC"]
     else:
         mydict["USD"] = myarray[-1]["USD"]
         mydict["USDcvx"] = myarray[-1]["USDcvx"]
         mydict["USDcvxCRV"] = myarray[-1]["USDcvxCRV"]
-        mydict["USD3pool"] = update_price("lp-3pool-curve",'▸','▹')
+        mydict["USD3pool"] = 1.02 #update_price("lp-3pool-curve",'▸','▹')
+        if int(minut) % 3 != 0:
+            mydict["SPELL"] = update_price("spell-token",'▸','▹')
+            mydict["FRAX"] = myarray[-1]["FRAX"]
+        else:
+            mydict["SPELL"] = myarray[-1]["SPELL"]
+            mydict["FRAX"] = update_price("frax-share",'▸','▹')
         mydict["ETH"] = update_price("ethereum",'▸','▹')
         mydict["BTC"] = update_price("bitcoin",'▸','▹')
 
-    #mydict["SUSHI"] = update_price("sushi",'▸','▹')
     month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
     while month+"/"+day+" "+hour+":"+minut == myarray[-1]["human_time"]:        #Wait for each minute to pass to run again
         try:
@@ -142,29 +149,45 @@ def main():
         mydict["raw_time"] = round(time.time())
         mydict["human_time"] = month+"/"+day+" "+hour+":"+minut
         mydict["invested"] = sum(carray["invested"])
-        mydict["cvxcrv_rewards"] = convex_examiner.cvxcrv_getvalue(False, myarray, w3)
-        mydict["trix_rewards"] = convex_examiner.regx_getvalue(False, myarray, w3, "trix_rewards", "0x9D5C5E364D81DaB193b72db9E9BE9D8ee669B652")
-        mydict["mimx_rewards"] = convex_examiner.regx_getvalue(False, myarray, w3, "mimx_rewards", "0xC62DE533ea77D46f3172516aB6b1000dAf577E89")
-        mydict["crveth_rewards"] = convex_examiner.regx_getvalue(False, myarray, w3, "crveth_rewards", "0x085A2054c51eA5c91dbF7f90d65e728c0f2A270f")
-        mydict["cvx_rewards"] = convex_examiner.cvx_getvalue(False, myarray, w3)
-        mydict["cvxsushi_rewards"] = convex_examiner.cvxsushi_getvalue(False, myarray, w3)
+
         curve_functions.update_curve_pools(mydict, carray, myarray, myarrayh, w3)
+
+        mydict["cvx_rewards"] = convex_examiner.cvx_getvalue(myarray, w3)
+        mydict["cvxcrv_rewards"] = convex_examiner.cvxcrv_getvalue(myarray, w3)
+
+        mydict["trix_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "trix_rewards", "0x9D5C5E364D81DaB193b72db9E9BE9D8ee669B652")
+        mydict["mimx_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "mimx_rewards", "0xC62DE533ea77D46f3172516aB6b1000dAf577E89")
+        mydict["crveth_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "crveth_rewards", "0x085A2054c51eA5c91dbF7f90d65e728c0f2A270f")
+        mydict["cvxeth_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "cvxeth_rewards", "0xb1Fb0BA0676A1fFA83882c7F4805408bA232C1fA", 1)
+        mydict["spelleth_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "spelleth_rewards", "0xb2f0bB6352417c1Bf017862aC165E67623611aF3")
+        mydict["cvxfxs_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "cvxfxs_rewards", "0xf27AFAD0142393e4b3E5510aBc5fe3743Ad669Cb")
+
+        mydict["cvxfxs_extracvx"] = convex_examiner.earned_grabber(myarray, w3,"cvxfxs_extracvx ","0xE2585F27bf5aaB7756f626D6444eD5Fc9154e606", True)
+        mydict["cvxfxs_extrafxs"] = convex_examiner.earned_grabber(myarray, w3,"cvxfxs_extrafxs","0x28120D9D49dBAeb5E34D6B809b842684C482EF27", True)    
+
+        mydict["crveth_virt"] = convex_examiner.virt_grabber(myarray, w3, "crveth_virt", "0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511")
+        mydict["cvxeth_virt"] = convex_examiner.virt_grabber(myarray, w3, "cvxeth_virt", "0xB576491F1E6e5E62f1d8F26062Ee822B40B0E0d4")
+        mydict["spelleth_virt"] = convex_examiner.virt_grabber(myarray, w3, "spelleth_virt", "0x98638FAcf9a3865cd033F36548713183f6996122")
+        mydict["cvxfxs_virt"] = convex_examiner.virt_grabber(myarray, w3, "cvxfxs_virt", "0xd658A338613198204DCa1143Ac3F01A722b5d94A")
+
+        #mydict["cvxFXS_balance"] = convex_examiner.balance_grabber(myarray, w3,"cvxFXS_balance","0xFEEf77d3f69374f66429C91d732A244f074bdf74")
+
 #Keep one hour worth of data in hourly log
         myarray.append(mydict)
         if len(myarray) > 61:
             del myarray[0]
 #update information on screen and pi hats when possible
-        display_percent, display_datapoint2 = status_line_printer.print_status_line(carray, myarray, myarrayh, myarray[-1]["USD"], 0 - len(myarray), w3, args.Hourslookback)
+        dollar_amount, display_datapoint2 = status_line_printer.print_status_line(carray, myarray, myarrayh, myarray[-1]["USD"], 0 - len(myarray), w3, args.Hourslookback)
         if args.Outputtohats:
             try:
-                curve_hats_update(display_percent, carray["booststatus"], mydict["ETH"])
+                curve_hats_update(display_datapoint2, carray["booststatus"], mydict["ETH"])
             except Exception:
                 pass
 #Output dictionary to minute file
         if not args.Readonly:
             shutil.copyfile(file_name, file_name+".bak")
             json.dump(myarray, open(file_name, "w"), indent=4)
-            pyportal_update(display_percent, carray["booststatus"], display_datapoint2)
+            pyportal_update(display_datapoint2, mydict["SPELL"], mydict["FRAX"], dollar_amount)
 #Output dictionary to hour file on the top of each hour
         if minut == "00" and mydict["claim"] > 1:
             myarrayh.append(mydict)

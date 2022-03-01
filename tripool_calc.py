@@ -60,5 +60,5 @@ def tri_calc(fulldisplay):
 if __name__ == "__main__":
     print(tri_calc(True))
     print(tri_calc(False))
-    #token_price = round(load_contract("0xE8b2989276E2Ca8FDEA2268E3551b2b4B2418950",infura_w3).lp_price().call() / 10 ** 18)
-    #print(token_price)
+    token_price = round(load_contract("0xE8b2989276E2Ca8FDEA2268E3551b2b4B2418950",infura_w3).lp_price().call() / 10 ** 18)
+    print(token_price)

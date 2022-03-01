@@ -22,10 +22,12 @@ def load_contract(_contract, _eth_connect):
 
     return _eth_connect.eth.contract(_contract, abi=_this_abi).functions
 
-def call_me(function):
+def call_me(function,expecting_list=False):
     """input filtering"""
     x = function.call()
     if isinstance(x, list):
+        if not expecting_list:
+            print("\n unexpected list found when calling: ",function,x)
         x = x[0]
     if 0 < x < 10000:
         print("\n odd output when calling "+str(function),x)
