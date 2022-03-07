@@ -14,6 +14,7 @@ from tools.price_getter import update_price
 import convex_examiner
 import curve_functions
 import status_line_printer
+import header_printer
 
 cursor.hide()                               #don't draw the cursor
 init()                                      #initialize colorama
@@ -68,19 +69,19 @@ def pyportal_update(display_percent, spell, frax, dollar_amount):
     pyportal_dict["price_string"] = f"{frax:.0f}"+f"{spell*10000:.0f}".rjust(4)
     pyportal_dict["dollar_amount"] = dollar_amount
     try:
-        json.dump(pyportal_dict, open("pyportal_tmp.json", "w"), indent=4)
-        shutil.copyfile("pyportal_tmp.json", "pyportal.json")
+        json.dump(pyportal_dict, open("pyportal.json", "w"), indent=4)
     except:
         print("error writing to pyportal.json")
 
 def show_headers(w3):
-    virutal_price_sum=curve_functions.curve_header_display(myarray, carray, w3, args.Fullheader)
-    convex_examiner.convex_header_display(myarray)
-    curve_functions.combined_stats_display(myarray, carray, w3, virutal_price_sum)
+    #curve_functions.curve_header_display(myarray, carray, w3, args.Fullheader)
+    header_printer.curve_header_display2(myarray, carray, w3, args.Fullheader)
+    header_printer.convex_header_display(myarray)
+    header_printer.combined_stats_display(myarray, carray, w3)
     threading.Thread(target=key_capture_thread, args=(), name='key_capture_thread', daemon=True).start()
 
 def gas_and_sleep(w3, mydict):
-    firstpass = True                                                            #Prevent header display from outputting in conflict with regular update
+    firstpass = True    #Prevent header display from outputting in conflict with regular update
     month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
     if int(minut) % 2 == 1:
         mydict["USD"] = update_price("curve-dao-token",'▸','▹')
@@ -170,24 +171,22 @@ def main():
         mydict["spelleth_virt"] = convex_examiner.virt_grabber(myarray, w3, "spelleth_virt", "0x98638FAcf9a3865cd033F36548713183f6996122")
         mydict["cvxfxs_virt"] = convex_examiner.virt_grabber(myarray, w3, "cvxfxs_virt", "0xd658A338613198204DCa1143Ac3F01A722b5d94A")
 
-        #mydict["cvxFXS_balance"] = convex_examiner.balance_grabber(myarray, w3,"cvxFXS_balance","0xFEEf77d3f69374f66429C91d732A244f074bdf74")
-
 #Keep one hour worth of data in hourly log
         myarray.append(mydict)
         if len(myarray) > 61:
             del myarray[0]
 #update information on screen and pi hats when possible
-        dollar_amount, display_datapoint2 = status_line_printer.print_status_line(carray, myarray, myarrayh, myarray[-1]["USD"], 0 - len(myarray), w3, args.Hourslookback)
+        dollar_amount, mainpercentdisplay = status_line_printer.print_status_line(carray, myarray, myarrayh, myarray[-1]["USD"], 0 - len(myarray), w3, args.Hourslookback)
         if args.Outputtohats:
             try:
-                curve_hats_update(display_datapoint2, carray["booststatus"], mydict["ETH"])
+                curve_hats_update(mainpercentdisplay, carray["booststatus"], mydict["ETH"])
             except Exception:
                 pass
 #Output dictionary to minute file
         if not args.Readonly:
             shutil.copyfile(file_name, file_name+".bak")
             json.dump(myarray, open(file_name, "w"), indent=4)
-            pyportal_update(display_datapoint2, mydict["SPELL"], mydict["FRAX"], dollar_amount)
+            pyportal_update(mainpercentdisplay, mydict["SPELL"], mydict["FRAX"], dollar_amount)
 #Output dictionary to hour file on the top of each hour
         if minut == "00" and mydict["claim"] > 1:
             myarrayh.append(mydict)
