@@ -153,23 +153,23 @@ def main():
 
         curve_functions.update_curve_pools(mydict, carray, myarray, myarrayh, w3)
 
-        mydict["cvx_rewards"] = convex_examiner.cvx_getvalue(myarray, w3)
-        mydict["cvxcrv_rewards"] = convex_examiner.cvxcrv_getvalue(myarray, w3)
+        mydict["crvstaked_rewards"] = convex_examiner.crvstaked_getvalue(myarray, w3)
+        mydict["cvxlocked_rewards"] = convex_examiner.cvxlocked_getvalue(myarray, w3)
 
         mydict["trix_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "trix_rewards", "0x9D5C5E364D81DaB193b72db9E9BE9D8ee669B652")
         mydict["mimx_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "mimx_rewards", "0xC62DE533ea77D46f3172516aB6b1000dAf577E89")
         mydict["crveth_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "crveth_rewards", "0x085A2054c51eA5c91dbF7f90d65e728c0f2A270f")
         mydict["cvxeth_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "cvxeth_rewards", "0xb1Fb0BA0676A1fFA83882c7F4805408bA232C1fA", 1)
         mydict["spelleth_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "spelleth_rewards", "0xb2f0bB6352417c1Bf017862aC165E67623611aF3")
-        mydict["cvxfxs_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "cvxfxs_rewards", "0xf27AFAD0142393e4b3E5510aBc5fe3743Ad669Cb")
+        mydict["fxslocked_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "fxslocked_rewards", "0xf27AFAD0142393e4b3E5510aBc5fe3743Ad669Cb")
 
-        mydict["cvxfxs_extracvx"] = convex_examiner.earned_grabber(myarray, w3,"cvxfxs_extracvx ","0xE2585F27bf5aaB7756f626D6444eD5Fc9154e606", True)
-        mydict["cvxfxs_extrafxs"] = convex_examiner.earned_grabber(myarray, w3,"cvxfxs_extrafxs","0x28120D9D49dBAeb5E34D6B809b842684C482EF27", True)    
+        mydict["fxslocked_extracvx"] = convex_examiner.earned_grabber(myarray, w3,"fxslocked_extracvx ","0xE2585F27bf5aaB7756f626D6444eD5Fc9154e606", True)
+        mydict["fxslocked_extrafxs"] = convex_examiner.earned_grabber(myarray, w3,"fxslocked_extrafxs","0x28120D9D49dBAeb5E34D6B809b842684C482EF27", True)    
 
         mydict["crveth_virt"] = convex_examiner.virt_grabber(myarray, w3, "crveth_virt", "0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511")
         mydict["cvxeth_virt"] = convex_examiner.virt_grabber(myarray, w3, "cvxeth_virt", "0xB576491F1E6e5E62f1d8F26062Ee822B40B0E0d4")
         mydict["spelleth_virt"] = convex_examiner.virt_grabber(myarray, w3, "spelleth_virt", "0x98638FAcf9a3865cd033F36548713183f6996122")
-        mydict["cvxfxs_virt"] = convex_examiner.virt_grabber(myarray, w3, "cvxfxs_virt", "0xd658A338613198204DCa1143Ac3F01A722b5d94A")
+        mydict["fxslocked_virt"] = convex_examiner.virt_grabber(myarray, w3, "fxslocked_virt", "0xd658A338613198204DCa1143Ac3F01A722b5d94A")
 
 #Keep one hour worth of data in hourly log
         myarray.append(mydict)

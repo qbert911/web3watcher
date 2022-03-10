@@ -88,19 +88,19 @@ def show_convex2_extrafxs(myarray, eoa, extramins, name, label, extrapools, toke
         except Exception:
             buffer+="xx.xx"
     #extracvx
-    thisdiff=(myarray[-1]["cvxfxs_extracvx"]-myarray[eoa]["cvxfxs_extracvx"])/(60+extramins)*myarray[-1]["USDcvx"]*60*24*365
+    thisdiff=(myarray[-1]["fxslocked_extracvx"]-myarray[eoa]["fxslocked_extracvx"])/(60+extramins)*myarray[-1]["USDcvx"]*60*24*365
     buffer+=Fore.RED+"X"+Fore.WHITE
     if thisdiff >= 0:
         tprofit+=thisdiff
-        buffer+=str(format(round((myarray[-1]["cvxfxs_extracvx"]-myarray[eoa]["cvxfxs_extracvx"])/(60+extramins)*myarray[-1]["USDcvx"]*60*24*365/(myarray[eoa][name][0]*pricefactor[extrapools])*100, 2), '.2f')).rjust(5)+""
+        buffer+=str(format(round((myarray[-1]["fxslocked_extracvx"]-myarray[eoa]["fxslocked_extracvx"])/(60+extramins)*myarray[-1]["USDcvx"]*60*24*365/(myarray[eoa][name][0]*pricefactor[extrapools])*100, 2), '.2f')).rjust(5)+""
     else:
         buffer+="xx.xx" 
     #extrafxs
-    thisdiff=(myarray[-1]["cvxfxs_extrafxs"]-myarray[eoa]["cvxfxs_extrafxs"])/(60+extramins)*myarray[-1]["FRAX"]*60*24*365
+    thisdiff=(myarray[-1]["fxslocked_extrafxs"]-myarray[eoa]["fxslocked_extrafxs"])/(60+extramins)*myarray[-1]["FRAX"]*60*24*365
     buffer+=Fore.RED+"f"+Fore.WHITE
     if thisdiff >= 0:
         tprofit+=thisdiff
-        buffer+=str(format(round((myarray[-1]["cvxfxs_extracvx"]-myarray[eoa]["cvxfxs_extracvx"])/(60+extramins)*myarray[-1]["FRAX"]*60*24*365/(myarray[eoa][name][0]*pricefactor[extrapools])*100, 2), '.2f')).rjust(5)+""
+        buffer+=str(format(round((myarray[-1]["fxslocked_extrafxs"]-myarray[eoa]["fxslocked_extrafxs"])/(60+extramins)*myarray[-1]["FRAX"]*60*24*365/(myarray[eoa][name][0]*pricefactor[extrapools])*100, 2), '.2f')).rjust(5)+""
     else:
         buffer+="xx.xx"
     
@@ -113,11 +113,11 @@ def show_convex2_extrafxs(myarray, eoa, extramins, name, label, extrapools, toke
 
     print(Fore.RED+Style.BRIGHT+label+Style.RESET_ALL+subtotal+Style.DIM+"{"+Fore.GREEN+subvirt+Fore.WHITE+buffer+"}"+Style.RESET_ALL, end=' ')
 
-def show_cvx_rewards(myarray, eoa, extramins):
-    """cvx staking rewards display"""
+def show_cvxlocked_rewards(myarray, eoa, extramins):
+    """cvx locking rewards display"""
     try:
-        tprofit=(myarray[-1]["cvxcrv_rewards"][1]-myarray[eoa]["cvxcrv_rewards"][1])/(60+extramins)*myarray[-1]["USDcvxCRV"]*60*24*365
-        subtotal=str(format(round(tprofit/(myarray[eoa]["cvxcrv_rewards"][0]*myarray[-1]["USDcvx"])*100, 2), '5.2f')).rjust(5)
+        tprofit=(myarray[-1]["cvxlocked_rewards"][1]-myarray[eoa]["cvxlocked_rewards"][1])/(60+extramins)*myarray[-1]["USDcvxCRV"]*60*24*365
+        subtotal=str(format(round(tprofit/(myarray[eoa]["cvxlocked_rewards"][0]*myarray[-1]["USDcvx"])*100, 2), '5.2f')).rjust(5)
     except Exception:
         subtotal="xx.xx"
 
@@ -162,9 +162,9 @@ def show_difference(myarray,eoa):
 
     difference = (diffa + diffb + difff + diffh) / (60+extramins)*60
 
-    diffc = max(0,myarray[-1]["cvx_rewards"][1]-myarray[eoa]["cvx_rewards"][1]\
-                +((myarray[-1]["cvx_rewards"][2]-myarray[eoa]["cvx_rewards"][2])*myarray[-1]["USDcvx"]/myarray[-1]["USD"]))
-    diffd = max(0,((myarray[-1]["cvxcrv_rewards"][1]-myarray[eoa]["cvxcrv_rewards"][1])*myarray[-1]["USDcvxCRV"]/myarray[-1]["USD"]))
+    diffc = max(0,myarray[-1]["crvstaked_rewards"][1]-myarray[eoa]["crvstaked_rewards"][1]\
+                +((myarray[-1]["crvstaked_rewards"][2]-myarray[eoa]["crvstaked_rewards"][2])*myarray[-1]["USDcvx"]/myarray[-1]["USD"]))
+    diffd = max(0,((myarray[-1]["cvxlocked_rewards"][1]-myarray[eoa]["cvxlocked_rewards"][1])*myarray[-1]["USDcvxCRV"]/myarray[-1]["USD"]))
 
     difference_afterparty = (diffc + diffd) / (60+extramins)*60
 
@@ -176,10 +176,10 @@ def show_difference(myarray,eoa):
                 +((myarray[-1]["crveth_rewards"][2]-myarray[eoa]["crveth_rewards"][2])*myarray[-1]["USDcvx"]/myarray[-1]["USD"]))\
                 / (60+extramins)*60
 
-    cvxfxs_daily = max(0,myarray[-1]["cvxfxs_rewards"][1]-myarray[eoa]["cvxfxs_rewards"][1]\
-                +((myarray[-1]["cvxfxs_rewards"][2]-myarray[eoa]["cvxfxs_rewards"][2])*myarray[-1]["USDcvx"]/myarray[-1]["USD"])\
-                +((myarray[-1]["cvxfxs_extracvx"]-myarray[eoa]["cvxfxs_extracvx"])*myarray[-1]["USDcvx"]/myarray[-1]["USD"])\
-                +((myarray[-1]["cvxfxs_extrafxs"]-myarray[eoa]["cvxfxs_extrafxs"])*myarray[-1]["FRAX"]/myarray[-1]["USD"]))\
+    fxslocked_daily = max(0,myarray[-1]["fxslocked_rewards"][1]-myarray[eoa]["fxslocked_rewards"][1]\
+                +((myarray[-1]["fxslocked_rewards"][2]-myarray[eoa]["fxslocked_rewards"][2])*myarray[-1]["USDcvx"]/myarray[-1]["USD"])\
+                +((myarray[-1]["fxslocked_extracvx"]-myarray[eoa]["fxslocked_extracvx"])*myarray[-1]["USDcvx"]/myarray[-1]["USD"])\
+                +((myarray[-1]["fxslocked_extrafxs"]-myarray[eoa]["fxslocked_extrafxs"])*myarray[-1]["FRAX"]/myarray[-1]["USD"]))\
                 / (60+extramins)*60
 
     diffcrv = diffa + diffd + max(0,myarray[-1]["trix_rewards"][1]-myarray[eoa]["trix_rewards"][1]) +\
@@ -187,23 +187,23 @@ def show_difference(myarray,eoa):
                               max(0,myarray[-1]["crveth_rewards"][1]-myarray[eoa]["crveth_rewards"][1]) +\
                               max(0,myarray[-1]["cvxeth_rewards"][1]-myarray[eoa]["cvxeth_rewards"][1]) +\
                               max(0,myarray[-1]["spelleth_rewards"][1]-myarray[eoa]["spelleth_rewards"][1]) +\
-                              max(0,myarray[-1]["cvxfxs_rewards"][1]-myarray[eoa]["cvxfxs_rewards"][1]) +\
-                              max(0,myarray[-1]["cvx_rewards"][1]-myarray[eoa]["cvx_rewards"][1])
+                              max(0,myarray[-1]["fxslocked_rewards"][1]-myarray[eoa]["fxslocked_rewards"][1]) +\
+                              max(0,myarray[-1]["crvstaked_rewards"][1]-myarray[eoa]["crvstaked_rewards"][1])
     diffcvx = max(0,myarray[-1]["cvxeth_rewards"][2]-myarray[eoa]["cvxeth_rewards"][2]) +\
               max(0,myarray[-1]["trix_rewards"][2]-myarray[eoa]["trix_rewards"][2]) +\
               max(0,myarray[-1]["mimx_rewards"][2]-myarray[eoa]["mimx_rewards"][2]) +\
               max(0,myarray[-1]["crveth_rewards"][2]-myarray[eoa]["crveth_rewards"][2]) +\
               max(0,myarray[-1]["spelleth_rewards"][2]-myarray[eoa]["spelleth_rewards"][2]) +\
-              max(0,myarray[-1]["cvxfxs_rewards"][2]-myarray[eoa]["cvxfxs_rewards"][2]) +\
-              max(0,myarray[-1]["cvx_rewards"][2]-myarray[eoa]["cvx_rewards"][2])+\
-              max(0,myarray[-1]["cvxfxs_extracvx"]-myarray[eoa]["cvxfxs_extracvx"])+\
-              max(0,(myarray[-1]["cvxfxs_extrafxs"]-myarray[eoa]["cvxfxs_extrafxs"])*myarray[-1]["FRAX"]/myarray[-1]["USDcvx"])
+              max(0,myarray[-1]["fxslocked_rewards"][2]-myarray[eoa]["fxslocked_rewards"][2]) +\
+              max(0,myarray[-1]["crvstaked_rewards"][2]-myarray[eoa]["crvstaked_rewards"][2])+\
+              max(0,myarray[-1]["fxslocked_extracvx"]-myarray[eoa]["fxslocked_extracvx"])+\
+              max(0,(myarray[-1]["fxslocked_extrafxs"]-myarray[eoa]["fxslocked_extrafxs"])*myarray[-1]["FRAX"]/myarray[-1]["USDcvx"])
 
     #   print(Fore.GREEN+Style.BRIGHT+str(format(round((difference)*USD*24*365/(sum(carray["invested"])+myarray[-1]["mimx_rewards"][0]+(myarray[-1]["trix_rewards"][0]*tripool_token_price)+(myarray[-1]["spelleth_rewards"][0]*spelleth_token_price))*100, 2), '5.2f'))+Style.RESET_ALL+"/", end='')
     #   print(Fore.YELLOW+str(format(round((tprofit/60*60)*24*365/sum(carray["invested"])*100, 2), '5.2f'))[0:5]+Style.RESET_ALL+"% APR", end=' - ')
 
     print("D$"+format((round(difference*24*myarray[-1]['USD'], 0)), '.0f').rjust(2)+"/",end="")
-    print(format((round(cvxfxs_daily*24*myarray[-1]['USD'], 0)), '.0f').rjust(2)+"/"+Style.RESET_ALL,end="")
+    print(format((round(fxslocked_daily*24*myarray[-1]['USD'], 0)), '.0f').rjust(2)+"/"+Style.RESET_ALL,end="")
     print(format((round(crveth_daily*24*myarray[-1]['USD'], 0)), '.0f').rjust(2)+"/"+Style.RESET_ALL,end="")
     print(format((round(cvxeth_daily*24*myarray[-1]['USD'], 0)), '.0f').rjust(3)+"/"+Style.RESET_ALL,end="")
     print(format((round(difference_afterparty*24*myarray[-1]['USD'], 0)), '.0f').rjust(2)+Style.RESET_ALL,end="")
@@ -216,7 +216,8 @@ def show_difference(myarray,eoa):
 
     mainpercentdisplay = 100*(cvxeth_daily + crveth_daily)*myarray[-1]['USD']*24*365 \
                         / ((myarray[-1]["cvxeth_rewards"][0]*cvxeth_token_price)+(myarray[-1]["crveth_rewards"][0]*crveth_token_price))
-    dollar_amount = (difference+difference_afterparty+cvxeth_daily+crveth_daily+cvxfxs_daily)*24*myarray[-1]['USD']
+    dollar_amount = (difference+difference_afterparty+cvxeth_daily+crveth_daily+fxslocked_daily)*24*myarray[-1]['USD']
+    #print(cvxeth_daily*24*myarray[-1]["USD"], crveth_daily*24*myarray[-1]["USD"],myarray[-1]["cvxeth_rewards"][0]*cvxeth_token_price,myarray[-1]["crveth_rewards"][0]*crveth_token_price,end='')
 
     return dollar_amount, mainpercentdisplay
 
@@ -226,7 +227,7 @@ def print_status_line(carray, myarray, myarrayh, USD, eoa, w3, lookback):
     crveth_token_price = 2 * myarray[-1]["crveth_virt"] * ((myarray[-1]["USD"] * myarray[-1]["ETH"])**(1/2))
     cvxeth_token_price = 2 * myarray[-1]["cvxeth_virt"] * ((myarray[-1]["USDcvx"] * myarray[-1]["ETH"])**(1/2))
     spelleth_token_price = 2 * myarray[-1]["spelleth_virt"] * ((myarray[-1]["SPELL"] * myarray[-1]["ETH"])**(1/2))
-    cvxfxs_token_price = 2 * myarray[-1]["cvxfxs_virt"] * ((myarray[-1]["FRAX"] * myarray[-1]["FRAX"])**(1/2)) #hack
+    fxslocked_token_price = 2 * myarray[-1]["fxslocked_virt"] * ((myarray[-1]["FRAX"] * myarray[-1]["FRAX"])**(1/2)) #hack
     tripool_token_price =  3 * ((myarray[-1]["BTC"] * myarray[-1]["ETH"])**(1/3))
     tripool_value_modifyer = tripool_token_price / 1229
 
@@ -244,13 +245,13 @@ def print_status_line(carray, myarray, myarrayh, USD, eoa, w3, lookback):
  
     #show profitability percentages for each convex contract
     show_convex2(myarray, eoa,extramins,"spelleth_rewards","xS2E", 0, spelleth_token_price,myarrayh,lookback,"spelleth_virt") #Indicates no third pool and using token_value_modifyer
-    show_convex2_extrafxs(myarray, eoa,extramins,"cvxfxs_rewards","xFXS", 0, cvxfxs_token_price,myarrayh,lookback,"cvxfxs_virt")
+    show_convex2_extrafxs(myarray, eoa,extramins,"fxslocked_rewards","xFXS", 0, fxslocked_token_price,myarrayh,lookback,"fxslocked_virt")
     show_convex2(myarray, eoa,extramins,"crveth_rewards","xV2E", 0, crveth_token_price, myarrayh,lookback,"crveth_virt") #Indicates no third pool and using token_value_modifyer
     show_convex2(myarray, eoa,extramins,"cvxeth_rewards","xX2E", 0, cvxeth_token_price, myarrayh,lookback,"cvxeth_virt") #Indicates no third pool and using token_value_modifyer
-    show_convex(myarray, eoa,extramins,"cvx_rewards","xCRV", 1, 1) #Indicates having an extra 3pool and not using token_value_modifyer
+    show_convex(myarray, eoa,extramins,"crvstaked_rewards","xCRV", 1, 1) #Indicates having an extra 3pool and not using token_value_modifyer
      #show_convex(carray, myarray, eoa,extramins,"trix_rewards","xTri", 0, tripool_token_price) #Indicates no third pool and using token_value_modifyer
      #show_convex(myarray, eoa,extramins,"mimx_rewards","xMim", 0, 1) #Indicates no third pool and not using token_value_modifyer
-    show_cvx_rewards(myarray, eoa, extramins)
+    show_cvxlocked_rewards(myarray, eoa, extramins)
     
     #show crv / cvxcrv price differential
     print("["+Fore.CYAN+Style.BRIGHT+f"{((myarray[-1]['USDcvxCRV']-myarray[-1]['USD'])/myarray[-1]['USD'])*100:5.2f}"+Style.RESET_ALL+"%]",end=" ")
@@ -266,14 +267,16 @@ def print_status_line(carray, myarray, myarrayh, USD, eoa, w3, lookback):
     #check to see if amounts have changed
     if myarray[-1]["invested"] != myarray[eoa]["invested"]:
         print(Fore.RED+str(round(myarray[-1]["invested"] - myarray[eoa]["invested"]))+Style.RESET_ALL, end=' ')
-    if myarray[-1]["cvx_rewards"][0] != myarray[eoa]["cvx_rewards"][0]:
-        print(Fore.RED+str(round(myarray[-1]["cvx_rewards"][0] - myarray[eoa]["cvx_rewards"][0]))+Style.RESET_ALL, end='v ')
+    if myarray[-1]["crvstaked_rewards"][0] != myarray[eoa]["crvstaked_rewards"][0]:
+        print(Fore.RED+str(round(myarray[-1]["crvstaked_rewards"][0] - myarray[eoa]["crvstaked_rewards"][0]))+Style.RESET_ALL, end='v ')
     if myarray[-1]["trix_rewards"][0] != myarray[eoa]["trix_rewards"][0]:
         print(Fore.RED+str(round(myarray[-1]["trix_rewards"][0] - myarray[eoa]["trix_rewards"][0]))+Style.RESET_ALL, end='z ')
     if myarray[-1]["mimx_rewards"][0] != myarray[eoa]["mimx_rewards"][0]:
         print(Fore.RED+str(round(myarray[-1]["mimx_rewards"][0] - myarray[eoa]["mimx_rewards"][0]))+Style.RESET_ALL, end='t ')
-    if myarray[-1]["cvxcrv_rewards"][0] != myarray[eoa]["cvxcrv_rewards"][0]:
-        print(Fore.RED+str(round(myarray[-1]["cvxcrv_rewards"][0] - myarray[eoa]["cvxcrv_rewards"][0]))+Style.RESET_ALL, end='x ')
+    if myarray[-1]["cvxlocked_rewards"][0] != myarray[eoa]["cvxlocked_rewards"][0]:
+        print(Fore.RED+str(round(myarray[-1]["cvxlocked_rewards"][0] - myarray[eoa]["cvxlocked_rewards"][0]))+Style.RESET_ALL, end='x ')
+    if myarray[-1]["fxslocked_rewards"][0] != myarray[eoa]["fxslocked_rewards"][0]:
+        print(Fore.RED+str(round(myarray[-1]["fxslocked_rewards"][0] - myarray[eoa]["fxslocked_rewards"][0]))+Style.RESET_ALL, end='x ')
     #try:  #check to see if the interface linked on ipfs has changed
     #    if ipfs_hash_value(w3, 'curve.eth', True) != curve_ipfs_current_hash:
     #        print(Fore.RED+Style.BRIGHT+"WW"+Style.RESET_ALL, end=' ')
