@@ -4,7 +4,7 @@
 from web3 import Web3
 from tools.load_contract import load_contract
 
-CVX_fraction_factor = [0.148,.3155] #HACK
+CVX_fraction_factor = [0.1238] #HACK
 
 MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
 #cvx_token = load_contract("0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B",infura_w3)#cvx token to calculate ratio, cliff etc
@@ -33,6 +33,9 @@ def regx_getvalue(myarray, w3, fallback, pool_id, which_factor=0, printit=0):
         invested = regx_crv.balanceOf(MY_WALLET_ADDRESS).call()/10**18
         crv_earned = regx_crv.earned(MY_WALLET_ADDRESS).call()/10**18
         cvx_earned = crv_earned * CVX_fraction_factor[which_factor]
+       # extra_rewards = regx_crv.extraRewardsLength().call()
+      #  if extra_rewards > 0:
+       #     print(extra_rewards,fallback)
         if printit:
             print(f"  CRV: {crv_earned}")
             print(f"  CVX: {cvx_earned}")
@@ -89,7 +92,14 @@ def earned_grabber(myarray, w3, fallback, pool_id, printit=0):
     try:
         return load_contract(pool_id,w3).earned(MY_WALLET_ADDRESS).call()/10**18
     except:
-        print("\nupdate balance exception")
+        print("\nupdate earned exception")
+        #return myarray[-1][fallback]
+
+def oracle_grabber(myarray, w3, fallback, pool_id, printit=0):
+    try:
+        return load_contract(pool_id,w3).price_oracle().call()/10**18
+    except:
+        print("\nupdate oracle exception")
         #return myarray[-1][fallback]
 
 if __name__ == "__main__":

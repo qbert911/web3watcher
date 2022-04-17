@@ -3,6 +3,7 @@
 # pylint: disable=C0103,C0301,W0105,E0401,R0914,C0411,W0702,C0200,C0116,w0106
 import time
 import json
+from colorama import Fore, Style
 from tools.load_contract import load_contract, call_me
 
 MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
