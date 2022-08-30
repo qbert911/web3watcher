@@ -5,15 +5,16 @@ import time
 from pycoingecko import CoinGeckoAPI
 cg = CoinGeckoAPI()
 
-def update_price(coin_type, print_symbola='', print_symbolb=''):
+def update_price(coin_type, print_symbola='', print_symbolb='',fallback=-1):
     USD = -1
     while USD == -1:
         try:
             print(print_symbola+("\b"*len(print_symbola)), end='', flush=True)
-            USD = cg.get_price(ids=coin_type, vs_currencies='usd')[coin_type]["usd"]
+            USD = cg.get_price(ids=coin_type, vs_currencies='usd')[coin_type]["usd"]       
             print(print_symbolb, end='', flush=True)
             time.sleep(1)
         except Exception:
-            print("Z\b", end='', flush=True)
-            time.sleep(10)
+            print("Z", end='', flush=True)
+            #time.sleep(10)
+            return fallback
     return USD

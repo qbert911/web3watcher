@@ -5,7 +5,10 @@ import time
 import json
 from pycoingecko import CoinGeckoAPI
 from colorama import Fore, Style, init
-from tools.price_getter import update_price
+try:
+    from tools.price_getter import update_price
+except:
+    from price_getter import update_price
 init()
 cg = CoinGeckoAPI()
 
@@ -64,6 +67,7 @@ def daily_log(isprice, myportion, printit):
     with open(file_nameh, 'r') as openfile:
         myarrayh = json.load(openfile)
     offset = len(myarrayh)-1-(int((len(myarrayh)-1)/24)*24)
+    #offset = 0
     for x in range(0, int((len(myarrayh)-1)/24)):
         thisprice = isprice
         try:
@@ -76,12 +80,13 @@ def daily_log(isprice, myportion, printit):
             pass
         if printit:
             show_me((x*24)+24+offset, (x*24)+offset, 0, thisprice, myportion, 1, myarrayh)
+    #print(offset)
     return b
 if __name__ == "__main__":
-    z=daily_log(update_price("curve-dao-token"),1,1)
+    z=daily_log(update_price("curve-dao-token"),1,True)
 
     print("")
-    show_me(-1, 0, 0, update_price("curve-dao-token"), 1, 1, 0)
+    show_me(-1, 0, 0, update_price("curve-dao-token"), 1, 1, False)
     print("")
     show_me(-1, (z*24), 0, update_price("curve-dao-token"), 1, 1, 0)
     show_me(-1, (z*24), 0, update_price("curve-dao-token"), 1000, 1, 0)

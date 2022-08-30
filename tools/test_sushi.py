@@ -1,34 +1,52 @@
 #!/usr/bin/env python3
 from web3 import Web3
 from load_contract import load_contract
-from price_getter import update_price
 
 MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
 INFURA_ID = "1d651358519346beb661128bf65ab651"
-infura_w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
+infura_w3 = Web3(Web3.HTTPProvider(f'https://mainnet.infura.io/v3/{INFURA_ID}'))
 
-sushi_call=load_contract("0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d", infura_w3).pendingSushi(1,MY_WALLET_ADDRESS).call()
-sushi_call3=load_contract("0x9e01aaC4b3e8781a85b21d9d9F848e72Af77B362", infura_w3).earned(MY_WALLET_ADDRESS).call()
+def get_chainlink_price(contract_address, w3):
+    contract = load_contract(contract_address, w3)
+    return contract.latestAnswer().call() / 10**contract.decimals().call()
 
-print(round(sushi_call/10**18,8), "sushi claimable")
-print(round(sushi_call3/10**18,8), "cvx claimable\n")
+def abracadabra_getvalue(myarray, w3, fallback, pool_id, printit=0):
+    try:
+        abracadabra_contract = load_contract(pool_id, w3)
+        tokens_owned = abracadabra_contract.userInfo(0,MY_WALLET_ADDRESS).call()[0]
+        rewards_waiting = round(abracadabra_contract.pendingIce(0,MY_WALLET_ADDRESS).call()/10**18,2)
+        
+        slp_pool=load_contract(abracadabra_contract.poolInfo(0).call()[0], w3)
+        total_supply=slp_pool.totalSupply().call()
+        reserves=slp_pool.getReserves().call()
+        owned_spell = round((tokens_owned / total_supply ) * reserves[0]/10**18)
+        owned_eth = round((tokens_owned / total_supply ) * reserves[1]/10**18,8)
 
-tokens_owned=load_contract("0x9e01aaC4b3e8781a85b21d9d9F848e72Af77B362", infura_w3).sushiBalanceOf(MY_WALLET_ADDRESS).call()
-slp_pool=load_contract("0x05767d9EF41dC40689678fFca0608878fb3dE906", infura_w3)
-total_supply=slp_pool.totalSupply().call()
-reserves=slp_pool.getReserves().call()
-CVX = update_price("convex-finance",'','')
-slp_token_value = 2 * reserves[0] * CVX / total_supply
+        if printit:
+            print(f"\n{round(tokens_owned/10**18,8)} sushi lp tokens owned")
+            print(round(total_supply/10**18,8), "sushi lp tokens total\n")
+            print(round(reserves[0]/10**18),"spell in total")
+            print(round(reserves[1]/10**18),"eth in total\n")
 
-print(round(tokens_owned/10**18,8), "sushi lp tokens owned")
-print(round(total_supply/10**18,8), "sushi lp tokens total\n")
-print(round(reserves[0]/10**18),"CVX in total")
-print(round(reserves[1]/10**18),"ETH in total\n")
+            print(owned_spell,"spell owned")
+            print(owned_eth,"eth owned\n")
 
-print(slp_token_value*round(tokens_owned/10**18,8),"stack worth\n")
-print (slp_token_value, "token price\n")
+        return [owned_spell, owned_eth, rewards_waiting]
+    except Exception:
+        print("abracadabra update error")
+        return myarray[-1][fallback]
 
-x = round((tokens_owned / total_supply ) * reserves[0]/10**18)
-y = round((tokens_owned / total_supply ) * reserves[1]/10**18,3)
-print(x,"CVX owned")
-print(y,"ETH owned")
+def main():
+    myarray =[]
+
+    mydict = {"abra_spelleth": abracadabra_getvalue(myarray, infura_w3, "abra_spelleth", "0xF43480afE9863da4AcBD4419A47D9Cc7d25A647F",0)}
+    SPELL = get_chainlink_price('0x8c110B94C5f1d347fAcF5E1E938AB2db60E3c9a8',infura_w3)
+    ETH = get_chainlink_price('0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419',infura_w3)
+
+    print(mydict["abra_spelleth"])
+    print(f"{mydict['abra_spelleth'][0]*SPELL + mydict['abra_spelleth'][1]*ETH:.2f} stack worth")
+    print(f"\n{mydict['abra_spelleth'][2]:.2f} Spell earned")
+    print(f"{mydict['abra_spelleth'][2]*SPELL:.2f} Dollars earned")
+
+if __name__ == "__main__":
+    main()
