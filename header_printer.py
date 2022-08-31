@@ -88,7 +88,7 @@ def curve_header_display(myarray, carray, w3, fullheader):
     cw = [5, 6, 11, 6, 7, 4, 0, 9, 6, 7, 5]
     veCRV_mine = round(call_me(vecrv_func.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
     veCRV_total = round(call_me(vecrv_func.totalSupply())/10**18, 2)
-    for i in range(0, len(carray["name"])):
+    for i in range(len(carray["name"])):
         if carray["currentboost"][i] > 0 or fullheader:
             carray["totalsupply"][i] = round(call_me(load_contract(carray["gaugeaddress"][i],w3).totalSupply())/10**18, 2)
             carray["virtprice"][i] = round(call_me(load_contract(carray["swapaddress"][i],w3).get_virtual_price())/10**18, 6)
@@ -154,7 +154,7 @@ def curve_header_display(myarray, carray, w3, fullheader):
 
 def curve_header_display2(myarray, carray, w3, fullheader,myarrayh,lookback):
     """display detailed pool information"""
-    for i in range(0, len(carray["name"])):
+    for i in range(len(carray["name"])):
         if carray["currentboost"][i] > 0 or fullheader:
             carray["totalsupply"][i] = round(call_me(load_contract(carray["gaugeaddress"][i],w3).totalSupply())/10**18, 2)
             carray["virtprice"][i] = round(call_me(load_contract(carray["swapaddress"][i],w3).get_virtual_price())/10**18, 6)

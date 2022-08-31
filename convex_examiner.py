@@ -71,29 +71,29 @@ def virt_grabber(myarray, w3, fallback, pool_id, printit=0):
                     return virt
                 else:
                     return myarray[-1][fallback]
-            except:
+            except Exception:
                 return virt
-    except:
+    except Exception:
         print("\nupdate virt exception")
         return myarray[-1][fallback]
 
-def earned_grabber(myarray, w3, fallback, pool_id, printit=0, wallet_address = MY_WALLET_ADDRESS):
+def earned_grabber(myarray, w3, fallback, pool_id, printit=0, wallet_address=MY_WALLET_ADDRESS):
     try:
-        return load_contract(pool_id,w3).earned(wallet_address).call()/10**18
-    except:
+        return load_contract(pool_id, w3).earned(wallet_address).call() / 10**18
+    except Exception:
         print("\nupdate earned exception")
         #return myarray[-1][fallback]
 
 def oracle_grabber(myarray, w3, fallback, pool_id, printit=0):
     try:
-        return load_contract(pool_id,w3).price_oracle().call()/10**18
-    except:
+        return load_contract(pool_id, w3).price_oracle().call() / 10**18
+    except Exception:
         print("\nupdate oracle exception")
         #return myarray[-1][fallback]
 
 if __name__ == "__main__":
     INFURA_ID = "1d651358519346beb661128bf65ab651"
-    infura_w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
+    infura_w3 = Web3(Web3.HTTPProvider(f'https://mainnet.infura.io/v3/{INFURA_ID}'))
     a = crvstaked_getvalue(None, infura_w3, "0x3Fe65692bfCD0e6CF84cB1E7d24108E434A7587e", True)
     print(a,"\n\n")
     a = regx_getvalue(None, infura_w3, "trix_rewards", "0x9D5C5E364D81DaB193b72db9E9BE9D8ee669B652", True)
@@ -116,9 +116,9 @@ if __name__ == "__main__":
     a = virt_grabber(None, infura_w3, "fxslocked_virt", "0xd658A338613198204DCa1143Ac3F01A722b5d94A", True)
     a = earned_grabber(None, infura_w3,"fxslocked_extracvx ","0xE2585F27bf5aaB7756f626D6444eD5Fc9154e606", True)
     print(a)
-    a = earned_grabber(None, infura_w3,"fxslocked_extrafxs","0x28120D9D49dBAeb5E34D6B809b842684C482EF27", True)    
+    a = earned_grabber(None, infura_w3,"fxslocked_extrafxs","0x28120D9D49dBAeb5E34D6B809b842684C482EF27", True)
     print(a)
-    a = earned_grabber(None, infura_w3,"cvxeth_extracvx","0x834B9147Fd23bF131644aBC6e557Daf99C5cDa15", True)    
+    a = earned_grabber(None, infura_w3,"cvxeth_extracvx","0x834B9147Fd23bF131644aBC6e557Daf99C5cDa15", True)
     print(a)
     a = regx_getvalue(None, infura_w3, "cvxeth_rewards", "0xb1Fb0BA0676A1fFA83882c7F4805408bA232C1fA",0, True)
     print(a,"\n\n")

@@ -6,3 +6,4 @@ g*.json
 pyportal*.json
 *.bak
 *archive.json
+*.csv

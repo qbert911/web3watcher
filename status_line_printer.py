@@ -13,7 +13,7 @@ def show_convex(myarray, eoa, extramins, name, label, extrapools, token_value,sh
     pricefactor = [ myarray[-1]["USD3pool"], myarray[-1]["USD"], myarray[-1]["USDcvx"]]
     buffer=""
     tprofit=0
-    for i in range(0,3):
+    for i in range(3):
         buffer+=Fore.RED+labels[i]+Fore.WHITE
         try:
             l = i
@@ -73,7 +73,7 @@ def show_convex2(myarray, eoa, extramins, name, label, extrapools, token_value,m
     subtotal=round( ((tprofit/((myarray[eoa][name][0]+.000000001)*pricefactor[extrapools])) +tvirt)*100, 2)
 
     if showdetails:
-        print(Fore.RED+Style.BRIGHT+label+Style.RESET_ALL+str(format(subtotal, '5.2f')).rjust(5)[0:5], end=' ')
+        print(Fore.RED+Style.BRIGHT+label+Style.RESET_ALL+str(format(subtotal, '5.2f')).rjust(5)[:5], end=' ')
         print(Style.DIM+"\b{"+Fore.GREEN+subvirt+Fore.WHITE+buffer+"}"+Style.RESET_ALL, end=' ')
     else:
         print(str(format(subtotal, '2.0f')).rjust(2)+"%", end=' ')
@@ -185,7 +185,7 @@ def show_curve(carray, myarray, myarrayh, eoa, extramins, lookback, showdetails)
     tripool_token_price =  3 * ((myarray[-1]["BTC"] * myarray[-1]["ETH"])**(1/3))
     tripool_value_modifyer_in = tripool_token_price / 1229
     _, _, _, minut = map(str, time.strftime("%m %d %H %M").split())
-    for i in range(0, len(carray["name"])):
+    for i in range(len(carray["name"])):
         if carray["currentboost"][i] > 0:
             buffer+=Fore.RED+Style.BRIGHT+carray["name"][i]+Style.RESET_ALL
             tripool_value_modifyer = 1
@@ -193,7 +193,7 @@ def show_curve(carray, myarray, myarrayh, eoa, extramins, lookback, showdetails)
                 tripool_value_modifyer = tripool_value_modifyer_in
             try:
                 subtotal = round((myarray[-1][carray["name"][i]+"pool"]-myarray[eoa][carray["name"][i]+"pool"])/(60+extramins)*60*myarray[-1]["USD"]*24*365/(carray["invested"][i]*tripool_value_modifyer)*100, 2)
-                buffer+=str(format(subtotal, '.2f')).rjust(5)[0:5]
+                buffer+=str(format(subtotal, '.2f')).rjust(5)[:5]
             except Exception:
                 buffer+="xx.xx"
             try:
@@ -203,7 +203,7 @@ def show_curve(carray, myarray, myarrayh, eoa, extramins, lookback, showdetails)
 
             if thisdiff >= 0:
                 tprofit += thisdiff
-                buffer += Style.DIM+Fore.GREEN+str(format(round(thisdiff/60*60*myarray[-1]["USD"]*24*365/(carray["invested"][i]*tripool_value_modifyer)*100, 2), '.2f')).rjust(5)[0:5]+" "+Style.RESET_ALL
+                buffer += Style.DIM+Fore.GREEN+str(format(round(thisdiff/60*60*myarray[-1]["USD"]*24*365/(carray["invested"][i]*tripool_value_modifyer)*100, 2), '.2f')).rjust(5)[:5]+" "+Style.RESET_ALL
             else:
                 buffer += Style.DIM+Fore.GREEN+"xx.xx "+Style.RESET_ALL
     if showdetails:

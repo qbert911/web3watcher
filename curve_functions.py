@@ -23,7 +23,7 @@ def load_curvepools_fromjson(myarray,barray,w3):
     barray["virtprice"] = [0]*len(thisarray)
     barray["token_value_modifyer"] = [0]*len(thisarray)
     print(len(thisarray),"pools loaded from curvepools.json")
-    for i in range(0, len(thisarray)):
+    for i in range(len(thisarray)):
         barray["longname"].append(thisarray[i]["longname"])
         barray["invested"].append(thisarray[i]["invested"])
         barray["currentboost"].append(thisarray[i]["currentboost"])
@@ -48,33 +48,34 @@ def load_curvepools_fromjson(myarray,barray,w3):
 
 def update_curve_pools(mydict,carray,myarray,myarrayh,w3):
     minter_func = load_contract("0xd061D61a4d941c39E5453435B6345Dc261C2fcE0",w3)
-    for i in range(0, len(carray["name"])):
-        mydict[carray["name"][i]+"invested"] = carray["invested"][i]
-        try:
-            if carray["invested"][i] > 0: #skip updating empty pools
-                carray["balanceof"][i] = call_me(load_contract(carray["gaugeaddress"][i],w3).balanceOf(MY_WALLET_ADDRESS))/10**18
-                time.sleep(0.1)
-                carray["raw"][i] = call_me(load_contract(carray["gaugeaddress"][i],w3).claimable_tokens(MY_WALLET_ADDRESS))
-                potential_virtprice_update = call_me(load_contract(carray["swapaddress"][i],w3).get_virtual_price())/10**18
-                if potential_virtprice_update > carray["virtprice"][i]:
-                    carray["virtprice"][i] = potential_virtprice_update
-                    mydict[carray["name"][i]+"virtprice"] = potential_virtprice_update
-                else:
-                    mydict[carray["name"][i]+"virtprice"] = carray["virtprice"][i]
-                if (carray["virtprice"][i]*carray["balanceof"][i]*carray["token_value_modifyer"][i])-carray["invested"][i] > -10:
-                    mydict[carray["name"][i]+"profit"] = (carray["virtprice"][i]*carray["balanceof"][i]*carray["token_value_modifyer"][i])-carray["invested"][i]
-            if abs(round((carray["raw"][i]+carray["minted"][i])/10**18, 5) - myarray[-1][carray["name"][i]+"pool"]) > 10:
-                print("\nMINTING HAPPENED:", carray["name"][i], "pool      Before", carray["minted"][i], end='   ')
-                carray["minted"][i] = call_me(minter_func.minted(MY_WALLET_ADDRESS, carray["gaugeaddress"][i]))
-                print("After", carray["minted"][i])
-            mydict[carray["name"][i]+"pool"] = round((carray["raw"][i]+carray["minted"][i])/10**18, 5)
-            if myarray[-1][carray["name"][i]+"pool"] - mydict[carray["name"][i]+"pool"] > 0.01: #debug lines ... should not happen
-                print(myarray[-1][carray["name"][i]+"pool"] - mydict[carray["name"][i]+"pool"], "\nerror with lower raw value"+carray["name"][i], myarray[-1][carray["name"][i]+"pool"], mydict[carray["name"][i]+"pool"], end='')
-        except Exception: #usually happens when snx is down for maintenance
-            print("\nupdate curve pools exception", carray["name"][i], i)
-            time.sleep(1)
-            mydict[carray["name"][i]+"pool"] = myarrayh[-1][carray["name"][i]+"pool"]
-            carray["raw"][i] = (myarrayh[-1][carray["name"][i]+"pool"]*10**18) - carray["minted"][i]
+    for i in range(len(carray["name"])):
+        if carray["invested"][i] > 0:
+            mydict[carray["name"][i]+"invested"] = carray["invested"][i]
+            try:
+                if carray["invested"][i] > 0: #skip updating empty pools
+                    carray["balanceof"][i] = call_me(load_contract(carray["gaugeaddress"][i],w3).balanceOf(MY_WALLET_ADDRESS))/10**18
+                    time.sleep(0.1)
+                    carray["raw"][i] = call_me(load_contract(carray["gaugeaddress"][i],w3).claimable_tokens(MY_WALLET_ADDRESS))
+                    potential_virtprice_update = call_me(load_contract(carray["swapaddress"][i],w3).get_virtual_price())/10**18
+                    if potential_virtprice_update > carray["virtprice"][i]:
+                        carray["virtprice"][i] = potential_virtprice_update
+                        mydict[carray["name"][i]+"virtprice"] = potential_virtprice_update
+                    else:
+                        mydict[carray["name"][i]+"virtprice"] = carray["virtprice"][i]
+                    if (carray["virtprice"][i]*carray["balanceof"][i]*carray["token_value_modifyer"][i])-carray["invested"][i] > -10:
+                        mydict[carray["name"][i]+"profit"] = (carray["virtprice"][i]*carray["balanceof"][i]*carray["token_value_modifyer"][i])-carray["invested"][i]
+                if abs(round((carray["raw"][i]+carray["minted"][i])/10**18, 5) - myarray[-1][carray["name"][i]+"pool"]) > 10:
+                    print("\nMINTING HAPPENED:", carray["name"][i], "pool      Before", carray["minted"][i], end='   ')
+                    carray["minted"][i] = call_me(minter_func.minted(MY_WALLET_ADDRESS, carray["gaugeaddress"][i]))
+                    print("After", carray["minted"][i])
+                mydict[carray["name"][i]+"pool"] = round((carray["raw"][i]+carray["minted"][i])/10**18, 5)
+                if myarray[-1][carray["name"][i]+"pool"] - mydict[carray["name"][i]+"pool"] > 0.01: #debug lines ... should not happen
+                    print(myarray[-1][carray["name"][i]+"pool"] - mydict[carray["name"][i]+"pool"], "\nerror with lower raw value"+carray["name"][i], myarray[-1][carray["name"][i]+"pool"], mydict[carray["name"][i]+"pool"], end='')
+            except Exception: #usually happens when snx is down for maintenance
+                print("\nupdate curve pools exception", carray["name"][i], i)
+                time.sleep(1)
+                mydict[carray["name"][i]+"pool"] = myarrayh[-1][carray["name"][i]+"pool"]
+                carray["raw"][i] = (myarrayh[-1][carray["name"][i]+"pool"]*10**18) - carray["minted"][i]
     mydict["claim"] = round((sum(carray["raw"])+sum(carray["minted"]))/10**18, 6)
 
 def curve_boost_check(carray,w3):

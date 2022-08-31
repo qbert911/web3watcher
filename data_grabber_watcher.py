@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """curve"""
+
 # pylint: disable=C0103,C0301,W0105,E0401,R0914,C0411,W0702,C0200,C0116,w0106
 import cursor
 import threading
@@ -22,7 +23,7 @@ init()                                      #initialize colorama
 
 INFURA_ID = "9c51dd19cb9e456387014e7d1661afa3"
 
-infura_w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/'+INFURA_ID))
+infura_w3 = Web3(Web3.HTTPProvider(f'https://mainnet.infura.io/v3/{INFURA_ID}'))
 mylocal_w3 = Web3(Web3.HTTPProvider('http://192.168.0.146:8545'))
 #mylocal_w3 = Web3(Web3.WebsocketProvider("ws://192.168.0.146:8546"))
 
@@ -68,6 +69,7 @@ def key_capture_thread():
     enter_hit = True
 
 def pyportal_update(mydict, display_percent, dollar_amount, crv_daily, cvx_daily):
+    # sourcery skip: merge-dict-assign
     pyportal_dict = {}
     pyportal_dict["display_percent"] = display_percent
     pyportal_dict["price_string"] = f"{mydict['FRAX']:.1f}"+f"{mydict['SPELL']*10000:.0f}".rjust(3)
@@ -124,8 +126,7 @@ def gas_and_sleep(w3, mydict):
         firstpass = False
         time.sleep(10)
         month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
-    if args.Local:
-        if not wait_for_local_node_sync(w3):
+    if args.Local and not wait_for_local_node_sync(w3):
             w3 = infura_w3
     print("\r",end="")
     return w3
