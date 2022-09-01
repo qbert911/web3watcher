@@ -79,7 +79,10 @@ def show_me(inputs, inpute, myarrayh,flag_tripped = 0):
     try:
         acrv_coefficient = myarrayh[inputs]["acrv_totalunderlying"]/myarrayh[inputs]["acrv_totalsupply"]
     except:
-        acrv_coefficient = 1.14
+        try:
+           acrv_coefficient = myarrayh[inputs]["concentrator_virt"]
+        except:
+            acrv_coefficient = 1.14
     
     try:
         ctr_unclaimed_current = ((1/acrv_coefficient)*211 / myarrayh[inputs]["concentrator_cvxeth_rewards"][0] *(myarrayh[inputs]["concentrator_cvxeth_rewards"][1]\

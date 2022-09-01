@@ -45,37 +45,37 @@ def convex_header_display(myarray,myarrayh,lookback):
     extramins = round((myarray[-1]["raw_time"]-myarray[eoa]["raw_time"])/60)+eoa
     #duplicate code end
 
-    print("xSpell/Eth"," "*2,Style.DIM+f"{myarray[-1]['spelleth_rewards'][0]*spelleth_token_price:6.0f}"+Style.RESET_ALL,end=" ")
+    print("xSpell/Eth", " " * 2, f"{Style.DIM}{myarray[-1]['spelleth_rewards'][0] * spelleth_token_price:6.0f}{Style.RESET_ALL}", end=" ")
     print(" "*9,f"s{spell_spell_owned/1000:3.0f}k e{spell_eth_owned:5.2f}",end='')
     print(" "*1,f"${spelleth_value:7.2f}",end=" ")
     status_line_printer.show_convex2(myarray, eoa,extramins,"spelleth_rewards","xS2E", 0, spelleth_token_price,myarrayh,lookback,"spelleth_virt", False) #Indicates no third pool and using token_value_modifyer
     print(" "*13,f"v{myarray[-1]['spelleth_rewards'][1]:5.2f}x{myarray[-1]['spelleth_rewards'][2]:5.2f}")
 
-    print("Staked FXS"," "*2,Style.DIM+f"{myarray[-1]['fxslocked_rewards'][0]*fxslocked_token_price:6.0f}"+Style.RESET_ALL,end=" ")
+    print("Staked FXS", " " * 2, f"{Style.DIM}{myarray[-1]['fxslocked_rewards'][0] * fxslocked_token_price:6.0f}{Style.RESET_ALL}", end=" ")
     print(" "*8,f"xf{myarray[-1]['fxslocked_rewards'][0]*2:4.0f}",end=" ")
     print(" "*7,f"${fxslocked_value:7.2f}", end=" ")
     status_line_printer.show_convex2_extrafxs(myarray, eoa,extramins,"fxslocked_rewards","xFXS", 0, fxslocked_token_price,myarrayh,lookback,"fxslocked_virt", False)
     print(" "*42,"f"+str(format(round(myarray[-1]['fxslocked_extrafxs'],2), '5.2f')).rjust(5)+"v"+str(format(round(myarray[-1]['fxslocked_rewards'][1],2), '5.2f')).rjust(5)+"x"+str(format(round(myarray[-1]["fxslocked_rewards"][2]+myarray[-1]["fxslocked_extracvx"],2), '5.2f')).rjust(5))
 
-    print("cvX/Eth"," "*5,Style.DIM+f"{myarray[-1]['cvxeth_rewards'][0]*cvxeth_token_price:6.0f}"+Style.RESET_ALL,end=" ")
+    print("cvX/Eth", " " * 5, f"{Style.DIM}{myarray[-1]['cvxeth_rewards'][0] * cvxeth_token_price:6.0f}{Style.RESET_ALL}", end=" ")
     print(" "*9,f"x{cvx_cvx_owned:4.0f} e{cvx_eth_owned:5.2f}",end='')
     print(" "*1,f"${cvxeth_value:7.2f}", end=" ")
     status_line_printer.show_convex2_extracvx(myarray, eoa,extramins,"cvxeth_rewards","xX2E", 0, cvxeth_token_price, myarrayh,lookback,"cvxeth_virt", False, "cvxeth_extracvx") #Indicates no third pool and using token_value_modifyer
     print(" "*83,"v"+str(format(round(myarray[-1]["cvxeth_rewards"][1],2), '5.2f')).rjust(5)+"x"+str(format(round(myarray[-1]["cvxeth_rewards"][2]+myarray[-1]["cvxeth_extracvx"],2), '5.2f')).rjust(5))
 
-    print("CRV/cvxCRV"," "*3,Style.DIM+f"{myarray[-1]['crvsquared_rewards'][0]*myarray[-1]['USDcvxCRV']:5.0f}"+Style.RESET_ALL,end=" ")
+    print("CRV/cvxCRV", " " * 3, f"{Style.DIM}{myarray[-1]['crvsquared_rewards'][0] * myarray[-1]['USDcvxCRV']:5.0f}{Style.RESET_ALL}", end=" ")
     print(" "*7,f"vv{myarray[-1]['crvsquared_rewards'][0]:5.0f}",end="")
     print(" "*8,f"${crvsquared_value:7.2f}", end=" ")
     status_line_printer.show_convex2_extracvx(myarray, eoa,extramins,"crvsquared_rewards","xV2V", 0, myarray[-1]['USDcvxCRV'], myarrayh,lookback,"crvsquared_virt",False,"crvsquared_extracvx") #Indicates no third pool and using token_value_modifyer
     print(" "*118,"v"+str(format(round(myarray[-1]["crvsquared_rewards"][1],2), '5.2f')).rjust(5)+"x"+str(format(round(myarray[-1]["crvsquared_rewards"][2]+myarray[-1]["crvsquared_extracvx"],2), '5.2f')).rjust(5))
 
-    print("Staked CRV"," "*3,Style.DIM+f"{myarray[-1]['crvstaked_rewards'][0]*myarray[-1]['USDcvxCRV']:5.0f}"+Style.RESET_ALL,end="")
+    print("Staked CRV", " " * 3, f"{Style.DIM}{myarray[-1]['crvstaked_rewards'][0] * myarray[-1]['USDcvxCRV']:5.0f}{Style.RESET_ALL}", end="")
     print(" "*8,f"vv{myarray[-1]['crvstaked_rewards'][0]:5.0f}",end="")
     print(" "*8,f"${crvstaked_value:7.2f}", end=" ")
     status_line_printer.show_convex(myarray, eoa,extramins,"crvstaked_rewards","xCRV", 1, 1, False) #Indicates having an extra 3pool and not using token_value_modifyer
     print(" "*148,"t"+str(format(round(myarray[-1]["crvstaked_rewards"][3],2), '5.2f')).rjust(5)+"v"+str(format(round(myarray[-1]["crvstaked_rewards"][1],2), '5.2f')).rjust(5)+"x"+str(format(round(myarray[-1]["crvstaked_rewards"][2],2), '5.2f')).rjust(5))
 
-    print("Locked CVX"," "*3,Style.DIM+f"{myarray[-1]['cvxlocked_rewards'][0]*myarray[-1]['USDcvx']:5.0f}"+Style.RESET_ALL,end="")
+    print("Locked CVX", " " * 3, f"{Style.DIM}{myarray[-1]['cvxlocked_rewards'][0] * myarray[-1]['USDcvx']:5.0f}{Style.RESET_ALL}", end="")
     print(" "*10,f"x{myarray[-1]['cvxlocked_rewards'][0]:4.0f}",end="")
     print(" "*8,f"${cvxlocked_value:7.2f}", end=" ")
     status_line_printer.show_cvxlocked_rewards(myarray, eoa, extramins, False)
@@ -233,25 +233,25 @@ def show_wallet(myarray,w3):
     total = 0
     print("[", end=' ')
     if CRV_inwallet > 0:
-        print("v"+Fore.CYAN+f"{CRV_inwallet}"+Style.RESET_ALL, end=' ')
+        print(f"v{Fore.CYAN}" + f"{CRV_inwallet}" + Style.RESET_ALL, end=' ')
         total += CRV_inwallet * myarray[-1]["USD"]
     if cvxcrv_inwallet > 0:
-        print("vv"+Fore.CYAN+f"{cvxcrv_inwallet}"+Style.RESET_ALL, end=' ')
+        print(f"vv{Fore.CYAN}" + f"{cvxcrv_inwallet}" + Style.RESET_ALL, end=' ')
         total += cvxcrv_inwallet * myarray[-1]["USDcvxCRV"]
     if cvx_inwallet > 0:
-        print("x"+Fore.BLUE+f"{cvx_inwallet}"+Style.RESET_ALL, end=' ')
+        print(f"x{Fore.BLUE}" + f"{cvx_inwallet}" + Style.RESET_ALL, end=' ')
         total += cvx_inwallet * myarray[-1]["USDcvx"]
     if crv3pool_inwallet > 0:
-        print("t"+f"{crv3pool_inwallet}"+Style.RESET_ALL, end=' ')
+        print(f"t{crv3pool_inwallet}{Style.RESET_ALL}", end=' ')
         total += crv3pool_inwallet * myarray[-1]["USD3pool"]
     if fxslocked_inwallet > 0:
-        print("ff"+Fore.BLUE+f"{fxslocked_inwallet}"+Style.RESET_ALL, end=' ')
+        print(f"ff{Fore.BLUE}" + f"{fxslocked_inwallet}" + Style.RESET_ALL, end=' ')
         total += fxslocked_inwallet * myarray[-1]["FRAX"]
     if fxs_inwallet > 0:
-        print("f"+Fore.BLUE+f"{fxs_inwallet}"+Style.RESET_ALL, end=' ')
+        print(f"f{Fore.BLUE}" + f"{fxs_inwallet}" + Style.RESET_ALL, end=' ')
         total += fxs_inwallet * myarray[-1]["FRAX"]
 
-    print("] in wallet"+Style.DIM+f" (${total:5.2f})"+Style.RESET_ALL, end='  ')
+    print(f"] in wallet{Style.DIM}" + f" (${total:5.2f})" + Style.RESET_ALL, end='  ')
 
 if __name__ == "__main__":
     print("this module is not meant to be run solo")

@@ -264,7 +264,7 @@ def show_difference(myarray,eoa):
 
     diff3pool = max(0,myarray[-1]["crvstaked_rewards"][3]-myarray[eoa]["crvstaked_rewards"][3])  
 
-    acrv_coefficient = myarray[-1]["acrv_totalunderlying"]/myarray[-1]["acrv_totalsupply"]
+    acrv_coefficient = myarray[-1]["concentrator_virt"]
     my_pool_percent = (1/acrv_coefficient)* 211 / myarray[-1]["concentrator_cvxeth_rewards"][0] #HACK
     ctr_unclaimed_current =  (my_pool_percent *(myarray[-1]["concentrator_cvxeth_rewards"][1]\
                 +(myarray[-1]["concentrator_cvxeth_rewards"][2]*myarray[-1]["USDcvx"]/myarray[-1]["USD"])\

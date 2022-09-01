@@ -5,9 +5,13 @@ import json
 import os.path
 from etherscan.contracts import Contract #py_etherscan_api
 
-def load_contract(_contract, _eth_connect,abi_address=""):
+def load_contract(_contract, _eth_connect,abi_address="",lp_abi=False,minter_abi=False):
     # sourcery skip: move-assign
     abi_contract = _contract
+    if lp_abi:
+        abi_contract = "0x98638FAcf9a3865cd033F36548713183f6996122"
+    elif minter_abi:
+        abi_contract = "0x8282BD15dcA2EA2bDf24163E8f2781B30C43A2ef" 
     if str(abi_address) != "":
         abi_contract = abi_address
 

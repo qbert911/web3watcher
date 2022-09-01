@@ -112,11 +112,11 @@ def gas_and_sleep(w3, mydict):
     mydict["USDcvxCRV"] = update_price("convex-crv",'▸','▹',myarray[-1]["USDcvxCRV"])
 
     month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
-    while month+"/"+day+" "+hour+":"+minut == myarray[-1]["human_time"]:        #Wait for each minute to pass to run again
+    while f"{month}/{day} {hour}:{minut}" == myarray[-1]["human_time"]:#Wait for each minute to pass to run again
         try:
-            print(str("~"+str(round(infura_w3.eth.gasPrice/10**9))+"~")[0:5].rjust(5),"\b"*6, end="", flush=True)
+            print(f"~{round(infura_w3.eth.gasPrice / 10**9)}~"[:5].rjust(5), "\b" * 6, end="", flush=True)
         except Exception:
-            print(str("~"+Fore.RED+Style.BRIGHT+"xxx"+Style.RESET_ALL+"~"), "\b"*6, end="", flush=True)
+            print(f"~{Fore.RED}{Style.BRIGHT}xxx{Style.RESET_ALL}~", "\b" * 6, end="", flush=True)
         if firstpass and minut == "00":
             print("")
         if enter_hit:
@@ -154,7 +154,7 @@ def main():
 #Update dictionary values and price information
         month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
         mydict["raw_time"] = round(time.time())
-        mydict["human_time"] = month+"/"+day+" "+hour+":"+minut
+        mydict["human_time"] = f"{month}/{day} {hour}:{minut}"
         mydict["invested"] = sum(carray["invested"])
 
         curve_functions.update_curve_pools(mydict, carray, myarray, myarrayh, w3)
@@ -165,35 +165,33 @@ def main():
         #mydict["trix_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "trix_rewards", "0x9D5C5E364D81DaB193b72db9E9BE9D8ee669B652")
         #mydict["mimx_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "mimx_rewards", "0xC62DE533ea77D46f3172516aB6b1000dAf577E89")
         #mydict["crveth_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "crveth_rewards", "0x085A2054c51eA5c91dbF7f90d65e728c0f2A270f")
-        mydict["cvxeth_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "cvxeth_rewards", "0xb1Fb0BA0676A1fFA83882c7F4805408bA232C1fA")
-        mydict["spelleth_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "spelleth_rewards", "0xb2f0bB6352417c1Bf017862aC165E67623611aF3")
-        mydict["fxslocked_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "fxslocked_rewards", "0xf27AFAD0142393e4b3E5510aBc5fe3743Ad669Cb")
-        mydict["crvsquared_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "crvsquared", "0x0392321e86F42C2F94FBb0c6853052487db521F0")
-
         #mydict["crveth_virt"] = convex_examiner.virt_grabber(myarray, w3, "crveth_virt", "0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511")
-        mydict["cvxeth_virt"] = convex_examiner.virt_grabber(myarray, w3, "cvxeth_virt", "0xB576491F1E6e5E62f1d8F26062Ee822B40B0E0d4")
-        mydict["spelleth_virt"] = convex_examiner.virt_grabber(myarray, w3, "spelleth_virt", "0x98638FAcf9a3865cd033F36548713183f6996122")
-        mydict["fxslocked_virt"] = convex_examiner.virt_grabber(myarray, w3, "fxslocked_virt", "0xd658A338613198204DCa1143Ac3F01A722b5d94A")
-        mydict["crvsquared_virt"] = convex_examiner.virt_grabber(myarray, w3, "crvsquared_virt", "0x9D0464996170c6B9e75eED71c68B99dDEDf279e8")
 
+        mydict["spelleth_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "spelleth_rewards", poolid=66)
+        mydict["spelleth_virt"] = mydict["spelleth_rewards"][4]
+
+        mydict["cvxeth_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "cvxeth_rewards", poolid=64)
+        mydict["cvxeth_extracvx"] = mydict["cvxeth_rewards"][3][0]['amount']
+        mydict["cvxeth_virt"] = mydict["cvxeth_rewards"][4]
+
+        mydict["crvsquared_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "crvsquared_rewards", poolid=41)
+        mydict["crvsquared_extracvx"] = mydict["crvsquared_rewards"][3][0]['amount']
+        mydict["crvsquared_virt"] = mydict["crvsquared_rewards"][4]
+
+        mydict["fxslocked_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "fxslocked_rewards", poolid=72)
+        mydict["fxslocked_extracvx"] = mydict["fxslocked_rewards"][3][0]['amount']
+        mydict["fxslocked_extrafxs"] = mydict["fxslocked_rewards"][3][1]['amount']
+        mydict["fxslocked_virt"] = mydict["fxslocked_rewards"][4]
         mydict["fxslocked_oracle"] = convex_examiner.oracle_grabber(myarray, w3, "fxslocked_oracle", "0xd658A338613198204DCa1143Ac3F01A722b5d94A")
 
-        mydict["fxslocked_extracvx"] = convex_examiner.earned_grabber(myarray, w3,"fxslocked_extracvx ","0xE2585F27bf5aaB7756f626D6444eD5Fc9154e606")
-        mydict["fxslocked_extrafxs"] = convex_examiner.earned_grabber(myarray, w3,"fxslocked_extrafxs","0x28120D9D49dBAeb5E34D6B809b842684C482EF27")    
-        mydict["cvxeth_extracvx"] = convex_examiner.earned_grabber(myarray, w3,"cvxeth_extracvx ","0x834B9147Fd23bF131644aBC6e557Daf99C5cDa15")
-        mydict["crvsquared_extracvx"] = convex_examiner.earned_grabber(myarray, w3,"crvsquared_extracvx ","0xbE4DEa8E5d1E53FAd661610E47501f858F25852D")
-
-        concentrator = load_contract("0x3Cf54F3A1969be9916DAD548f3C084331C4450b5",w3,"0x99373AE646ed89b9A466c4256b09b10dbCC07B40")
-        mydict["concentrator_totalmined"] = concentrator.ctrMined().call()/10**18
-        mydict["concentrator_rewards_CTR"] = concentrator.pendingCTR(5,"0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B").call()/10**18
-
-        mydict["concentrator_cvxeth_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "cvxeth_rewards", "0xb1Fb0BA0676A1fFA83882c7F4805408bA232C1fA", wallet_address="0x3Cf54F3A1969be9916DAD548f3C084331C4450b5")
-        mydict["concentrator_cvxeth_extracvx"] = convex_examiner.earned_grabber(myarray, w3,"cvxeth_extracvx ","0x834B9147Fd23bF131644aBC6e557Daf99C5cDa15", wallet_address="0x3Cf54F3A1969be9916DAD548f3C084331C4450b5")
+        mydict["concentrator_cvxeth_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "cvxeth_rewards", poolid=64, wallet_address="0x3Cf54F3A1969be9916DAD548f3C084331C4450b5")
+        mydict["concentrator_cvxeth_extracvx"] = mydict["concentrator_cvxeth_rewards"][3][0]['amount']
 
         acrv = load_contract("0x2b95A1Dcc3D405535f9ed33c219ab38E8d7e0884",w3,"0x160D6e417bE17E21712F004B87872a30799Cb78f")
-        mydict["acrv_totalsupply"] = acrv.totalSupply().call()/10**18
-        mydict["acrv_totalunderlying"] = acrv.totalUnderlying().call()/10**18
-
+        mydict["concentrator_virt"] = acrv.totalUnderlying().call() / acrv.totalSupply().call()
+        concentrator = load_contract("0x3Cf54F3A1969be9916DAD548f3C084331C4450b5",w3,"0x99373AE646ed89b9A466c4256b09b10dbCC07B40")
+        mydict["concentrator_rewards_CTR"] = concentrator.pendingCTR(5,"0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B").call()/10**18
+        mydict["concentrator_totalmined"] = concentrator.ctrMined().call()/10**18
 
 #Keep one hour worth of data in hourly log
         myarray.append(mydict)
@@ -208,14 +206,14 @@ def main():
                 pass
 #Output dictionary to minute file
         if not args.Readonly:
-            shutil.copyfile(file_name, file_name+".bak")
+            shutil.copyfile(file_name, f"{file_name}.bak")
             json.dump(myarray, open(file_name, "w"), indent=4)
             pyportal_update(mydict, mainpercentdisplay, dollar_amount,crv_daily,cvx_daily)
 #Output dictionary to hour file on the top of each hour
         if minut == "00" and mydict["claim"] > 1:
             myarrayh.append(mydict)
             if not args.Readonly:
-                shutil.copyfile(file_nameh, file_nameh+".bak")
+                shutil.copyfile(file_nameh, f"{file_nameh}.bak")
                 json.dump(myarrayh, open(file_nameh, "w"), indent=4)
 
 if __name__ == "__main__":

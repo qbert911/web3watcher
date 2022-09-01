@@ -35,12 +35,12 @@ def load_curvepools_fromjson(myarray,barray,w3):
             barray["tokenaddress"].append(thisarray[i]["tokenaddress"])
         except Exception:
             barray["tokenaddress"].append("")
-        try:
-            _ = myarray[-1][barray["name"][i]+"pool"]
-        except Exception:
-            print(thisarray[i]["longname"], "not found in current history file, adding now.")
-            myarray[-1][barray["name"][i]+"pool"] = 0
-            myarray[-1][barray["name"][i]+"invested"] = 0
+        #try:
+        #    _ = myarray[-1][barray["name"][i]+"pool"]
+        #except Exception:
+           # print(thisarray[i]["longname"], "not found in current history file, adding now.")
+           #myarray[-1][barray["name"][i]+"pool"] = 0
+            #myarray[-1][barray["name"][i]+"invested"] = 0
         try:
             barray["token_value_modifyer"][i] = thisarray[i]["token_value_modifyer"]
         except Exception:
@@ -86,7 +86,7 @@ def curve_boost_check(carray,w3):
         veCRV_mine = round(call_me(vecrv_func.balanceOf(MY_WALLET_ADDRESS))/10**18, 2)
         veCRV_total = round(call_me(vecrv_func.totalSupply())/10**18, 2)
         outputflag = 0
-        for i in range(0, len(carray["name"])):
+        for i in range(len(carray["name"])):
             if carray["currentboost"][i] >= 2.47:   #hack to avoid spool which is annoyingly close to 2.5 boost
                 carray["booststatus"][i] = -1               #Green, all is well
             elif carray["currentboost"][i] == 0:
@@ -109,7 +109,7 @@ def curve_boost_check(carray,w3):
                         print(Style.DIM+Fore.RED+str(format(round((carray["futureboost"][i]-carray["currentboost"][i])*10000), '04')).rjust(4)+Style.RESET_ALL, end=' ')
 
         if not outputflag:
-            print(Fore.GREEN+'Bööst'+Style.RESET_ALL, end=' ')
+            print(f'{Fore.GREEN}Bööst{Style.RESET_ALL}', end=' ')
     except Exception:
         print("uperr", end=' ')
     print('\b] ', end='')    

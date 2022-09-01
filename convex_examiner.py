@@ -27,24 +27,6 @@ def crvstaked_getvalue(myarray, w3, pool_id, printit=0):
         print("\nupdate staked crv exception")
         return [myarray[-1]["crvstaked_rewards"][0],myarray[-1]["crvstaked_rewards"][1],myarray[-1]["crvstaked_rewards"][2],myarray[-1]["crvstaked_rewards"][3]]
 
-def regx_getvalue(myarray, w3, fallback, pool_id, which_factor=0, printit=0, wallet_address = MY_WALLET_ADDRESS):
-    
-    regx_crv = load_contract(pool_id, w3)#convex tripool crv rewards
-    try:
-        invested = regx_crv.balanceOf(wallet_address).call()/10**18
-        crv_earned = regx_crv.earned(wallet_address).call()/10**18
-        cvx_earned = crv_earned * CVX_fraction_factor[which_factor]
-       # extra_rewards = regx_crv.extraRewardsLength().call()
-      #  if extra_rewards > 0:
-       #     print(extra_rewards,fallback)
-        if printit:
-            print(f"  CRV: {crv_earned}")
-            print(f"  CVX: {cvx_earned}")
-        return [invested, crv_earned, cvx_earned]
-    except Exception:
-        print("\nupdate regx exception")
-        return [myarray[-1][fallback][0],myarray[-1][fallback][1],myarray[-1][fallback][2]]
-
 def cvxlocked_getvalue(myarray, w3, pool_id, printit=0):
     cvx_locked = load_contract(pool_id, w3)#convex locked rewards
     try:
@@ -59,30 +41,38 @@ def cvxlocked_getvalue(myarray, w3, pool_id, printit=0):
         if not printit:
             return [myarray[-1]["cvxlocked_rewards"][0], myarray[-1]["cvxlocked_rewards"][1],myarray[-1]["cvxlocked_rewards"][2]]
 
-def virt_grabber(myarray, w3, fallback, pool_id, printit=0):  
-    crveth_token = load_contract(pool_id,w3)
-    try:
-        virt = crveth_token.get_virtual_price().call()/10**18
-        if printit:
-            print(virt)
-        else:
-            try:
-                if virt >= myarray[-1][fallback]:
-                    return virt
-                else:
-                    return myarray[-1][fallback]
-            except Exception:
-                return virt
-    except Exception:
-        print("\nupdate virt exception")
-        return myarray[-1][fallback]
+def regx_getvalue(myarray, w3, fallback, printit=0, wallet_address = MY_WALLET_ADDRESS, poolid = 0):
+    main_contract = load_contract("0xF403C135812408BFbE8713b5A23a04b3D48AAE31",w3)
+    poolinfo_addresses_array = main_contract.poolInfo(poolid).call() #load a single pools' addresses from the main convex contract
+    regx_crv = load_contract(poolinfo_addresses_array[3], w3)#convex tripool crv rewards
 
-def earned_grabber(myarray, w3, fallback, pool_id, printit=0, wallet_address=MY_WALLET_ADDRESS):
-    try:
-        return load_contract(pool_id, w3).earned(wallet_address).call() / 10**18
+    try:   
+        minter = load_contract(poolinfo_addresses_array[0],w3, minter_abi=True).minter().call() 
     except Exception:
-        print("\nupdate earned exception")
-        #return myarray[-1][fallback]
+        minter = poolinfo_addresses_array[0] 
+
+    virtprice = load_contract(minter,w3, lp_abi=True).get_virtual_price().call()/10**18
+    if virtprice < myarray[-1][fallback][4]:
+        virtprice = myarray[-1][fallback][4]
+
+    try:
+        invested = regx_crv.balanceOf(wallet_address).call()/10**18
+        crv_earned = regx_crv.earned(wallet_address).call()/10**18
+        cvx_earned = crv_earned * CVX_fraction_factor[0]
+        extra_rewards = regx_crv.extraRewardsLength().call()
+        extra_list = []
+        for i in range(extra_rewards):
+            extra_dict = {}
+            extra_dict['amount'] = load_contract(regx_crv.extraRewards(i).call(), w3).earned(wallet_address).call() / 10**18
+            extra_dict['name'] = load_contract(load_contract(regx_crv.extraRewards(i).call(), w3).rewardToken().call(),w3).symbol().call()
+            extra_list.append(extra_dict)
+        if printit:
+            print(f"  CRV: {crv_earned}")
+            print(f"  CVX: {cvx_earned}")
+        return [invested, crv_earned, cvx_earned, extra_list, virtprice]
+    except Exception:
+        print("\nupdate regx exception")
+        return [myarray[-1][fallback][0],myarray[-1][fallback][1],myarray[-1][fallback][2]]
 
 def oracle_grabber(myarray, w3, fallback, pool_id, printit=0):
     try:
