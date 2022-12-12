@@ -11,7 +11,7 @@ import time
 from web3 import Web3
 from colorama import Fore, Style, init
 from tools.curve_rainbowhat_functions import curve_hats_update
-from tools.price_getter import update_price
+from tools.price_getter import update_price, update_price2
 from tools.load_contract import load_contract
 import convex_examiner
 import curve_functions
@@ -21,10 +21,12 @@ import header_printer
 cursor.hide()                               #don't draw the cursor
 init()                                      #initialize colorama
 
-INFURA_ID = "9c51dd19cb9e456387014e7d1661afa3"
+#INFURA_ID = "1d651358519346beb661128bf65ab651"
+INFURA_ID = "bfdd3973b810492db7cb27792702782f"
 
 infura_w3 = Web3(Web3.HTTPProvider(f'https://mainnet.infura.io/v3/{INFURA_ID}'))
 mylocal_w3 = Web3(Web3.HTTPProvider('http://192.168.0.146:8545'))
+mylocal_w3 = Web3(Web3.HTTPProvider('http://192.168.0.4:8545'))
 #mylocal_w3 = Web3(Web3.WebsocketProvider("ws://192.168.0.146:8546"))
 
 file_name = "ghistory.json"
@@ -58,7 +60,7 @@ def wait_for_local_node_sync(w3,waitforit=False):
                 return False
             time.sleep(10)
         except Exception:
-            print("\rLocal Node communication error   !!!switching to infura!!!")
+            print("\r\x1b[20C Local Node communication error   !!!switching to infura!!!")
             return False
     return True
 
@@ -87,17 +89,25 @@ def pyportal_update(mydict, display_percent, dollar_amount, crv_daily, cvx_daily
 
 def show_headers(w3):
     #curve_functions.curve_header_display(myarray, carray, w3, args.Fullheader)
+    #header_printer.stakedao_header_display(myarray, myarrayh, args.Hourslookback)
+    header_printer.concentrator_locked_header_display(myarray)
     header_printer.curve_header_display2(myarray, carray, w3, args.Fullheader, myarrayh, args.Hourslookback)
+    header_printer.abracadabra_header_display(myarray, myarrayh, args.Hourslookback)
+    #header_printer.concentrator_header_display(myarray)
     header_printer.convex_header_display(myarray, myarrayh, args.Hourslookback)
     header_printer.combined_stats_display(myarray, carray, w3)
     threading.Thread(target=key_capture_thread, args=(), name='key_capture_thread', daemon=True).start()
 
 def get_chainlink_price(contract_address, w3):
-    contract = load_contract(contract_address, w3)
-    return contract.latestAnswer().call() / 10**contract.decimals().call()
+    try:
+        contract = load_contract(contract_address, w3)
+        value = contract.latestAnswer().call() / 10**8 #contract.decimals().call()
+    except Exception:
+        value = 0
+    return value   
 
 def gas_and_sleep(w3, mydict):
-    firstpass = True    #Prevent header display from outputting in conflict with regular update
+    pass_count = 1    #Prevent header display from outputting in conflict with regular update
     month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
 
     mydict["FRAX"] = get_chainlink_price('0x6Ebc52C8C1089be9eB3945C4350B68B8E4C2233f',w3)
@@ -108,22 +118,26 @@ def gas_and_sleep(w3, mydict):
     mydict["USD3pool"] = 1.021
 
     #mydict["USD"] = get_chainlink_price('0xCd627aA160A6fA45Eb793D19Ef54f5062F20f33f',w3)
-    mydict["USD"] = update_price("curve-dao-token",'▸','▹',myarray[-1]["USD"])
-    mydict["USDcvxCRV"] = update_price("convex-crv",'▸','▹',myarray[-1]["USDcvxCRV"])
+    mydict["SDT"] = myarray[-1]["SDT"] #update_price("stake-dao",'▹','▸',myarray[-1]["SDT"])
+    mydict["USD"] = update_price("curve-dao-token",'▹','▸',myarray[-1]["USD"])
 
+    mydict["USDcvxCRV"] = update_price("convex-crv",'▹','▸',myarray[-1]["USDcvxCRV"])
+    mydict["CTR"] = update_price("concentrator",'▹','▸',myarray[-1]["CTR"])
     month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
     while f"{month}/{day} {hour}:{minut}" == myarray[-1]["human_time"]:#Wait for each minute to pass to run again
         try:
-            print(f"~{round(infura_w3.eth.gasPrice / 10**9)}~"[:5].rjust(5), "\b" * 6, end="", flush=True)
+            #print(pass_count,end='', flush=True)
+            print(f"~{round(w3.eth.gasPrice / 10**9)}~"[:5].rjust(5),pass_count, "\b" * 8, end="", flush=True)
+
         except Exception:
             print(f"~{Fore.RED}{Style.BRIGHT}xxx{Style.RESET_ALL}~", "\b" * 6, end="", flush=True)
-        if firstpass and minut == "00":
+        if pass_count == 1 and minut == "00":
             print("")
         if enter_hit:
-            if firstpass:
+            if pass_count == 1:
                 print("")
             show_headers(w3)
-        firstpass = False
+        pass_count += 1
         time.sleep(10)
         month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
     if args.Local and not wait_for_local_node_sync(w3):
@@ -140,10 +154,11 @@ def main():
         print("Data Source: Infura")
         w3 = infura_w3
     else:
-        print("Data Source: LOCAL (except gas)")
+        print("Data Source: LOCAL")
         w3 = mylocal_w3
         if not wait_for_local_node_sync(w3,waitforit=True):
             w3 = infura_w3
+    constants={}
     curve_functions.load_curvepools_fromjson(myarray, carray, w3)
     show_headers(w3)
 #Main program loop starts here
@@ -159,62 +174,54 @@ def main():
 
         curve_functions.update_curve_pools(mydict, carray, myarray, myarrayh, w3)
 
-        mydict["crvstaked_rewards"] = convex_examiner.crvstaked_getvalue(myarray, w3, "0x3Fe65692bfCD0e6CF84cB1E7d24108E434A7587e")
         mydict["cvxlocked_rewards"] = convex_examiner.cvxlocked_getvalue(myarray, w3, "0x72a19342e8F1838460eBFCCEf09F6585e32db86E")
+        mydict["crvstaked_rewards"] = convex_examiner.crvstaked_getvalue(myarray, w3, "0x3Fe65692bfCD0e6CF84cB1E7d24108E434A7587e")
+        
+        mydict["crvsquared_rewards"], constants = convex_examiner.regx_getvalue(myarray, w3, "crvsquared_rewards", constants, poolid=41)
+        try:
+            boop = load_contract("0x9D0464996170c6B9e75eED71c68B99dDEDf279e8", w3).get_balances().call() 
+            mydict["crvsquared_balances"] = boop[0]/(boop[0]+boop[1])
+        except Exception:
+            mydict["crvsquared_balances"] = 0
 
-        #mydict["trix_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "trix_rewards", "0x9D5C5E364D81DaB193b72db9E9BE9D8ee669B652")
-        #mydict["mimx_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "mimx_rewards", "0xC62DE533ea77D46f3172516aB6b1000dAf577E89")
-        #mydict["crveth_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "crveth_rewards", "0x085A2054c51eA5c91dbF7f90d65e728c0f2A270f")
-        #mydict["crveth_virt"] = convex_examiner.virt_grabber(myarray, w3, "crveth_virt", "0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511")
+        mydict["cvxeth_rewards"] = myarray[-1]["cvxeth_rewards"] #, constants = convex_examiner.regx_getvalue(myarray, w3, "cvxeth_rewards", constants, poolid=64)
+        mydict["spelleth_rewards"] = myarray[-1]["spelleth_rewards"] #, constants = convex_examiner.regx_getvalue(myarray, w3, "spelleth_rewards", constants, poolid=66)
+        mydict["fxslocked_rewards"], constants = convex_examiner.regx_getvalue(myarray, w3, "fxslocked_rewards", constants, poolid=72)
+        try:
+            mydict["fxslocked_oracle"] = load_contract("0xd658A338613198204DCa1143Ac3F01A722b5d94A", w3).price_oracle().call() / 10**18
+        except Exception:
+            mydict["fxslocked_oracle"] = 0
+        mydict["concentrator_cvxeth_rewards"], constants = convex_examiner.regx_getvalue(myarray, w3, "cvxeth_rewards", constants, poolid=64, wallet_address="0x3Cf54F3A1969be9916DAD548f3C084331C4450b5")
+        mydict["concentrator_rewards_CTR"], mydict["concentrator_virt"], mydict["concentrator_x2e_virt"], mydict["concentrator_ve_current"], mydict["concentrator_ve_locked"],\
+        mydict["concentrator_air_claimable"], mydict["concentrator_air_locked"] = convex_examiner.concentrator_getvalues(myarray, w3)
 
-        mydict["spelleth_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "spelleth_rewards", poolid=66)
-        mydict["spelleth_virt"] = mydict["spelleth_rewards"][4]
+        mydict["abra_spelleth"], constants = convex_examiner.abracadabra_getvalue(myarray, w3, "abra_spelleth", "0xF43480afE9863da4AcBD4419A47D9Cc7d25A647F", constants,0)
+        #mydict["stakedao_crvstaked"] = convex_examiner.stakedao_getvalue(myarray, w3, "stakedao_crvstaked", "0x7f50786A0b15723D741727882ee99a0BF34e3466",0)
 
-        mydict["cvxeth_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "cvxeth_rewards", poolid=64)
-        mydict["cvxeth_extracvx"] = mydict["cvxeth_rewards"][3][0]['amount']
-        mydict["cvxeth_virt"] = mydict["cvxeth_rewards"][4]
-
-        mydict["crvsquared_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "crvsquared_rewards", poolid=41)
-        mydict["crvsquared_extracvx"] = mydict["crvsquared_rewards"][3][0]['amount']
-        mydict["crvsquared_virt"] = mydict["crvsquared_rewards"][4]
-
-        mydict["fxslocked_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "fxslocked_rewards", poolid=72)
-        mydict["fxslocked_extracvx"] = mydict["fxslocked_rewards"][3][0]['amount']
-        mydict["fxslocked_extrafxs"] = mydict["fxslocked_rewards"][3][1]['amount']
-        mydict["fxslocked_virt"] = mydict["fxslocked_rewards"][4]
-        mydict["fxslocked_oracle"] = convex_examiner.oracle_grabber(myarray, w3, "fxslocked_oracle", "0xd658A338613198204DCa1143Ac3F01A722b5d94A")
-
-        mydict["concentrator_cvxeth_rewards"] = convex_examiner.regx_getvalue(myarray, w3, "cvxeth_rewards", poolid=64, wallet_address="0x3Cf54F3A1969be9916DAD548f3C084331C4450b5")
-        mydict["concentrator_cvxeth_extracvx"] = mydict["concentrator_cvxeth_rewards"][3][0]['amount']
-
-        acrv = load_contract("0x2b95A1Dcc3D405535f9ed33c219ab38E8d7e0884",w3,"0x160D6e417bE17E21712F004B87872a30799Cb78f")
-        mydict["concentrator_virt"] = acrv.totalUnderlying().call() / acrv.totalSupply().call()
-        concentrator = load_contract("0x3Cf54F3A1969be9916DAD548f3C084331C4450b5",w3,"0x99373AE646ed89b9A466c4256b09b10dbCC07B40")
-        mydict["concentrator_rewards_CTR"] = concentrator.pendingCTR(5,"0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B").call()/10**18
-        mydict["concentrator_totalmined"] = concentrator.ctrMined().call()/10**18
-
+        if mydict["concentrator_rewards_CTR"] > myarray[-1]["concentrator_rewards_CTR"]:
+            print("")
 #Keep one hour worth of data in hourly log
         myarray.append(mydict)
         while len(myarray) > 61:
             del myarray[0]
-#update information on screen and pi hats when possible
-        dollar_amount, mainpercentdisplay,crv_daily,cvx_daily = status_line_printer.print_status_line(carray, myarray, myarrayh, 0 - len(myarray), w3, args.Hourslookback)
-        if args.Outputtohats:
-            try:
-                curve_hats_update(mainpercentdisplay, carray["booststatus"], mydict["ETH"])
-            except Exception:
-                pass
 #Output dictionary to minute file
         if not args.Readonly:
             shutil.copyfile(file_name, f"{file_name}.bak")
-            json.dump(myarray, open(file_name, "w"), indent=4)
-            pyportal_update(mydict, mainpercentdisplay, dollar_amount,crv_daily,cvx_daily)
+            json.dump(myarray, open(file_name, "w"), indent=4)            
 #Output dictionary to hour file on the top of each hour
         if minut == "00" and mydict["claim"] > 1:
             myarrayh.append(mydict)
             if not args.Readonly:
                 shutil.copyfile(file_nameh, f"{file_nameh}.bak")
                 json.dump(myarrayh, open(file_nameh, "w"), indent=4)
+#update information on screen and pi hats when possible
+        dollar_amount, mainpercentdisplay,crv_daily,cvx_daily = status_line_printer.print_status_line(carray, myarray, myarrayh, 0 - len(myarray), w3, args.Hourslookback)
+        pyportal_update(mydict, mainpercentdisplay, dollar_amount,crv_daily,cvx_daily)
+        if args.Outputtohats:
+            try:
+                curve_hats_update(mainpercentdisplay, carray["booststatus"], mydict["ETH"])
+            except Exception:
+                pass
 
 if __name__ == "__main__":
     main()

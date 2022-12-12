@@ -35,6 +35,7 @@ def find_epochs(targetperson,printit):
     epochsdict = []
     wasinvested = 0
     totalprofit = 0
+    boo = 0
     with open(file_nameh, 'r') as openfile:
         myarrayh = json.load(openfile)
 
@@ -46,6 +47,7 @@ def find_epochs(targetperson,printit):
             amount_generated = round(myarrayh[x]["claim"] - myarrayh[wasinvested]["claim"],2)
             totalprofit += amount_generated
             da = round((myarrayh[newinvestment]["raw_time"]-myarrayh[wasinvested]["raw_time"]) / (60*60*24),1)
+            boo += da
             if printit:
                 print(usym+str(myarrayh[newinvestment-1]["invested"]).rjust(5)+Style.RESET_ALL, end='(')
                 print(str(format((myarrayh[newinvestment-0]["invested"]-myarrayh[newinvestment-1]["invested"]),'+.0f')).rjust(6), end=') - ')
@@ -82,6 +84,7 @@ def find_epochs(targetperson,printit):
             profitdict["rest"] = round(profitdict["rest"] - profitdict[key],2)
 
     profitdict["all"] = totalprofit+myarrayh[0]["claim"]
+    print(boo,"days total")
     return epochsdict, profitdict
 
 if __name__ == "__main__":

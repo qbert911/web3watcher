@@ -5,13 +5,17 @@ import json
 import os.path
 from etherscan.contracts import Contract #py_etherscan_api
 
-def load_contract(_contract, _eth_connect,abi_address="",lp_abi=False,minter_abi=False):
+def load_contract(_contract, _eth_connect,abi_address='',lp_abi=False,minter_abi=False,stakedao_abi=False):
     # sourcery skip: move-assign
     abi_contract = _contract
-    if lp_abi:
+    if _contract == "0x9D0464996170c6B9e75eED71c68B99dDEDf279e8":  #HACK for weird crv/cvxcrv pool proxy
+        abi_contract = "0x4a4d7868390ef5cac51cda262888f34bd3025c3f"
+    elif lp_abi:
         abi_contract = "0x98638FAcf9a3865cd033F36548713183f6996122"
     elif minter_abi:
         abi_contract = "0x8282BD15dcA2EA2bDf24163E8f2781B30C43A2ef" 
+    elif stakedao_abi:
+        abi_contract = "0x2717c6A0029d63E90eB12283507E06BF77A9754d"     
     if str(abi_address) != "":
         abi_contract = abi_address
 
@@ -29,14 +33,3 @@ def load_contract(_contract, _eth_connect,abi_address="",lp_abi=False,minter_abi
         _this_abi = json.load(open(file_name, 'r'))
 
     return _eth_connect.eth.contract(_contract, abi=_this_abi).functions
-
-def call_me(function,expecting_list=False):
-    """input filtering"""
-    x = function.call()
-    if isinstance(x, list):
-        if not expecting_list:
-            print("\n unexpected list found when calling: ",function,x)
-        x = x[0]
-    if 0 < x < 10000:
-        print("\n odd output when calling "+str(function),x)
-    return x

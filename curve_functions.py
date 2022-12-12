@@ -4,9 +4,20 @@
 import time
 import json
 from colorama import Fore, Style
-from tools.load_contract import load_contract, call_me
+from tools.load_contract import load_contract
 
 MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
+
+def call_me(function,expecting_list=False):
+    """input filtering"""
+    x = function.call()
+    if isinstance(x, list):
+        if not expecting_list:
+            print("\n unexpected list found when calling: ",function,x)
+        x = x[0]
+    if 0 < x < 10000:
+        print("\n odd output when calling "+str(function),x)
+    return x
 
 def load_curvepools_fromjson(myarray,barray,w3):
     """prepare iteratable array from json file"""

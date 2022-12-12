@@ -31,7 +31,7 @@ def abracadabra_getvalue(myarray, w3, fallback, pool_id, printit=0):
             print(owned_spell,"spell owned")
             print(owned_eth,"eth owned\n")
 
-        return [owned_spell, owned_eth, rewards_waiting]
+        return [owned_eth, owned_spell, rewards_waiting]
     except Exception:
         print("abracadabra update error")
         return myarray[-1][fallback]
@@ -44,9 +44,9 @@ def main():
     ETH = get_chainlink_price('0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419',infura_w3)
 
     print(mydict["abra_spelleth"])
-    print(f"{mydict['abra_spelleth'][0]*SPELL + mydict['abra_spelleth'][1]*ETH:.2f} stack worth")
+    print(f"{mydict['abra_spelleth'][1]*SPELL + mydict['abra_spelleth'][0]*ETH:.2f} stack worth")
     print(f"\n{mydict['abra_spelleth'][2]:.2f} Spell earned")
-    print(f"{mydict['abra_spelleth'][2]*SPELL:.2f} Dollars earned")
+    print(f"{mydict['abra_spelleth'][2]*SPELL:.2f} Dollars earned",end='')
 
 if __name__ == "__main__":
     main()

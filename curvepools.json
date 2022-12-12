@@ -10,7 +10,8 @@
     "gaugeaddress":"0xDeFd8FdD20e0f34115C7018CCfb655796F6B2168",
     "swapaddress":"0xD51a44d3FaE010294C616388b506AcdA1bfAAE46",
     "tokenaddress":"0xc4AD29ba4B3c580e6D59105FFf484999997675Ff",
-    "token_value_modifyer":1229
+    "token_value_modifyer":1229,
+    "above is  DEPRICATED":"this formerly manually set the tripool token price"
   },
   {
     "longname": "tRicryptoOLD",  "invested": 0, "currentboost": 0,       "name": "Q",
