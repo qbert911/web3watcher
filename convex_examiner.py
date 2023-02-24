@@ -4,7 +4,7 @@
 from web3 import Web3
 from tools.load_contract import load_contract
 
-CVX_fraction_factor = [0.042] #HACK
+CVX_fraction_factor = [0.028] #HACK
 
 MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
 #cvx_token = load_contract("0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B",infura_w3)#cvx token to calculate ratio, cliff etc
@@ -12,12 +12,13 @@ MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B"
 
 def crvstaked_getvalue(myarray, w3, pool_id, printit=0):
     cvxcrv_crv = load_contract(pool_id,w3)#convexCRV staking crv rewards
-    cvxcrv_3pool = load_contract("0x7091dbb7fcbA54569eF1387Ac89Eb2a5C9F6d2EA",w3)#convexCRV staking 3pool rewards
     try:
-        invested = round(cvxcrv_3pool.balanceOf(MY_WALLET_ADDRESS).call()/10**18)
-        tpool_earned = cvxcrv_3pool.earned(MY_WALLET_ADDRESS).call()/10**18
-        crv_earned = cvxcrv_crv.earned(MY_WALLET_ADDRESS).call()/10**18
-        cvx_earned = crv_earned * CVX_fraction_factor[0]
+        invested = round(cvxcrv_crv.balanceOf(MY_WALLET_ADDRESS).call()/10**18)
+        raw_rewards = cvxcrv_crv.earned(MY_WALLET_ADDRESS).call()
+        crv_earned = raw_rewards[0][1]/10**18
+        cvx_earned = raw_rewards[1][1]/10**18
+        tpool_earned = raw_rewards[2][1]/10**18
+
         if printit:
             print(f"  CRV: {crv_earned}")
             print(f"  CVX: {cvx_earned}")
@@ -51,7 +52,7 @@ def call_constant(constants, label, function):
         #print("adding",label,x)
     return x,constants
 
-def regx_getvalue(myarray, w3, fallback, constants, printit=0, wallet_address = MY_WALLET_ADDRESS, poolid = 0):
+def regx_getvalue(myarray, w3, fallback, constants, printit=0, wallet_address = MY_WALLET_ADDRESS, poolid = 0,mypoolportion = 1):
     main_contract = load_contract("0xF403C135812408BFbE8713b5A23a04b3D48AAE31",w3)
     poolinfo_addresses_array, constants = call_constant(constants,f"p{poolid}",main_contract.poolInfo(poolid)) #load a single pools' addresses from the main convex contract
     regx_crv = load_contract(poolinfo_addresses_array[3], w3)#convex tripool crv rewards
@@ -75,13 +76,13 @@ def regx_getvalue(myarray, w3, fallback, constants, printit=0, wallet_address = 
             reward_contract, constants = call_constant(constants,f"er{i}  {poolinfo_addresses_array[3]}", regx_crv.extraRewards(i))
             reward_token, constants = call_constant(constants,f"er{i}t {poolinfo_addresses_array[3]}",load_contract(reward_contract, w3).rewardToken())
             token_name, constants = call_constant(constants,f"er{i}tn{poolinfo_addresses_array[3]}", load_contract(reward_token,w3).symbol())
-            extra_dict = {'amount': load_contract(reward_contract, w3).earned(wallet_address).call() / 10**18,
+            extra_dict = {'amount': mypoolportion * load_contract(reward_contract, w3).earned(wallet_address).call() / 10**18,
                           'name' : token_name}
             extra_list.append(extra_dict)
         if printit:
             print(f"  CRV: {crv_earned}")
             print(f"  CVX: {cvx_earned}")
-        return [invested, crv_earned, cvx_earned, extra_list, virtprice], constants
+        return [invested*mypoolportion, crv_earned*mypoolportion, cvx_earned*mypoolportion, extra_list, virtprice], constants
     except Exception:
         print("\nupdate regx exception")
         return myarray[-1][fallback], constants
@@ -127,7 +128,7 @@ def stakedao_getvalue(myarray, w3, fallback, pool_id, printit=0):
 
 def concentrator_getvalues(myarray, w3):
 
-    try:        
+     
         concentrator = load_contract("0x3Cf54F3A1969be9916DAD548f3C084331C4450b5",w3,"0x99373AE646ed89b9A466c4256b09b10dbCC07B40")
         concentrator_rewards_CTR = concentrator.pendingRewardAll(MY_WALLET_ADDRESS).call()/10**18
         concentrator_x2e_virt = concentrator.getTotalUnderlying(5).call() / concentrator.getTotalShare(5).call()
@@ -138,35 +139,20 @@ def concentrator_getvalues(myarray, w3):
         ve_concentrator = load_contract("0xe4C09928d834cd58D233CD77B5af3545484B4968",w3)
         ve_current = ve_concentrator.balanceOf(MY_WALLET_ADDRESS).call()/10**18
         ve_locked = myarray[-1]["concentrator_ve_locked"] #ve_concentrator.locked(MY_WALLET_ADDRESS).call()[0]/10**18
+  
+        ve_rewards_contract = load_contract("0xA5D9358c60fC9Bd2b508eDa17c78C67A43A4458C", w3)
+        ve_rewards = ve_rewards_contract.claim(MY_WALLET_ADDRESS).call() /10**18
 
-        air_concentrator = load_contract("0x8341889905BdEF85b87cb7644A93F7a482F28742",w3)
-        air_claimable = air_concentrator.vested(MY_WALLET_ADDRESS).call()/10**18
-        air_locked = air_concentrator.locked(MY_WALLET_ADDRESS).call()/10**18
+        #air_concentrator = load_contract("0x8341889905BdEF85b87cb7644A93F7a482F28742",w3)
+        #air_claimable = (air_concentrator.vested(MY_WALLET_ADDRESS).call()/10**18)-2330 #hack
+        #air_locked = air_concentrator.locked(MY_WALLET_ADDRESS).call()/10**18
 
-        return concentrator_rewards_CTR, concentrator_virt, concentrator_x2e_virt, ve_current, ve_locked, air_claimable, air_locked
-    except Exception:
-        print("\nconcentrator update error\n")
-        return myarray[-1]["concentrator_rewards_CTR"], myarray[-1]["concentrator_virt"], myarray[-1]["concentrator_x2e_virt"],myarray[-1]["concentrator_ve_current"], myarray[-1]["concentrator_ve_locked"],\
-               myarray[-1]["concentrator_air_claimable"], myarray[-1]["concentrator_air_locked"]
+        return concentrator_rewards_CTR, concentrator_virt, concentrator_x2e_virt, ve_current, ve_locked, ve_rewards #, air_claimable, air_locked
 
 if __name__ == "__main__":
     INFURA_ID = "1d651358519346beb661128bf65ab651"
     infura_w3 = Web3(Web3.HTTPProvider(f'https://mainnet.infura.io/v3/{INFURA_ID}'))
-    a = crvstaked_getvalue(None, infura_w3, "0x3Fe65692bfCD0e6CF84cB1E7d24108E434A7587e", True)
-    print(a,"\n\n")
-    a = regx_getvalue(None, infura_w3, "trix_rewards", "0x9D5C5E364D81DaB193b72db9E9BE9D8ee669B652", True)
-    print(a,"\n\n")
-    a = regx_getvalue(None, infura_w3, "mimx_rewards", "0xC62DE533ea77D46f3172516aB6b1000dAf577E89", True)
-    print(a,"\n\n")
-    a = regx_getvalue(None, infura_w3, "crveth_rewards", "0x085A2054c51eA5c91dbF7f90d65e728c0f2A270f", True)
-    print(a,"\n\n")
-    a = regx_getvalue(None, infura_w3, "cvxeth_rewards", "0xb1Fb0BA0676A1fFA83882c7F4805408bA232C1fA",1, True)
-    print(a,"\n\n")
-    a = regx_getvalue(None, infura_w3, "spelleth_rewards", "0xb2f0bB6352417c1Bf017862aC165E67623611aF3", True)
-    print(a,"\n\n")
-    a = regx_getvalue(None, infura_w3, "fxslocked_rewards", "0xf27AFAD0142393e4b3E5510aBc5fe3743Ad669Cb", True)
+    a = crvstaked_getvalue(None, infura_w3, "0xaa0C3f5F7DFD688C6E646F66CD2a6B66ACdbE434", True)
     print(a,"\n\n")
     a = cvxlocked_getvalue(None, infura_w3, "0x72a19342e8F1838460eBFCCEf09F6585e32db86E", True)
-    print(a,"\n\n")
-    a = regx_getvalue(None, infura_w3, "cvxeth_rewards", "0xb1Fb0BA0676A1fFA83882c7F4805408bA232C1fA",0, True)
     print(a,"\n\n")

@@ -46,7 +46,36 @@ def main():
     print(mydict["abra_spelleth"])
     print(f"{mydict['abra_spelleth'][1]*SPELL + mydict['abra_spelleth'][0]*ETH:.2f} stack worth")
     print(f"\n{mydict['abra_spelleth'][2]:.2f} Spell earned")
-    print(f"{mydict['abra_spelleth'][2]*SPELL:.2f} Dollars earned",end='')
+    print(f"{mydict['abra_spelleth'][2]*SPELL:.2f} Dollars earned")
+
+    #crv staking wrapper testing
+    contract = load_contract("0xaa0C3f5F7DFD688C6E646F66CD2a6B66ACdbE434", infura_w3)
+    x=contract.earned(MY_WALLET_ADDRESS).call() 
+    print(x)
+    x=contract.balanceOf(MY_WALLET_ADDRESS).call() 
+    print(x)
+
+    #cnc staking testing
+    contract = load_contract("0xC67e9Cdf599369130DD0841Ee5CB8eBF9BB661C4", infura_w3)
+    x=contract.claimableRewards(MY_WALLET_ADDRESS).call() 
+    print(x)
+    x=contract.balances(MY_WALLET_ADDRESS).call() 
+    print(x)
+    x=contract.claimRewards().call() 
+    print(x)
+
+    #abccvx staking testing
+    contract = load_contract("0xc5022291cA8281745d173bB855DCd34dda67F2f0", infura_w3)
+    x=contract.claimable_tokens(MY_WALLET_ADDRESS).call() 
+    print(x)
+    x=contract.balanceOf(MY_WALLET_ADDRESS).call() 
+    print(x)
+
+    #ctr locked testing
+    contract = load_contract("0xA5D9358c60fC9Bd2b508eDa17c78C67A43A4458C", infura_w3)
+    x=contract.claim(MY_WALLET_ADDRESS).call() 
+    print("\n",x)
+
 
 if __name__ == "__main__":
     main()

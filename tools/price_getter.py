@@ -45,4 +45,5 @@ def update_price2(coin_type, print_symbola='', print_symbolb='',fallback=-1):
     return USD
 
 if __name__ == "__main__":
-    print(update_price2("curve-dao-token",'▸','▹',0))
+    print(update_price("clever-cvx",'▸','▹',0))
+    print(update_price("conic-finance",'▹','▸',0))

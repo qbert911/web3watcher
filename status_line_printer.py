@@ -31,7 +31,7 @@ def show_convex(myarray, eoa, extramins, name, label, extrapools, token_value,sh
     subtotal=round(tprofit/((myarray[eoa][name][0]+.000000001)*pricefactor[1])*100, 2)
     if showdetails:
         print(Fore.RED+Style.BRIGHT+label+Style.RESET_ALL+str(format(subtotal, '5.2f')).rjust(5), end=' ')
-        print(Style.DIM+"\b{"+buffer+"}"+Style.RESET_ALL, end=' ')
+        #print(Style.DIM+"\b{"+buffer+"}"+Style.RESET_ALL, end=' ')
     else:
         print(str(format(subtotal, '2.0f')).rjust(2)+"%", end=' ')
 
@@ -73,7 +73,7 @@ def show_convex2(myarray, eoa, extramins, name, label, extrapools, token_value,m
 
     if showdetails:
         print(Fore.RED+Style.BRIGHT+label+Style.RESET_ALL+str(format(subtotal, '5.2f')).rjust(5)[:5], end=' ')
-        print(Style.DIM+"\b{"+Fore.GREEN+subvirt+Fore.WHITE+buffer+"}"+Style.RESET_ALL, end=' ')
+        #print(Style.DIM+"\b{"+Fore.GREEN+subvirt+Fore.WHITE+buffer+"}"+Style.RESET_ALL, end=' ')
     else:
         print(str(format(subtotal, '2.0f')).rjust(2)+"%", end=' ')
 
@@ -85,11 +85,11 @@ def show_convex2_extrafxs(myarray, eoa, extramins, name, label, extrapools, toke
     buffer=""
     tprofit=0
     #extrafxs
-    thisdiff=(myarray[-1]["fxslocked_rewards"][3][1]['amount']-myarray[eoa]["fxslocked_rewards"][3][1]['amount'])/(60+extramins)*myarray[-1]["FRAX"]*60*24*365
+    thisdiff=(myarray[-1][name][3][1]['amount']-myarray[eoa][name][3][1]['amount'])/(60+extramins)*myarray[-1]["FRAX"]*60*24*365
     buffer+=Fore.RED+"f"+Fore.WHITE
     if thisdiff >= 0:
         tprofit+=thisdiff
-        buffer+=str(format(round((myarray[-1]["fxslocked_rewards"][3][1]['amount']-myarray[eoa]["fxslocked_rewards"][3][1]['amount'])/(60+extramins)*myarray[-1]["FRAX"]*60*24*365/(myarray[eoa][name][0]*pricefactor[extrapools])*100, 2), '.2f')).rjust(5)+""
+        buffer+=str(format(round((myarray[-1][name][3][1]['amount']-myarray[eoa][name][3][1]['amount'])/(60+extramins)*myarray[-1]["FRAX"]*60*24*365/(max(.00000001,myarray[eoa][name][0]*pricefactor[extrapools])*100), 2), '.2f')).rjust(5)+""
     else:
         buffer+="xx.xx"
     #crv and cvx main 
@@ -105,11 +105,11 @@ def show_convex2_extrafxs(myarray, eoa, extramins, name, label, extrapools, toke
         except Exception:
             buffer+="xx.xx"
     #extracvx
-    thisdiff=(myarray[-1]["fxslocked_rewards"][3][0]['amount']-myarray[eoa]["fxslocked_rewards"][3][0]['amount'])/(60+extramins)*myarray[-1]["USDcvx"]*60*24*365
+    thisdiff=(myarray[-1][name][3][0]['amount']-myarray[eoa][name][3][0]['amount'])/(60+extramins)*myarray[-1]["USDcvx"]*60*24*365
     buffer+=Fore.RED+"X"+Fore.WHITE
     if thisdiff >= 0:
         tprofit+=thisdiff
-        buffer+=str(format(round((myarray[-1]["fxslocked_rewards"][3][0]['amount']-myarray[eoa]["fxslocked_rewards"][3][0]['amount'])/(60+extramins)*myarray[-1]["USDcvx"]*60*24*365/(myarray[eoa][name][0]*pricefactor[extrapools])*100, 2), '.2f')).rjust(5)+""
+        buffer+=str(format(round((myarray[-1][name][3][0]['amount']-myarray[eoa][name][3][0]['amount'])/(60+extramins)*myarray[-1]["USDcvx"]*60*24*365/max(.00000001,myarray[eoa][name][0]*pricefactor[extrapools])*100, 2), '.2f')).rjust(5)+""
     else:
         buffer+="xx.xx" 
     
@@ -118,11 +118,12 @@ def show_convex2_extrafxs(myarray, eoa, extramins, name, label, extrapools, toke
         subvirt=str(format(round(tvirt*100, 4), '5.2f')).rjust(5)
     except Exception:
         subvirt="xx.xx"
+        tvirt=1
     subtotal=round( ((tprofit/((myarray[eoa][name][0]+.000000001)*pricefactor[extrapools])) +tvirt)*100, 2)
 
     if showdetails:
         print(Fore.RED+Style.BRIGHT+label+Style.RESET_ALL+str(format(subtotal, '5.2f')).rjust(5), end=' ')
-        print(Style.DIM+"\b{"+Fore.GREEN+subvirt+Fore.WHITE+buffer+"}"+Style.RESET_ALL, end=' ')
+        #print(Style.DIM+"\b{"+Fore.GREEN+subvirt+Fore.WHITE+buffer+"}"+Style.RESET_ALL, end=' ')
     else:
         print(str(format(subtotal, '2.0f')).rjust(2)+"%", end=' ')
 
@@ -161,7 +162,7 @@ def show_convex2_extracvx(myarray, eoa, extramins, name, label, extrapools, toke
 
     if showdetails:
         print(Fore.RED+Style.BRIGHT+label+Style.RESET_ALL+str(format(subtotal, '5.2f')).rjust(5), end=' ')
-        print(Style.DIM+"\b{"+Fore.GREEN+subvirt+Fore.WHITE+buffer+"}"+Style.RESET_ALL, end =' ')
+        #print(Style.DIM+"\b{"+Fore.GREEN+subvirt+Fore.WHITE+buffer+"}"+Style.RESET_ALL, end =' ')
     else:
         print(str(format(subtotal, '2.0f')).rjust(2)+"%", end=' ')
 
@@ -309,11 +310,11 @@ def show_difference(myarray,eoa,myarrayh,lookback):
     #print(format((round(cvxeth_hourly*24*myarray[-1]['USD'], 2)), '.1f').rjust(3)+"/"+Style.RESET_ALL,end="")
     print(format((round(concentrator_hourly_crv*24*myarray[-1]['USD'], 2)), '.2f').rjust(5)+"/"+Style.RESET_ALL,end="") #HACK
     print(format((round(cvxlocked_hourly*24*myarray[-1]['USD'], 12)), '.2f').rjust(2)+"/"+Style.RESET_ALL,end="")
-    print(format((round(fxslocked_hourly*24*myarray[-1]['USD'], 2)), '.1f').rjust(2)+"/"+Style.RESET_ALL,end="")
-    print(format((round((crvstaked_hourly + crvsquared_hourly)*24*myarray[-1]['USD'], 2)), '.0f').rjust(2)+Style.RESET_ALL,end="")
+    print(format((round(fxslocked_hourly*24*myarray[-1]['USD'], 2)), '.2f').rjust(2)+"/"+Style.RESET_ALL,end="")
+    print(format((round((crvstaked_hourly + crvsquared_hourly)*24*myarray[-1]['USD'], 2)), '.2f').rjust(2)+Style.RESET_ALL,end="")
 
     dbuffer=f"{Fore.RED}t{Fore.WHITE}{diff3pool*24/(60+extramins)*60:>.2f}"
-    dbuffer+=f"{Fore.RED}v{Fore.WHITE}{diffcrv*24/(60+extramins)*60:>.2f}"
+    dbuffer+=f"{Fore.RED}v{Fore.WHITE}{diffcrv*24/(60+extramins)*60:>5.2f}"
     dbuffer+=f"{Fore.RED}a{Fore.WHITE}{diffctr*24:>5.2f}"
     dbuffer+=f"{Fore.RED}x{Fore.WHITE}{diffcvx*24/(60+extramins)*60:>.2f}"
 
@@ -329,16 +330,17 @@ def show_difference(myarray,eoa,myarrayh,lookback):
     #print(f"{myarray[-1]['concentrator_totalmined']/1000:.0f}|${dollar_value_total_ctr_earned:.0f}",end=" ")
     
     totalvalue = ((myarray[-1]["cvxeth_rewards"][0]+(211* myarray[-1]["concentrator_x2e_virt"] ))*cvxeth_token_price)+\
-                  (myarray[-1]["spelleth_rewards"][0]*spelleth_token_price)+\
                   (myarray[-1]["fxslocked_rewards"][0]*fxslocked_token_price)+\
                   (myarray[-1]["crvstaked_rewards"][0]*myarray[-1]['USDcvxCRV'])+\
                   (myarray[-1]["crvsquared_rewards"][0]*crvsquared_token_price)+\
                   (myarray[-1]["cvxlocked_rewards"][0]*myarray[-1]['USDcvx'])
-    #print(f"[{totalvalue:.0f}]",end="")
-    #curveclaim_hourly + 
-    daily_dollar_amount = (concentrator_hourly_crv+(spelleth_hourly)+(crvstaked_hourly + cvxlocked_hourly)+cvxeth_hourly+crvsquared_hourly+fxslocked_hourly)*24*myarray[-1]['USD']
+                  #(myarray[-1]['abra_spelleth'][0] * myarray[-1]['ETH'])+(myarray[-1]['abra_spelleth'][1] * myarray[-1]['SPELL'])
+                  #ADD four more?
+ 
+    daily_dollar_amount = (concentrator_hourly_crv + crvstaked_hourly + cvxlocked_hourly +\
+                           crvsquared_hourly+fxslocked_hourly)*24*myarray[-1]['USD']
     mainpercentdisplay = daily_dollar_amount *365/totalvalue *100
-
+    print(f"[{totalvalue:5.0f}/{daily_dollar_amount:2.0f}]",end="")
     return daily_dollar_amount, mainpercentdisplay,diffcrv*24/(60+extramins)*60,diffctr*24
 
 def print_status_line(carray, myarray, myarrayh, eoa, w3, lookback):
@@ -368,20 +370,26 @@ def print_status_line(carray, myarray, myarrayh, eoa, w3, lookback):
     #show_convex2_extracvx(myarray, eoa,extramins,"concentrator_cvxeth_rewards","xX2E", 0, cvxeth_token_price, myarrayh,lookback,"",True,"") #Indicates no third pool and using token_value_modifyer
 
     concentrator_hourly_crv, ctr_unclaimed_current, diffctr, ctr_unclaimed_tvirt = calc_concentrator_hourly(myarray,eoa,extramins,myarrayh,lookback)
-    print(Fore.RED+Style.BRIGHT+"cX2E"+Style.RESET_ALL+Fore.WHITE+f"{(ctr_unclaimed_tvirt+(concentrator_hourly_crv*24*myarray[-1]['USD'] *365/(211* myarray[-1]['concentrator_x2e_virt'] *cvxeth_token_price)))*100:5.2f}",end=" ")
-
-    #CONCENTRATOR_FEE = 1
-    #diffconcvirtw = max(0,myarray[-1]["concentrator_virt"]-myarrayh[-(24*7)-1]["concentrator_virt"])*365/7 *CONCENTRATOR_FEE#* 24/(lookback+float(int(minut)/60))
-    #diffconcvirt5 = max(0,myarray[-1]["concentrator_virt"]-myarrayh[-(24*5)-1]["concentrator_virt"])*365/5 *CONCENTRATOR_FEE#* 24/(lookback+float(int(minut)/60))
-    #diffconcvirt3 = max(0,myarray[-1]["concentrator_virt"]-myarrayh[-(24*14)-1]["concentrator_virt"])*365/14 *CONCENTRATOR_FEE#* 24/(lookback+float(int(minut)/60))
-    #diffconcvirtd = max(0,myarray[-1]["concentrator_virt"]-myarrayh[-(24*1)-1]["concentrator_virt"])*365/1 *CONCENTRATOR_FEE#* 24/(lookback+float(int(minut)/60))
-    #print(f"{Style.DIM}{{{diffconcvirtd * 100:5.2f}/{diffconcvirt3 * 100:5.2f}/{diffconcvirt5 * 100:5.2f}/{diffconcvirtw * 100:5.2f}}}{Style.RESET_ALL}", end=" ")
-
+    print(Fore.RED+Style.BRIGHT+"cX2E"+Style.RESET_ALL+Fore.WHITE+f"{((concentrator_hourly_crv*24*myarray[-1]['USD'] *365/(211* myarray[-1]['concentrator_x2e_virt'] *cvxeth_token_price)))*100:5.2f}",end=" ")
     show_cvxlocked_rewards(myarray, eoa, extramins,True)
-    show_convex2_extrafxs(myarray, eoa,extramins,"fxslocked_rewards","xFXS", 0, fxslocked_token_price,myarrayh,lookback,"",True)
+    show_convex2_extrafxs(myarray, eoa,extramins,"fxslocked_rewards","aFXS", 0, fxslocked_token_price,myarrayh,lookback,"",True)
+
     show_convex2_extracvx(myarray, eoa,extramins,"crvsquared_rewards","xV2V", 0, crvsquared_token_price, myarrayh,lookback,"",True,"") #Indicates no third pool and using token_value_modifyer
-    show_convex(myarray, eoa,extramins,"crvstaked_rewards","xCRV", 1, 1,True) #Indicates having an extra 3pool and not using token_value_modifyer
-    #show crv / cvxcrv price differential
+    show_convex(myarray, eoa,extramins,"crvstaked_rewards","xCRV", 1, myarray[-1]['USDcvxCRV'],True) #Indicates having an extra 3pool and not using token_value_modifyer
+
+    CONCENTRATOR_FEE = 0.95
+    diffconcvirtw = max(0,myarray[-1]["concentrator_virt"]-myarrayh[-(24*7)-1]["concentrator_virt"])*365/7 *CONCENTRATOR_FEE#* 24/(lookback+float(int(minut)/60))
+    diffconcvirt5 = max(0,myarray[-1]["concentrator_virt"]-myarrayh[-(24*5)-1]["concentrator_virt"])*365/5 *CONCENTRATOR_FEE#* 24/(lookback+float(int(minut)/60))
+    diffconcvirt3 = max(0,myarray[-1]["concentrator_virt"]-myarrayh[-(24*3)-1]["concentrator_virt"])*365/3 *CONCENTRATOR_FEE#* 24/(lookback+float(int(minut)/60))
+    diffconcvirtd = max(0,myarray[-1]["concentrator_virt"]-myarrayh[-(24*1)-1]["concentrator_virt"])*365/1 *CONCENTRATOR_FEE#* 24/(lookback+float(int(minut)/60))
+    #print(f"{Fore.RED+Style.BRIGHT}aCRV{Style.RESET_ALL}{Style.DIM}{{{diffconcvirtd * 100:5.2f}/{diffconcvirt3 * 100:5.2f}/{diffconcvirt5 * 100:5.2f}/{diffconcvirtw * 100:5.2f}}}{Style.RESET_ALL}", end=" ")
+    #print(f"{Style.DIM}{diffconcvirtd * 100:5.2f}{Style.RESET_ALL}", end=" ")
+    
+    #ADDDDDDDDDDDDDDDDD AFXSVIRT
+    difffxsvirtd = max(0,myarray[-1]["afxs_virt"]-myarrayh[-(24*1)-1]["afxs_virt"])*365/1 *CONCENTRATOR_FEE#* 24/(lookback+float(int(minut)/60))
+    #print(f"{Fore.RED+Style.BRIGHT}aFXS{Style.RESET_ALL}{Style.DIM}{difffxsvirtd * 100:5.3f}{Style.RESET_ALL}", end=" ")
+
+     #show crv / cvxcrv price differential
     print(f"[{Fore.CYAN}{Style.BRIGHT}{(myarray[-1]['USDcvxCRV'] - myarray[-1]['USD']) / myarray[-1]['USD'] * 100:4.1f}/{myarray[-1]['crvsquared_balances']*100:4.1f}{Style.RESET_ALL}%]", end="")
     #air bubble extra minutes
     if extramins > 0:
@@ -398,8 +406,6 @@ def print_status_line(carray, myarray, myarrayh, eoa, w3, lookback):
         print(Fore.RED+str(round(myarray[-1]["crvstaked_rewards"][0] - myarray[eoa]["crvstaked_rewards"][0]))+Style.RESET_ALL, end='v ')
     if myarray[-1]["cvxlocked_rewards"][0] != myarray[eoa]["cvxlocked_rewards"][0]:
         print(Fore.RED+str(round(myarray[-1]["cvxlocked_rewards"][0] - myarray[eoa]["cvxlocked_rewards"][0]))+Style.RESET_ALL, end='x ')
-    if myarray[-1]["fxslocked_rewards"][0] != myarray[eoa]["fxslocked_rewards"][0]:
-        print(Fore.RED+str(round(myarray[-1]["fxslocked_rewards"][0] - myarray[eoa]["fxslocked_rewards"][0]))+Style.RESET_ALL, end='f ')
     #try:  #check to see if the interface linked on ipfs has changed
     #    if ipfs_hash_value(w3, 'curve.eth', True) != curve_ipfs_current_hash:
     #        print(Fore.RED+Style.BRIGHT+"WW"+Style.RESET_ALL, end=' ')

@@ -8,6 +8,8 @@ import shutil
 import argparse
 import json
 import time
+import random
+import requests
 from web3 import Web3
 from colorama import Fore, Style, init
 from tools.curve_rainbowhat_functions import curve_hats_update
@@ -90,10 +92,12 @@ def pyportal_update(mydict, display_percent, dollar_amount, crv_daily, cvx_daily
 def show_headers(w3):
     #curve_functions.curve_header_display(myarray, carray, w3, args.Fullheader)
     #header_printer.stakedao_header_display(myarray, myarrayh, args.Hourslookback)
-    header_printer.concentrator_locked_header_display(myarray)
     header_printer.curve_header_display2(myarray, carray, w3, args.Fullheader, myarrayh, args.Hourslookback)
     header_printer.abracadabra_header_display(myarray, myarrayh, args.Hourslookback)
-    #header_printer.concentrator_header_display(myarray)
+    header_printer.conic_header_display(myarray, myarrayh, args.Hourslookback)
+    header_printer.clev_header_display(myarray,myarrayh,args.Hourslookback)
+    header_printer.concentrator_locked_header_display(myarray,myarrayh,args.Hourslookback)
+    header_printer.concentrator_header_display(myarray,myarrayh,args.Hourslookback)
     header_printer.convex_header_display(myarray, myarrayh, args.Hourslookback)
     header_printer.combined_stats_display(myarray, carray, w3)
     threading.Thread(target=key_capture_thread, args=(), name='key_capture_thread', daemon=True).start()
@@ -118,17 +122,30 @@ def gas_and_sleep(w3, mydict):
     mydict["USD3pool"] = 1.021
 
     #mydict["USD"] = get_chainlink_price('0xCd627aA160A6fA45Eb793D19Ef54f5062F20f33f',w3)
-    mydict["SDT"] = myarray[-1]["SDT"] #update_price("stake-dao",'▹','▸',myarray[-1]["SDT"])
     mydict["USD"] = update_price("curve-dao-token",'▹','▸',myarray[-1]["USD"])
-
     mydict["USDcvxCRV"] = update_price("convex-crv",'▹','▸',myarray[-1]["USDcvxCRV"])
-    mydict["CTR"] = update_price("concentrator",'▹','▸',myarray[-1]["CTR"])
+
+    mydict["CTR"] = myarray[-1]["CTR"]
+    mydict["USDcvxCLEV"] = myarray[-1]["USDcvxCLEV"]
+    mydict["CLEV"] = myarray[-1]["CLEV"]
+    mydict["CNC"] = myarray[-1]["CNC"]
+
+    if random.getrandbits(1):
+        mydict["CTR"] = update_price("concentrator",'▹','1',myarray[-1]["CTR"])
+    elif random.getrandbits(1):
+        mydict["CNC"] = update_price("conic-finance",'▹','2',myarray[-1]["CNC"])
+    elif random.getrandbits(1):
+        mydict["CLEV"] = update_price("clever-token",'▹','3',myarray[-1]["CLEV"])
+    else:
+        mydict["USDcvxCLEV"] = update_price("clever-cvx",'▹','4',myarray[-1]["USDcvxCLEV"]) #abccvx not on cg yet?
+
+
+
     month, day, hour, minut = map(str, time.strftime("%m %d %H %M").split())
     while f"{month}/{day} {hour}:{minut}" == myarray[-1]["human_time"]:#Wait for each minute to pass to run again
         try:
             #print(pass_count,end='', flush=True)
-            print(f"~{round(w3.eth.gasPrice / 10**9)}~"[:5].rjust(5),pass_count, "\b" * 8, end="", flush=True)
-
+            print(f"~{round(w3.eth.gas_price / 10**9)}~"[:5].rjust(5),pass_count, "\b" * 8, end="", flush=True)
         except Exception:
             print(f"~{Fore.RED}{Style.BRIGHT}xxx{Style.RESET_ALL}~", "\b" * 6, end="", flush=True)
         if pass_count == 1 and minut == "00":
@@ -175,29 +192,69 @@ def main():
         curve_functions.update_curve_pools(mydict, carray, myarray, myarrayh, w3)
 
         mydict["cvxlocked_rewards"] = convex_examiner.cvxlocked_getvalue(myarray, w3, "0x72a19342e8F1838460eBFCCEf09F6585e32db86E")
-        mydict["crvstaked_rewards"] = convex_examiner.crvstaked_getvalue(myarray, w3, "0x3Fe65692bfCD0e6CF84cB1E7d24108E434A7587e")
+        mydict["crvstaked_rewards"] = convex_examiner.crvstaked_getvalue(myarray, w3, "0xaa0C3f5F7DFD688C6E646F66CD2a6B66ACdbE434")
         
         mydict["crvsquared_rewards"], constants = convex_examiner.regx_getvalue(myarray, w3, "crvsquared_rewards", constants, poolid=41)
         try:
-            boop = load_contract("0x9D0464996170c6B9e75eED71c68B99dDEDf279e8", w3).get_balances().call() 
-            mydict["crvsquared_balances"] = boop[0]/(boop[0]+boop[1])
+            balances = load_contract("0x9D0464996170c6B9e75eED71c68B99dDEDf279e8", w3).get_balances().call() 
+            mydict["crvsquared_balances"] = balances[0]/(balances[0]+balances[1])
         except Exception:
             mydict["crvsquared_balances"] = 0
 
         mydict["cvxeth_rewards"] = myarray[-1]["cvxeth_rewards"] #, constants = convex_examiner.regx_getvalue(myarray, w3, "cvxeth_rewards", constants, poolid=64)
         mydict["spelleth_rewards"] = myarray[-1]["spelleth_rewards"] #, constants = convex_examiner.regx_getvalue(myarray, w3, "spelleth_rewards", constants, poolid=66)
-        mydict["fxslocked_rewards"], constants = convex_examiner.regx_getvalue(myarray, w3, "fxslocked_rewards", constants, poolid=72)
+        #mydict["fxslocked_rewards"], constants = convex_examiner.regx_getvalue(myarray, w3, "fxslocked_rewards", constants, poolid=72)
+
         try:
             mydict["fxslocked_oracle"] = load_contract("0xd658A338613198204DCa1143Ac3F01A722b5d94A", w3).price_oracle().call() / 10**18
         except Exception:
             mydict["fxslocked_oracle"] = 0
-        mydict["concentrator_cvxeth_rewards"], constants = convex_examiner.regx_getvalue(myarray, w3, "cvxeth_rewards", constants, poolid=64, wallet_address="0x3Cf54F3A1969be9916DAD548f3C084331C4450b5")
-        mydict["concentrator_rewards_CTR"], mydict["concentrator_virt"], mydict["concentrator_x2e_virt"], mydict["concentrator_ve_current"], mydict["concentrator_ve_locked"],\
-        mydict["concentrator_air_claimable"], mydict["concentrator_air_locked"] = convex_examiner.concentrator_getvalues(myarray, w3)
+        mydict["concentrator_cvxeth_rewards"], constants = convex_examiner.regx_getvalue(myarray, w3, "concentrator_cvxeth_rewards", constants, poolid=64, wallet_address="0x3Cf54F3A1969be9916DAD548f3C084331C4450b5")
+        mydict["concentrator_rewards_CTR"], mydict["concentrator_virt"], mydict["concentrator_x2e_virt"], \
+        mydict["concentrator_ve_current"], mydict["concentrator_ve_locked"], mydict["concentrator_ve_claimable"] = convex_examiner.concentrator_getvalues(myarray, w3)
 
         mydict["abra_spelleth"], constants = convex_examiner.abracadabra_getvalue(myarray, w3, "abra_spelleth", "0xF43480afE9863da4AcBD4419A47D9Cc7d25A647F", constants,0)
         #mydict["stakedao_crvstaked"] = convex_examiner.stakedao_getvalue(myarray, w3, "stakedao_crvstaked", "0x7f50786A0b15723D741727882ee99a0BF34e3466",0)
 
+
+        MY_WALLET_ADDRESS = "0x8D82Fef0d77d79e5231AE7BFcFeBA2bAcF127E2B" #hacky
+        try:
+            contract = load_contract("0xC67e9Cdf599369130DD0841Ee5CB8eBF9BB661C4", w3)
+            mydict["cnceth_balance"] = contract.balances(MY_WALLET_ADDRESS).call() / 10**18
+            mydict["cnceth_rewards"] = contract.claimableRewards(MY_WALLET_ADDRESS).call() / 10**18
+        except Exception:
+            mydict["cnceth_balance"] = 0
+            mydict["cnceth_rewards"] = 0
+
+        mydict["cnceth_concentrator_rewards"], constants = convex_examiner.regx_getvalue(myarray, w3, "crvsquared_rewards", constants, poolid=152)
+
+        try:
+            contract = load_contract("0x5BC3dD6E6b4E5DD811d558843DA6A1bfBB9c9dCa", w3)
+            mydict["ctreth_balance"] = contract.balanceOf(MY_WALLET_ADDRESS).call() / 10**18
+            mydict["ctreth_rewards"] = contract.claimable_reward(MY_WALLET_ADDRESS,"0x2b95A1Dcc3D405535f9ed33c219ab38E8d7e0884").call() / 10**18
+        except Exception:
+            mydict["ctreth_balance"] = 0
+            mydict["ctr_rewards"] = 0
+
+        try:
+            contract = load_contract("0xc5022291cA8281745d173bB855DCd34dda67F2f0", infura_w3)
+            mydict["abcCVX_balance"] = contract.balanceOf(MY_WALLET_ADDRESS).call()  / 10**18
+            mydict["abcCVX_rewards"] = contract.claimable_tokens(MY_WALLET_ADDRESS).call()  / 10**18
+            a = requests.get("https://api.curve.fi/api/getPools/ethereum/factory",timeout=20)
+            mydict["abcCVX_baseapy"] = a.json()['data']['poolData'][209]['gaugeCrvApy'][0]*1.82 #this grabs the lower end apy value from factory pool 209 clevCVX-f
+        except Exception:
+            mydict["abcCVX_balance"] = 0
+            mydict["abcCVX_rewards"] = 0
+            mydict["abcCVX_baseapy"] = 0
+
+        contract = load_contract("0xDAF03D70Fe637b91bA6E521A32E1Fb39256d3EC9", w3,abi_address="0xeb5EB007Ab39e9831a1921E8116Bc353AFE5BA2C")
+        mydict["afxs_balance"] = contract.balanceOf(MY_WALLET_ADDRESS).call() / 10**18
+        mydict["afxs_totalsupply"] = contract.totalSupply().call() / 10**18
+        mydict["afxs_virt"] = float(contract.totalAssets().call() / (mydict["afxs_totalsupply"] * 10**18))
+        mydict["fxslocked_rewards"], constants = convex_examiner.regx_getvalue(myarray, w3, "fxslocked_rewards", constants, poolid=72, wallet_address="0xDAF03D70Fe637b91bA6E521A32E1Fb39256d3EC9",mypoolportion=mydict["afxs_balance"]/mydict["afxs_totalsupply"])
+
+
+        #when cvx/eth harvests to acrv pile ...
         if mydict["concentrator_rewards_CTR"] > myarray[-1]["concentrator_rewards_CTR"]:
             print("")
 #Keep one hour worth of data in hourly log
